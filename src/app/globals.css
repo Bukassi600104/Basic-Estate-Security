@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-slate-950 antialiased;
+}
+
+/* subtle, non-generic defaults */
+::selection {
+  @apply bg-blue-600 text-white;
+}

@@ -1,0 +1,160 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type EstateStatus = "ACTIVE" | "SUSPENDED" | "TERMINATED";
+
+type Estate = {
+  id: string;
+  name: string;
+  address: string | null;
+  status: EstateStatus;
+};
+
+export default function EstateSettingsPage() {
+  const [estate, setEstate] = useState<Estate | null>(null);
+  const [address, setAddress] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/estate-admin/estate");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Failed to load estate");
+      setEstate(data.estate);
+      setAddress(data.estate?.address ?? "");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load estate");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function save(partial: Partial<{ status: EstateStatus; address: string }>) {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/estate-admin/estate", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(partial),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Failed to update estate");
+      setEstate(data.estate);
+      setAddress(data.estate?.address ?? "");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update estate");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-6">
+      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-xl font-extrabold tracking-tight text-slate-900">Settings</h1>
+          <p className="text-sm text-slate-600">Manage estate status and basic details.</p>
+        </div>
+
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+            {error}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="mt-6 text-sm text-slate-600">Loading…</div>
+        ) : estate ? (
+          <div className="mt-6 grid gap-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="text-sm font-semibold text-slate-900">Estate</div>
+              <div className="mt-2 text-sm text-slate-700">
+                <div>
+                  <span className="font-semibold">Name:</span> {estate.name}
+                </div>
+                <div className="mt-1">
+                  <span className="font-semibold">Status:</span> {estate.status}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="text-sm font-semibold text-slate-900">Address</div>
+              <div className="mt-3 flex flex-col gap-3 md:flex-row">
+                <input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Estate address"
+                  className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none ring-blue-600/20 focus:ring-4"
+                />
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => save({ address })}
+                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="text-sm font-semibold text-slate-900">Estate status</div>
+              <p className="mt-1 text-sm text-slate-600">
+                Suspended estates block all Telegram actions. Terminated is permanent.
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {estate.status !== "ACTIVE" ? (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => save({ status: "ACTIVE" })}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 text-xs font-extrabold text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
+                  >
+                    Reactivate
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => save({ status: "SUSPENDED" })}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 text-xs font-extrabold text-rose-800 hover:bg-rose-100 disabled:opacity-60"
+                  >
+                    Suspend
+                  </button>
+                )}
+
+                {estate.status !== "TERMINATED" ? (
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => {
+                      if (!confirm("Terminate estate? This blocks all access permanently.")) return;
+                      save({ status: "TERMINATED" });
+                    }}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+                  >
+                    Terminate
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 text-sm text-slate-600">Estate not found.</div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,129 @@
+name: Deploy (AWS ECS + RDS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag (e.g. prod, sha, v1)"
+        required: true
+        default: "prod"
+      desired_count:
+        description: "ECS desired task count"
+        required: true
+        default: "1"
+      run_migrations:
+        description: "Run Prisma migrate deploy via ECS run-task"
+        required: true
+        default: "true"
+      run_seed:
+        description: "Run seed via ECS run-task (optional env must be set)"
+        required: true
+        default: "true"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: eu-north-1
+  PROJECT_NAME: basic-security
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Compute image URI
+        id: img
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
+          echo "image_uri=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}:${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+
+      - name: Build and push image
+        run: |
+          docker build -t "${{ steps.img.outputs.image_uri }}" .
+          docker push "${{ steps.img.outputs.image_uri }}"
+
+      - name: Terraform init
+        working-directory: infra
+        run: |
+          cat > backend.hcl <<'EOF'
+          bucket         = "${TF_STATE_BUCKET}"
+          key            = "${TF_STATE_KEY}"
+          region         = "${AWS_REGION}"
+          dynamodb_table = "${TF_STATE_DDB_TABLE}"
+          encrypt        = true
+          EOF
+          terraform init -backend-config=backend.hcl
+
+        env:
+          TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+          TF_STATE_DDB_TABLE: ${{ secrets.TF_STATE_DDB_TABLE }}
+          TF_STATE_KEY: ${{ secrets.TF_STATE_KEY || 'basic-security/terraform.tfstate' }}
+
+      - name: Terraform apply
+        working-directory: infra
+        env:
+          TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
+          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
+          TF_VAR_telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TF_VAR_telegram_webhook_secret: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          TF_VAR_desired_count: ${{ inputs.desired_count }}
+          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+        run: |
+          terraform apply -auto-approve
+
+      - name: Fetch Terraform outputs
+        id: tf
+        working-directory: infra
+        run: |
+          jq --version
+          echo "cluster_name=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
+          echo "task_def_arn=$(terraform output -raw ecs_task_definition_arn)" >> $GITHUB_OUTPUT
+          echo "sg_id=$(terraform output -raw ecs_security_group_id)" >> $GITHUB_OUTPUT
+          SUBNETS=$(terraform output -json public_subnet_ids | jq -r '.[]' | paste -sd ',' -)
+          echo "subnets=$SUBNETS" >> $GITHUB_OUTPUT
+          echo "cloudfront_domain=$(terraform output -raw cloudfront_domain_name)" >> $GITHUB_OUTPUT
+
+      - name: Run Prisma migrations (ECS one-off)
+        if: ${{ inputs.run_migrations == 'true' }}
+        run: |
+          aws ecs run-task \
+            --cluster "${{ steps.tf.outputs.cluster_name }}" \
+            --task-definition "${{ steps.tf.outputs.task_def_arn }}" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.tf.outputs.subnets }}],securityGroups=[${{ steps.tf.outputs.sg_id }}],assignPublicIp=ENABLED}" \
+            --overrides '{"containerOverrides":[{"name":"app","command":["npm","run","db:migrate:deploy"]}]}'
+
+      - name: Run seed (ECS one-off)
+        if: ${{ inputs.run_seed == 'true' }}
+        run: |
+          aws ecs run-task \
+            --cluster "${{ steps.tf.outputs.cluster_name }}" \
+            --task-definition "${{ steps.tf.outputs.task_def_arn }}" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.tf.outputs.subnets }}],securityGroups=[${{ steps.tf.outputs.sg_id }}],assignPublicIp=ENABLED}" \
+            --overrides '{"containerOverrides":[{"name":"app","command":["npm","run","db:seed"]}]}'
+
+      - name: Show public URL + webhook hint
+        run: |
+          echo "CloudFront URL: https://${{ steps.tf.outputs.cloudfront_domain }}/"
+          echo "Telegram webhook: https://${{ steps.tf.outputs.cloudfront_domain }}/api/telegram/webhook"

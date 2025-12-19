@@ -1,0 +1,8 @@
+# Remote state config for Terraform.
+# Copy to backend.hcl and fill in.
+
+bucket         = "REPLACE_ME_TF_STATE_BUCKET"
+key            = "basic-security/terraform.tfstate"
+region         = "eu-north-1"
+dynamodb_table = "REPLACE_ME_TF_LOCK_TABLE"
+encrypt        = true

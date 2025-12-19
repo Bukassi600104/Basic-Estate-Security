@@ -1,0 +1,27 @@
+# Copy to terraform.tfvars and fill in.
+
+project_name    = "basic-security"
+aws_region      = "eu-north-1"
+
+# After creating ECR, build/push your image and set the full image URI here.
+# Example:
+# container_image = "123456789012.dkr.ecr.eu-north-1.amazonaws.com/basic-security:prod"
+container_image = "REPLACE_ME"
+
+# REQUIRED
+auth_jwt_secret = "REPLACE_WITH_LONG_RANDOM_STRING_MIN_20_CHARS"
+
+# Optional (Telegram)
+telegram_bot_token      = ""
+telegram_webhook_secret = ""
+
+# RDS (fresh)
+db_name     = "basic_security"
+db_username = "admin"
+# Leave empty to auto-generate a strong password
+# db_password = ""
+desired_count   = 1
+
+# Tip: for the very first `terraform apply`, consider setting:
+# desired_count = 0
+# until you have pushed an image to ECR and updated `container_image`.

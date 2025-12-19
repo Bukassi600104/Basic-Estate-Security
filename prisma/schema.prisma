@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ESTATE_ADMIN
+  RESIDENT
+  RESIDENT_DELEGATE
+  GUARD
+}
+
+enum EstateStatus {
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum ResidentStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum CodeType {
+  GUEST
+  STAFF
+}
+
+enum CodeStatus {
+  ACTIVE
+  USED
+  REVOKED
+  EXPIRED
+}
+
+enum GuardDecision {
+  ALLOW
+  DENY
+}
+
+enum ValidationOutcome {
+  SUCCESS
+  FAILED
+}
+
+enum ActivityType {
+  ESTATE_CREATED
+  USER_CREATED
+  RESIDENT_CREATED
+  RESIDENT_STATUS_CHANGED
+  RESIDENT_REMOVED
+  CODE_CREATED
+  CODE_RENEWED
+  CODE_REVOKED
+  VALIDATION_RECORDED
+  ESTATE_STATUS_CHANGED
+  GATE_CREATED
+  GATE_REMOVED
+}
+
+model Estate {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  status    EstateStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  residents Resident[]
+  codes     Code[]
+  gates     Gate[]
+  logs      ValidationLog[]
+  activity  ActivityLog[]
+
+  @@index([name])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  estateId     String?
+  role         Role
+  name         String
+  email        String?  @unique
+  phone        String?  @unique
+  telegramUserId String? @unique
+  telegramUsername String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  residentId   String?
+  resident     Resident? @relation(fields: [residentId], references: [id])
+
+  estate       Estate?  @relation(fields: [estateId], references: [id])
+
+  codesCreated Code[]   @relation("CodeCreatedBy")
+  validations  ValidationLog[]
+
+  @@index([estateId])
+  @@index([role])
+}
+
+model Resident {
+  id           String         @id @default(cuid())
+  estateId     String
+  status       ResidentStatus @default(APPROVED)
+  name         String
+  houseNumber  String
+  primaryPhone String
+  email        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  estate       Estate         @relation(fields: [estateId], references: [id])
+  users        User[]
+  codes        Code[]
+
+  @@unique([estateId, primaryPhone])
+  @@unique([estateId, houseNumber])
+  @@index([estateId])
+}
+
+model Code {
+  id            String     @id @default(cuid())
+  estateId      String
+  residentId    String
+  createdById   String
+
+  type          CodeType
+  status        CodeStatus @default(ACTIVE)
+  code          String     @unique
+  expiresAt     DateTime
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastValidatedAt DateTime?
+
+  estate        Estate   @relation(fields: [estateId], references: [id])
+  resident      Resident @relation(fields: [residentId], references: [id])
+  createdBy     User     @relation("CodeCreatedBy", fields: [createdById], references: [id])
+
+  logs          ValidationLog[]
+
+  @@index([estateId])
+  @@index([residentId])
+  @@index([status])
+  @@index([type])
+}
+
+model ValidationLog {
+  id                 String        @id @default(cuid())
+  estateId           String
+  codeId             String?
+  guardUserId        String
+  decision           GuardDecision
+  outcome            ValidationOutcome @default(SUCCESS)
+  failureReason      String?
+  validatedAt        DateTime      @default(now())
+
+  gateId             String?
+  gateName           String?
+
+  // snapshot fields per requirements
+  houseNumber        String?
+  residentName       String?
+  passType           CodeType?
+
+  codeValue          String
+
+  estate             Estate        @relation(fields: [estateId], references: [id])
+  code               Code?         @relation(fields: [codeId], references: [id])
+  guardUser          User          @relation(fields: [guardUserId], references: [id])
+  gate               Gate?         @relation(fields: [gateId], references: [id])
+
+  @@index([estateId, validatedAt])
+  @@index([guardUserId])
+  @@index([gateId])
+}
+
+model Gate {
+  id        String   @id @default(cuid())
+  estateId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  estate    Estate   @relation(fields: [estateId], references: [id])
+  logs      ValidationLog[]
+
+  @@unique([estateId, name])
+  @@index([estateId])
+}
+
+model BotSession {
+  id             String   @id @default(cuid())
+  telegramUserId String   @unique
+  state          String
+  data           Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ActivityLog {
+  id        String       @id @default(cuid())
+  estateId  String
+  type      ActivityType
+  message   String
+  createdAt DateTime     @default(now())
+
+  estate    Estate       @relation(fields: [estateId], references: [id])
+
+  @@index([estateId, createdAt])
+}
