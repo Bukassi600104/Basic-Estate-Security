@@ -271,24 +271,20 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
-      secrets = concat(
-        [
-          {
-            name      = "AUTH_JWT_SECRET",
-            valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:AUTH_JWT_SECRET::"
-          }
-        ],
-        var.telegram_enabled ? [
-          {
-            name      = "TELEGRAM_BOT_TOKEN",
-            valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:TELEGRAM_BOT_TOKEN::"
-          },
-          {
-            name      = "TELEGRAM_WEBHOOK_SECRET",
-            valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:TELEGRAM_WEBHOOK_SECRET::"
-          }
-        ] : []
-      )
+      secrets = [
+        {
+          name      = "AUTH_JWT_SECRET",
+          valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:AUTH_JWT_SECRET::"
+        },
+        {
+          name      = "TELEGRAM_BOT_TOKEN",
+          valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:TELEGRAM_BOT_TOKEN::"
+        },
+        {
+          name      = "TELEGRAM_WEBHOOK_SECRET",
+          valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:TELEGRAM_WEBHOOK_SECRET::"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {

@@ -33,12 +33,6 @@ variable "app_secrets_name" {
   default     = "prod/app-secrets"
 }
 
-variable "telegram_enabled" {
-  type        = bool
-  description = "If true, inject TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET from the JSON secret. If those keys are missing, ECS task startup will fail."
-  default     = false
-}
-
 variable "db_name" {
   type        = string
   description = "RDS database name"
