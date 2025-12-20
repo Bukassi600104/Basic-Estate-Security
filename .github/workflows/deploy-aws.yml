@@ -35,6 +35,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Resolve app secrets name
+        run: |
+          if [ -n "${{ secrets.APP_SECRETS_NAME }}" ]; then
+            echo "APP_SECRETS_NAME=${{ secrets.APP_SECRETS_NAME }}" >> $GITHUB_ENV
+          else
+            echo "APP_SECRETS_NAME=prod/app-secrets" >> $GITHUB_ENV
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -51,8 +59,6 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Preflight: verify required app secrets
-        env:
-          APP_SECRETS_NAME: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
         run: |
           echo "Checking Secrets Manager secret: ${APP_SECRETS_NAME}"
           SECRET_STRING=$(aws secretsmanager get-secret-value --secret-id "${APP_SECRETS_NAME}" --query SecretString --output text)
@@ -73,7 +79,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
-          echo "image_uri=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}:${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
+          echo "image_uri=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}:${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
 
       - name: Terraform init
         working-directory: infra
@@ -99,7 +105,7 @@ jobs:
           TF_VAR_desired_count: 0
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_app_secrets_name: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
+          TF_VAR_app_secrets_name: ${{ env.APP_SECRETS_NAME }}
         run: |
           if aws ecr describe-repositories --repository-names "${PROJECT_NAME}" >/dev/null 2>&1; then
             terraform state list 2>/dev/null | grep -q '^aws_ecr_repository\.app$' \
@@ -113,7 +119,7 @@ jobs:
           TF_VAR_desired_count: 0
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_app_secrets_name: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
+          TF_VAR_app_secrets_name: ${{ env.APP_SECRETS_NAME }}
         run: |
           terraform apply -auto-approve
 
@@ -130,10 +136,10 @@ jobs:
         working-directory: infra
         env:
           TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
-          TF_VAR_desired_count: ${{ inputs.desired_count }}
+          TF_VAR_desired_count: ${{ github.event.inputs.desired_count }}
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_app_secrets_name: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
+          TF_VAR_app_secrets_name: ${{ env.APP_SECRETS_NAME }}
         run: |
           terraform apply -auto-approve
 
@@ -151,7 +157,7 @@ jobs:
           echo "cloudfront_domain=$(terraform output -raw cloudfront_domain_name)" >> $GITHUB_OUTPUT
 
       - name: Run Prisma migrations (ECS one-off)
-        if: ${{ inputs.run_migrations == 'true' }}
+        if: ${{ github.event.inputs.run_migrations == 'true' }}
         run: |
           aws ecs run-task \
             --cluster "${{ steps.tf.outputs.cluster_name }}" \
@@ -161,7 +167,7 @@ jobs:
             --overrides '{"containerOverrides":[{"name":"app","command":["npm","run","db:migrate:deploy"]}]}'
 
       - name: Run seed (ECS one-off)
-        if: ${{ inputs.run_seed == 'true' }}
+        if: ${{ github.event.inputs.run_seed == 'true' }}
         run: |
           aws ecs run-task \
             --cluster "${{ steps.tf.outputs.cluster_name }}" \
