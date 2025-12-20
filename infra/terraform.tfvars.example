@@ -8,12 +8,9 @@ aws_region      = "eu-north-1"
 # container_image = "123456789012.dkr.ecr.eu-north-1.amazonaws.com/basic-security:prod"
 container_image = "REPLACE_ME"
 
-# REQUIRED
-auth_jwt_secret = "REPLACE_WITH_LONG_RANDOM_STRING_MIN_20_CHARS"
-
-# Optional (Telegram)
-telegram_bot_token      = ""
-telegram_webhook_secret = ""
+# Secrets are read from AWS Secrets Manager (JSON secret)
+# Create this secret in the AWS Console before running `terraform apply`.
+app_secrets_name = "prod/app-secrets"
 
 # RDS (fresh)
 db_name     = "basic_security"

@@ -27,30 +27,10 @@ variable "desired_count" {
   default     = 0
 }
 
-variable "auth_jwt_secret" {
-  type        = string
-  description = "JWT signing secret for the app (AUTH_JWT_SECRET). Keep this stable."
-  sensitive   = true
-}
-
 variable "app_secrets_name" {
   type        = string
   description = "AWS Secrets Manager secret name that stores app secrets as JSON (AUTH_JWT_SECRET, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET)."
   default     = "prod/app-secrets"
-}
-
-variable "telegram_bot_token" {
-  type        = string
-  description = "Telegram bot token (TELEGRAM_BOT_TOKEN). Optional if you won't use Telegram immediately."
-  default     = ""
-  sensitive   = true
-}
-
-variable "telegram_webhook_secret" {
-  type        = string
-  description = "Webhook secret header token (TELEGRAM_WEBHOOK_SECRET). Recommended in production."
-  default     = ""
-  sensitive   = true
 }
 
 variable "db_name" {
