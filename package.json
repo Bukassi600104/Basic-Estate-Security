@@ -21,6 +21,7 @@
     "tg:cloudflare": "node scripts/cloudflare-tunnel-webhook.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.956.0",
     "@prisma/client": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
