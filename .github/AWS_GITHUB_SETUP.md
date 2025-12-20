@@ -64,3 +64,23 @@ ECS injects these at runtime; GitHub Actions does not store them.
 The deploy workflow generates `infra/backend.hcl` at runtime from GitHub secrets and runs:
 
 - `terraform init -backend-config=backend.hcl`
+
+## 5) Run the deploy workflow (recommended first run)
+
+In GitHub → Actions → "Deploy (AWS ECS + RDS)" → Run workflow:
+
+- `image_tag`: keep default (`prod`)
+- `desired_count`: set to `0` for the first run (infra + DB only)
+- `run_migrations`: `true`
+- `run_seed`: `false` (seed requires `SUPER_ADMIN_EMAIL` + `SUPER_ADMIN_PASSWORD` env vars)
+
+After it finishes, copy the CloudFront URL from the workflow logs:
+
+- Web app: `https://<cloudfront-domain>/`
+- Telegram webhook: `https://<cloudfront-domain>/api/telegram/webhook`
+
+Then run the workflow again with:
+
+- `desired_count`: `1`
+- `run_migrations`: `true`
+- `run_seed`: `false`

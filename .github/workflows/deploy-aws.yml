@@ -18,7 +18,7 @@ on:
       run_seed:
         description: "Run seed via ECS run-task (optional env must be set)"
         required: true
-        default: "true"
+        default: "false"
 
 permissions:
   id-token: write
