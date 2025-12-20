@@ -8,66 +8,29 @@ locals {
   tags = {
     Project = var.project_name
   }
+
+  # Avoid VPC quota issues by reusing the account's default VPC.
+  # This keeps deployments idempotent even if Terraform state is lost.
+  vpc_id     = data.aws_vpc.default.id
+  subnet_ids = slice(sort(data.aws_subnets.default.ids), 0, 2)
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
+data "aws_vpc" "default" {
+  default = true
 }
 
-resource "aws_vpc" "this" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = merge(local.tags, { Name = "${local.name}-vpc" })
-}
-
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
-  tags   = merge(local.tags, { Name = "${local.name}-igw" })
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
-  tags = merge(local.tags, { Name = "${local.name}-public-rt" })
-}
-
-# Two public subnets (ALB + ECS tasks with public IPs)
-resource "aws_subnet" "public" {
-  count                   = 2
-  vpc_id                  = aws_vpc.this.id
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(aws_vpc.this.cidr_block, 8, count.index)
-  map_public_ip_on_launch = true
-
-  tags = merge(local.tags, { Name = "${local.name}-public-${count.index}" })
-}
-
-resource "aws_route_table_association" "public" {
-  count          = 2
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
-# Two private subnets (RDS)
-resource "aws_subnet" "private" {
-  count             = 2
-  vpc_id            = aws_vpc.this.id
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.this.cidr_block, 8, count.index + 10)
-
-  tags = merge(local.tags, { Name = "${local.name}-private-${count.index}" })
 }
 
 # Security group for ALB (public)
 resource "aws_security_group" "alb" {
-  name        = "${local.name}-alb-sg"
+  name        = "${local.unique_name}-alb-sg"
   description = "ALB security group"
-  vpc_id      = aws_vpc.this.id
+  vpc_id      = local.vpc_id
 
   ingress {
     description = "HTTP"
@@ -84,14 +47,14 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "${local.name}-alb-sg" })
+  tags = merge(local.tags, { Name = "${local.unique_name}-alb-sg" })
 }
 
 # Security group for ECS tasks
 resource "aws_security_group" "ecs" {
-  name        = "${local.name}-ecs-sg"
+  name        = "${local.unique_name}-ecs-sg"
   description = "ECS tasks security group"
-  vpc_id      = aws_vpc.this.id
+  vpc_id      = local.vpc_id
 
   ingress {
     description     = "From ALB to app"
@@ -108,14 +71,14 @@ resource "aws_security_group" "ecs" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "${local.name}-ecs-sg" })
+  tags = merge(local.tags, { Name = "${local.unique_name}-ecs-sg" })
 }
 
 # Security group for RDS MySQL
 resource "aws_security_group" "rds" {
-  name        = "${local.name}-rds-sg"
+  name        = "${local.unique_name}-rds-sg"
   description = "RDS MySQL security group"
-  vpc_id      = aws_vpc.this.id
+  vpc_id      = local.vpc_id
 
   ingress {
     description     = "MySQL from ECS tasks"
@@ -132,7 +95,7 @@ resource "aws_security_group" "rds" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "${local.name}-rds-sg" })
+  tags = merge(local.tags, { Name = "${local.unique_name}-rds-sg" })
 }
 
 # ECR repo
@@ -213,7 +176,7 @@ locals {
 
 resource "aws_db_subnet_group" "this" {
   name       = "${local.unique_name}-db-subnets"
-  subnet_ids = [for s in aws_subnet.private : s.id]
+  subnet_ids = local.subnet_ids
   tags       = local.tags
 }
 
@@ -243,7 +206,7 @@ resource "aws_lb" "this" {
   name               = "${local.unique_name}-alb"
   load_balancer_type = "application"
   internal           = false
-  subnets            = [for s in aws_subnet.public : s.id]
+  subnets            = local.subnet_ids
   security_groups    = [aws_security_group.alb.id]
   tags               = local.tags
 }
@@ -252,7 +215,7 @@ resource "aws_lb_target_group" "app" {
   name        = "${local.unique_name}-tg"
   port        = var.app_port
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.this.id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {
@@ -344,7 +307,7 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = [for s in aws_subnet.public : s.id]
+    subnets          = local.subnet_ids
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
