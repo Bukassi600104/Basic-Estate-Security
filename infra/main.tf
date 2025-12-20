@@ -174,6 +174,27 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+data "aws_secretsmanager_secret" "app_secrets" {
+  name = var.app_secrets_name
+}
+
+data "aws_iam_policy_document" "ecs_task_exec_secrets" {
+  statement {
+    actions = [
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetSecretValue",
+    ]
+
+    resources = [data.aws_secretsmanager_secret.app_secrets.arn]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_exec_secrets" {
+  name   = "${local.name}-ecs-task-exec-secrets"
+  role   = aws_iam_role.ecs_task_execution.id
+  policy = data.aws_iam_policy_document.ecs_task_exec_secrets.json
+}
+
 # RDS password: allow auto-generation if not provided
 resource "random_password" "db" {
   length  = 24
@@ -307,10 +328,6 @@ resource "aws_ecs_task_definition" "app" {
   ])
 
   tags = local.tags
-}
-
-data "aws_secretsmanager_secret" "app_secrets" {
-  name = var.app_secrets_name
 }
 
 resource "aws_ecs_service" "app" {
