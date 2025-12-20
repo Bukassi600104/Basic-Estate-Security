@@ -1,5 +1,10 @@
+resource "random_id" "name_suffix" {
+  byte_length = 2
+}
+
 locals {
-  name = var.project_name
+  name        = var.project_name
+  unique_name = "${var.project_name}-${random_id.name_suffix.hex}"
   tags = {
     Project = var.project_name
   }
@@ -143,7 +148,7 @@ resource "aws_ecr_repository" "app" {
 }
 
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/${local.name}"
+  name              = "/ecs/${local.unique_name}"
   retention_in_days = 14
   tags              = local.tags
 }
@@ -164,7 +169,7 @@ data "aws_iam_policy_document" "ecs_task_assume" {
 }
 
 resource "aws_iam_role" "ecs_task_execution" {
-  name               = "${local.name}-ecs-task-exec"
+  name               = "${local.unique_name}-ecs-task-exec"
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume.json
   tags               = local.tags
 }
@@ -207,13 +212,13 @@ locals {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name       = "${local.name}-db-subnets"
+  name       = "${local.unique_name}-db-subnets"
   subnet_ids = [for s in aws_subnet.private : s.id]
   tags       = local.tags
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier             = "${local.name}-mysql"
+  identifier             = "${local.unique_name}-mysql"
   engine                 = "mysql"
   engine_version         = "8.0"
   instance_class         = var.db_instance_class
@@ -235,7 +240,7 @@ resource "aws_db_instance" "mysql" {
 
 # ALB
 resource "aws_lb" "this" {
-  name               = "${local.name}-alb"
+  name               = "${local.unique_name}-alb"
   load_balancer_type = "application"
   internal           = false
   subnets            = [for s in aws_subnet.public : s.id]
@@ -244,7 +249,7 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "${local.name}-tg"
+  name        = "${local.unique_name}-tg"
   port        = var.app_port
   protocol    = "HTTP"
   vpc_id      = aws_vpc.this.id
@@ -332,7 +337,7 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 resource "aws_ecs_service" "app" {
-  name            = "${local.name}-svc"
+  name            = "${local.unique_name}-svc"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
