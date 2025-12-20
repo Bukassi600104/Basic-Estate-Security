@@ -67,6 +67,12 @@ jobs:
             exit 1
           fi
 
+          if ! echo "$SECRET_STRING" | jq -e . >/dev/null 2>&1; then
+            echo "SecretString for ${APP_SECRETS_NAME} is not valid JSON." >&2
+            echo "Expected a JSON object like: {\"AUTH_JWT_SECRET\":\"...\",\"TELEGRAM_BOT_TOKEN\":\"...\",\"TELEGRAM_WEBHOOK_SECRET\":\"...\"}" >&2
+            exit 1
+          fi
+
           # Ensure required JSON keys exist (avoid ECS task start failures).
           echo "$SECRET_STRING" | jq -e '.AUTH_JWT_SECRET and (.AUTH_JWT_SECRET|length>=20)' >/dev/null
           echo "$SECRET_STRING" | jq -e '.TELEGRAM_BOT_TOKEN and (.TELEGRAM_BOT_TOKEN|length>=1)' >/dev/null
