@@ -76,6 +76,12 @@ jobs:
 
       - name: Import existing ECR repository (if any)
         working-directory: infra
+        env:
+          TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
+          TF_VAR_desired_count: 0
+          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_app_secrets_name: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
         run: |
           if aws ecr describe-repositories --repository-names "${PROJECT_NAME}" >/dev/null 2>&1; then
             terraform state list 2>/dev/null | grep -q '^aws_ecr_repository\.app$' \
