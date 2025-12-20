@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 import { nanoid } from "nanoid";
 
 export const runtime = "nodejs";
@@ -34,7 +34,9 @@ type TgUpdate = {
 };
 
 function tgApiUrl(method: string) {
-  return `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/${method}`;
+  const { TELEGRAM_BOT_TOKEN } = getEnv();
+  if (!TELEGRAM_BOT_TOKEN) throw new Error("Telegram bot token not configured");
+  return `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`;
 }
 
 async function tgCall(method: string, body: unknown) {
@@ -439,6 +441,7 @@ async function validateCodeAsGuard(params: {
 }
 
 export async function POST(req: Request) {
+  const env = getEnv();
   if (!env.TELEGRAM_BOT_TOKEN) {
     return NextResponse.json({ error: "Telegram bot not configured" }, { status: 503 });
   }

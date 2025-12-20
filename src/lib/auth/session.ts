@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { env } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 
 export const SESSION_COOKIE_NAME = "bs_session";
 
@@ -12,7 +12,8 @@ export type SessionClaims = {
 };
 
 function getKey() {
-  return new TextEncoder().encode(env.AUTH_JWT_SECRET);
+  const { AUTH_JWT_SECRET } = getEnv();
+  return new TextEncoder().encode(AUTH_JWT_SECRET);
 }
 
 export async function signSession(claims: SessionClaims) {
