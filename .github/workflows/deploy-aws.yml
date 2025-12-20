@@ -60,7 +60,7 @@ jobs:
       - name: Terraform init
         working-directory: infra
         run: |
-          cat > backend.hcl <<'EOF'
+          cat > backend.hcl <<EOF
           bucket         = "${TF_STATE_BUCKET}"
           key            = "${TF_STATE_KEY}"
           region         = "${AWS_REGION}"
@@ -72,7 +72,7 @@ jobs:
         env:
           TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
           TF_STATE_DDB_TABLE: ${{ secrets.TF_STATE_DDB_TABLE }}
-          TF_STATE_KEY: ${{ secrets.TF_STATE_KEY || 'basic-security/terraform.tfstate' }}
+          TF_STATE_KEY: ${{ env.PROJECT_NAME }}/terraform.tfstate
 
       - name: Import existing ECR repository (if any)
         working-directory: infra
