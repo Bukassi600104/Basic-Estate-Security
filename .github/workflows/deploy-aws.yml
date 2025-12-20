@@ -1,6 +1,6 @@
 name: Deploy (AWS ECS + RDS)
 
-"on":
+on:
   workflow_dispatch:
     inputs:
       image_tag:
