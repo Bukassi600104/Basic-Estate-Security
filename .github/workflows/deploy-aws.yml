@@ -58,7 +58,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Preflight: verify required app secrets
+      - name: "Preflight: verify required app secrets"
         run: |
           echo "Checking Secrets Manager secret: ${APP_SECRETS_NAME}"
           SECRET_STRING=$(aws secretsmanager get-secret-value --secret-id "${APP_SECRETS_NAME}" --query SecretString --output text)
@@ -181,7 +181,7 @@ jobs:
           echo "CloudFront URL: https://${{ steps.tf.outputs.cloudfront_domain }}/"
           echo "Telegram webhook: https://${{ steps.tf.outputs.cloudfront_domain }}/api/telegram/webhook"
 
-      - name: Smoke check: ALB + CloudFront health
+      - name: "Smoke check: ALB + CloudFront health"
         run: |
           set -e
           ALB_URL="http://${{ steps.tf.outputs.alb_dns }}/api/healthz"
