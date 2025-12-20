@@ -50,26 +50,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Ensure ECR repository exists
-        run: |
-          aws ecr describe-repositories --repository-names "${PROJECT_NAME}" >/dev/null 2>&1 \
-            || aws ecr create-repository --repository-name "${PROJECT_NAME}" --image-scanning-configuration scanOnPush=true
-
-      - name: Login to ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
       - name: Compute image URI
         id: img
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
           echo "image_uri=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}:${{ inputs.image_tag }}" >> $GITHUB_OUTPUT
-
-      - name: Build and push image
-        run: |
-          docker build -t "${{ steps.img.outputs.image_uri }}" .
-          docker push "${{ steps.img.outputs.image_uri }}"
 
       - name: Terraform init
         working-directory: infra
@@ -87,6 +73,34 @@ jobs:
           TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
           TF_STATE_DDB_TABLE: ${{ secrets.TF_STATE_DDB_TABLE }}
           TF_STATE_KEY: ${{ secrets.TF_STATE_KEY || 'basic-security/terraform.tfstate' }}
+
+      - name: Import existing ECR repository (if any)
+        working-directory: infra
+        run: |
+          if aws ecr describe-repositories --repository-names "${PROJECT_NAME}" >/dev/null 2>&1; then
+            terraform state list 2>/dev/null | grep -q '^aws_ecr_repository\.app$' \
+              || terraform import -no-color aws_ecr_repository.app "${PROJECT_NAME}"
+          fi
+
+      - name: Terraform apply (bootstrap, desired_count=0)
+        working-directory: infra
+        env:
+          TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
+          TF_VAR_desired_count: 0
+          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_app_secrets_name: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
+        run: |
+          terraform apply -auto-approve
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        run: |
+          docker build -t "${{ steps.img.outputs.image_uri }}" .
+          docker push "${{ steps.img.outputs.image_uri }}"
 
       - name: Terraform apply
         working-directory: infra

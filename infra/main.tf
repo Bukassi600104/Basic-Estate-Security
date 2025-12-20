@@ -198,7 +198,8 @@ resource "aws_iam_role_policy" "ecs_task_exec_secrets" {
 # RDS password: allow auto-generation if not provided
 resource "random_password" "db" {
   length  = 24
-  special = true
+  # RDS forbids some characters (e.g. '/', '@', '"', space). Keep it simple.
+  special = false
 }
 
 locals {
