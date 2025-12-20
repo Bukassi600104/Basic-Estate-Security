@@ -46,3 +46,7 @@ output "ecs_security_group_id" {
 output "public_subnet_ids" {
   value = [for s in aws_subnet.public : s.id]
 }
+
+output "app_secrets_name" {
+  value = var.app_secrets_name
+}

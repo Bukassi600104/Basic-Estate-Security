@@ -278,10 +278,22 @@ resource "aws_ecs_task_definition" "app" {
         {
           name  = "DATABASE_URL",
           value = "mysql://${var.db_username}:${local.effective_db_password}@${aws_db_instance.mysql.address}:${aws_db_instance.mysql.port}/${var.db_name}"
+        }
+      ]
+
+      secrets = [
+        {
+          name      = "AUTH_JWT_SECRET",
+          valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:AUTH_JWT_SECRET::"
         },
-        { name = "AUTH_JWT_SECRET", value = var.auth_jwt_secret },
-        { name = "TELEGRAM_BOT_TOKEN", value = var.telegram_bot_token },
-        { name = "TELEGRAM_WEBHOOK_SECRET", value = var.telegram_webhook_secret }
+        {
+          name      = "TELEGRAM_BOT_TOKEN",
+          valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:TELEGRAM_BOT_TOKEN::"
+        },
+        {
+          name      = "TELEGRAM_WEBHOOK_SECRET",
+          valueFrom = "${data.aws_secretsmanager_secret.app_secrets.arn}:TELEGRAM_WEBHOOK_SECRET::"
+        }
       ]
       logConfiguration = {
         logDriver = "awslogs"
@@ -295,6 +307,10 @@ resource "aws_ecs_task_definition" "app" {
   ])
 
   tags = local.tags
+}
+
+data "aws_secretsmanager_secret" "app_secrets" {
+  name = var.app_secrets_name
 }
 
 resource "aws_ecs_service" "app" {

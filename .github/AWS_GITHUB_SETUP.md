@@ -38,7 +38,6 @@ In `infra/`:
 Add these in GitHub → Settings → Secrets and variables → Actions:
 
 - `AWS_ROLE_TO_ASSUME` (ARN of the IAM role)
-- `AUTH_JWT_SECRET` (min 20 chars)
 
 Terraform remote state:
 
@@ -46,10 +45,19 @@ Terraform remote state:
 - `TF_STATE_DDB_TABLE` (DynamoDB lock table name)
 - `TF_STATE_KEY` (optional; defaults to `basic-security/terraform.tfstate`)
 
-Optional (Telegram):
+Optional:
 
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_WEBHOOK_SECRET`
+- `APP_SECRETS_NAME` (only if you want something other than `prod/app-secrets`)
+
+## 3.1) App secrets (stored in AWS, not GitHub)
+
+Create an AWS Secrets Manager secret (JSON) named `prod/app-secrets` with keys:
+
+- `AUTH_JWT_SECRET`
+- `TELEGRAM_BOT_TOKEN` (optional)
+- `TELEGRAM_WEBHOOK_SECRET` (optional, recommended)
+
+ECS injects these at runtime; GitHub Actions does not store them.
 
 ## 4) Backend config
 

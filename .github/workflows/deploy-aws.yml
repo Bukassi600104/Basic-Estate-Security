@@ -82,12 +82,10 @@ jobs:
         working-directory: infra
         env:
           TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
-          TF_VAR_auth_jwt_secret: ${{ secrets.AUTH_JWT_SECRET }}
-          TF_VAR_telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TF_VAR_telegram_webhook_secret: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
           TF_VAR_desired_count: ${{ inputs.desired_count }}
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_app_secrets_name: ${{ secrets.APP_SECRETS_NAME || 'prod/app-secrets' }}
         run: |
           terraform apply -auto-approve
 
