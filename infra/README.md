@@ -1,22 +1,21 @@
-# AWS Terraform
+# AWS Terraform (Data Plane)
 
-Terraform to deploy the Next.js app to AWS with AWS-native persistence and auth:
+Terraform to provision the **data/auth layer** used by the app when hosted on **AWS Amplify Hosting (Next.js SSR)**:
 
-- ECR repository
-- ECS Fargate service (public subnets, `assign_public_ip = true`)
-- ALB (HTTP) + target group health check on `GET /api/healthz`
-- CloudFront distribution in front of the ALB (HTTPS on `*.cloudfront.net`, no custom domain required)
 - DynamoDB tables (multi-table)
-- Cognito User Pool + App Client (Terraform creates them; app reads `COGNITO_USER_POOL_ID` + `COGNITO_CLIENT_ID`)
+- Cognito User Pool + App Client
+- IAM policy you attach to Amplify SSR execution role (so server routes can access DynamoDB/Cognito)
 
 ## Prereqs
 
 - Terraform >= 1.6
 - AWS credentials configured locally (`aws configure` or environment vars)
 
-If you deploy via GitHub Actions, prefer remote state (S3 + DynamoDB lock table).
+Region default is `us-east-1` (North Virginia).
 
-## 1) Deploy the infrastructure
+If you use GitHub Actions for Terraform, prefer remote state (S3 + DynamoDB lock table).
+
+## 1) Deploy the infrastructure (Cognito + DynamoDB)
 
 From this folder:
 
@@ -29,41 +28,43 @@ From this folder:
 - Copy `terraform.tfvars.example` → `terraform.tfvars` and fill values
 - `terraform apply`
 
-Tip: for the very first apply, set `desired_count = 0` until you have pushed an image to ECR and updated `container_image`.
+This stack does not deploy compute (Amplify hosts the Next.js app).
 
 After apply, Terraform outputs:
 
-- `ecr_repository_url`
-- `cloudfront_domain_name` (your public HTTPS host)
-- `alb_dns_name`
+- `cognito_user_pool_id`
+- `cognito_client_id`
+- `ddb_table_*` (table names)
+- `amplify_ssr_policy_arn`
 
-It also creates DynamoDB tables with GSIs that the app expects.
+## 2) Configure AWS Amplify Hosting
 
-## 2) Build and push the app image to ECR
+1) In the AWS console, create an **Amplify Hosting** app and connect your GitHub repo.
 
-From repo root:
+2) Set Amplify environment variables (from Terraform outputs):
 
-1. Build image:
-   - `docker build -t basic-security:prod .`
+- `AWS_REGION` (use `us-east-1`)
+- `COGNITO_USER_POOL_ID`
+- `COGNITO_CLIENT_ID`
+- `COGNITO_USER_POOL_REGION` (set to `us-east-1`)
+- `DDB_TABLE_ESTATES`, `DDB_TABLE_USERS`, `DDB_TABLE_RESIDENTS`, `DDB_TABLE_CODES`, `DDB_TABLE_GATES`,
+  `DDB_TABLE_VALIDATION_LOGS`, `DDB_TABLE_ACTIVITY_LOGS`, `DDB_TABLE_PWA_INVITES`, `DDB_TABLE_UNIQ`
 
-2. Tag for ECR and push (replace placeholders):
-   - `aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin <account>.dkr.ecr.eu-north-1.amazonaws.com`
-   - `docker tag basic-security:prod <account>.dkr.ecr.eu-north-1.amazonaws.com/basic-security:prod`
-   - `docker push <account>.dkr.ecr.eu-north-1.amazonaws.com/basic-security:prod`
+3) Attach the generated IAM policy to Amplify SSR execution role:
 
-3. Update `container_image` in `terraform.tfvars` and re-apply:
-   - `terraform apply`
+- Find Amplify’s service role / SSR execution role in IAM.
+- Attach the policy ARN output by Terraform: `amplify_ssr_policy_arn`.
+
+Without this, server-side routes that call DynamoDB/Cognito will fail at runtime with auth errors.
 
 ## Migration note
 
-If you previously deployed an older “RDS/Prisma” stack from this folder, this configuration is intentionally different (DynamoDB + Cognito).
+If you previously deployed an older stack from this folder, this configuration is intentionally different (DynamoDB + Cognito).
 
-- Expect `terraform plan` to show large changes (including removing RDS resources).
+- Expect `terraform plan` to show large changes.
 - Treat this as a cutover, not an in-place DB migration. DynamoDB tables will start empty unless you backfill.
 - If you still need the old stack, use a separate Terraform state/key (or workspace) so applies don’t destroy it.
 
 ## Notes / trade-offs (intentional for minimal setup)
 
-- ECS tasks run in public subnets with public IPs to avoid requiring a NAT gateway.
-- CloudFront caching is disabled and all viewer values are forwarded to avoid breaking cookie auth.
-- For scaling beyond a few tasks, consider tightening CloudFront forwarding policies.
+- DynamoDB + Cognito are provisioned by Terraform; the app runtime is hosted by Amplify.

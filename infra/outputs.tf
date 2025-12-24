@@ -2,34 +2,6 @@ output "region" {
   value = var.aws_region
 }
 
-output "ecr_repository_url" {
-  value = aws_ecr_repository.app.repository_url
-}
-
-output "alb_dns_name" {
-  value = aws_lb.this.dns_name
-}
-
-output "cloudfront_domain_name" {
-  value = aws_cloudfront_distribution.this.domain_name
-}
-
-output "ecs_cluster_name" {
-  value = aws_ecs_cluster.this.name
-}
-
-output "ecs_task_definition_arn" {
-  value = aws_ecs_task_definition.app.arn
-}
-
-output "ecs_security_group_id" {
-  value = aws_security_group.ecs.id
-}
-
-output "public_subnet_ids" {
-  value = local.subnet_ids
-}
-
 output "cognito_user_pool_id" {
   value = aws_cognito_user_pool.this.id
 }
@@ -72,4 +44,8 @@ output "ddb_table_pwa_invites" {
 
 output "ddb_table_uniq" {
   value = aws_dynamodb_table.uniq.name
+}
+
+output "amplify_ssr_policy_arn" {
+  value = aws_iam_policy.amplify_ssr_access.arn
 }

@@ -19,9 +19,7 @@ Target deployment is **AWS Amplify Hosting** (Next.js SSR) with:
 
 ### Health checks
 
-- Use `GET /api/healthz` for ALB/CloudFront health checks.
-
-For Amplify, you can still use `GET /api/healthz` for smoke checks.
+- Use `GET /api/healthz` for smoke checks.
 
 
 ### Resident & Security PWAs

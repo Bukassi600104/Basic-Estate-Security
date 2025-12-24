@@ -1,6 +1,10 @@
-# GitHub → AWS deploy setup (OIDC)
+# GitHub → AWS provisioning setup (OIDC)
 
-This repo includes a GitHub Actions workflow to deploy to AWS (ECR + Terraform apply + optional ECS one-off migrations/seed).
+This repo includes a GitHub Actions workflow that **provisions the data/auth layer** used by the app when hosted on **AWS Amplify Hosting (Next.js SSR)**:
+
+- DynamoDB tables
+- Cognito User Pool + App Client
+- An IAM policy you attach to the Amplify SSR execution role
 
 ## 1) Create an AWS IAM Role for GitHub OIDC
 
@@ -12,12 +16,10 @@ This repo includes a GitHub Actions workflow to deploy to AWS (ECR + Terraform a
   - Restrict by `sub` to your repo, e.g. `repo:OWNER/REPO:*`.
 
 - Attach permissions needed for:
-  - ECR push
-  - ECS (cluster/service/task/run-task)
-  - ELBv2
-  - CloudFront
-  - RDS
-  - VPC/IAM (for initial provisioning)
+  - DynamoDB (create tables, update/describe)
+  - Cognito IDP (create user pool/client)
+  - IAM (create policy)
+  - S3 + DynamoDB (Terraform remote state bucket + lock table)
 
 Minimal/secure IAM is environment-specific; start broad for bootstrapping, then tighten.
 
@@ -43,19 +45,8 @@ Terraform remote state:
 
 - `TF_STATE_BUCKET` (S3 bucket name)
 - `TF_STATE_DDB_TABLE` (DynamoDB lock table name)
-- `TF_STATE_KEY` (optional; defaults to `basic-security/terraform.tfstate`)
 
-Optional:
-
-- `APP_SECRETS_NAME` (only if you want something other than `prod/app-secrets`)
-
-## 3.1) App secrets (stored in AWS, not GitHub)
-
-Create an AWS Secrets Manager secret (JSON) named `prod/app-secrets` with keys:
-
-- `AUTH_JWT_SECRET`
-
-ECS injects these at runtime; GitHub Actions does not store them.
+The workflow uses a fixed state key `${PROJECT_NAME}/terraform.tfstate`.
 
 ## 4) Backend config
 
@@ -65,19 +56,11 @@ The deploy workflow generates `infra/backend.hcl` at runtime from GitHub secrets
 
 ## 5) Run the deploy workflow (recommended first run)
 
-In GitHub → Actions → "Deploy (AWS ECS + RDS)" → Run workflow:
+In GitHub → Actions → "Provision AWS (DynamoDB + Cognito)" → Run workflow.
 
-- `image_tag`: keep default (`prod`)
-- `desired_count`: set to `0` for the first run (infra + DB only)
-- `run_migrations`: `true`
-- `run_seed`: `false` (seed requires `SUPER_ADMIN_EMAIL` + `SUPER_ADMIN_PASSWORD` env vars)
+After it finishes, use the workflow outputs to:
 
-After it finishes, copy the CloudFront URL from the workflow logs:
+1) Set Amplify environment variables:
+  - `AWS_REGION`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` (and the `DDB_TABLE_*` values from Terraform outputs)
 
-- Web app: `https://<cloudfront-domain>/`
-
-Then run the workflow again with:
-
-- `desired_count`: `1`
-- `run_migrations`: `true`
-- `run_seed`: `false`
+2) Attach the output `amplify_ssr_policy_arn` to the Amplify SSR execution role.

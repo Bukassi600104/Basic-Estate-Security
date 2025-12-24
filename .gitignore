@@ -18,10 +18,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
+# local env files (never commit real values)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # terraform
 /infra/.terraform/
@@ -29,6 +29,10 @@ yarn-error.log*
 /infra/terraform.tfstate
 /infra/terraform.tfstate.backup
 /infra/*.tfvars
+/infra/backend.hcl
+
+# local validation artifacts
+/infra/validate.*
 
 # local tools/logs
 /tools/

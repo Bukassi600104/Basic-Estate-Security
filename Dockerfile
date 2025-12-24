@@ -27,5 +27,5 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-# Bind to 0.0.0.0 for ECS/ALB
+# Bind to 0.0.0.0 for container hosting
 CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3000", "-H", "0.0.0.0"]

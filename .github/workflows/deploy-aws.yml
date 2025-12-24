@@ -1,27 +1,18 @@
-name: Deploy (AWS ECS + DynamoDB)
+name: Provision AWS (DynamoDB + Cognito)
 
 on:
   workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Docker image tag (e.g. prod, sha, v1)"
-        required: true
-        default: "prod"
-      desired_count:
-        description: "ECS desired task count"
-        required: true
-        default: "1"
 
 permissions:
   id-token: write
   contents: read
 
 env:
-  AWS_REGION: eu-north-1
-  PROJECT_NAME: basic-security
+  AWS_REGION: us-east-1
+  PROJECT_NAME: basic-estate-security
 
 jobs:
-  deploy:
+  provision:
     runs-on: ubuntu-latest
 
     steps:
@@ -42,13 +33,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Compute image URI
-        id: img
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "account_id=$ACCOUNT_ID" >> $GITHUB_OUTPUT
-          echo "image_uri=$ACCOUNT_ID.dkr.ecr.${AWS_REGION}.amazonaws.com/${PROJECT_NAME}:${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
-
       - name: Terraform init
         working-directory: infra
         run: |
@@ -66,43 +50,9 @@ jobs:
           TF_STATE_DDB_TABLE: ${{ secrets.TF_STATE_DDB_TABLE }}
           TF_STATE_KEY: ${{ env.PROJECT_NAME }}/terraform.tfstate
 
-      - name: Import existing ECR repository (if any)
-        working-directory: infra
-        env:
-          TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
-          TF_VAR_desired_count: 0
-          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
-        run: |
-          if aws ecr describe-repositories --repository-names "${PROJECT_NAME}" >/dev/null 2>&1; then
-            terraform state list 2>/dev/null | grep -q '^aws_ecr_repository\.app$' \
-              || terraform import -no-color aws_ecr_repository.app "${PROJECT_NAME}"
-          fi
-
-      - name: Terraform apply (bootstrap, desired_count=0)
-        working-directory: infra
-        env:
-          TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
-          TF_VAR_desired_count: 0
-          TF_VAR_project_name: ${{ env.PROJECT_NAME }}
-          TF_VAR_aws_region: ${{ env.AWS_REGION }}
-        run: |
-          terraform apply -auto-approve
-
-      - name: Login to ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push image
-        run: |
-          docker build -t "${{ steps.img.outputs.image_uri }}" .
-          docker push "${{ steps.img.outputs.image_uri }}"
-
       - name: Terraform apply
         working-directory: infra
         env:
-          TF_VAR_container_image: ${{ steps.img.outputs.image_uri }}
-          TF_VAR_desired_count: ${{ github.event.inputs.desired_count }}
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
         run: |
@@ -113,26 +63,12 @@ jobs:
         working-directory: infra
         run: |
           jq --version
-          echo "cluster_name=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
-          echo "task_def_arn=$(terraform output -raw ecs_task_definition_arn)" >> $GITHUB_OUTPUT
-          echo "sg_id=$(terraform output -raw ecs_security_group_id)" >> $GITHUB_OUTPUT
-          SUBNETS=$(terraform output -json public_subnet_ids | jq -r '.[]' | paste -sd ',' -)
-          echo "subnets=$SUBNETS" >> $GITHUB_OUTPUT
-          echo "alb_dns=$(terraform output -raw alb_dns_name)" >> $GITHUB_OUTPUT
-          echo "cloudfront_domain=$(terraform output -raw cloudfront_domain_name)" >> $GITHUB_OUTPUT
+          echo "region=$(terraform output -raw region)" >> $GITHUB_OUTPUT
+          echo "cognito_user_pool_id=$(terraform output -raw cognito_user_pool_id)" >> $GITHUB_OUTPUT
+          echo "cognito_client_id=$(terraform output -raw cognito_client_id)" >> $GITHUB_OUTPUT
+          echo "amplify_ssr_policy_arn=$(terraform output -raw amplify_ssr_policy_arn)" >> $GITHUB_OUTPUT
 
-      - name: Show public URL + webhook hint
+      - name: Show next steps (Amplify)
         run: |
-          echo "CloudFront URL: https://${{ steps.tf.outputs.cloudfront_domain }}/"
-
-      - name: "Smoke check: ALB + CloudFront health"
-        run: |
-          set -e
-          ALB_URL="http://${{ steps.tf.outputs.alb_dns }}/api/healthz"
-          CF_URL="https://${{ steps.tf.outputs.cloudfront_domain }}/api/healthz"
-
-          echo "Checking ALB health: $ALB_URL"
-          curl -fsS "$ALB_URL" | head -c 200 || (echo "ALB health check failed" >&2; exit 1)
-
-          echo "Checking CloudFront health: $CF_URL"
-          curl -fsS "$CF_URL" | head -c 200 || (echo "CloudFront health check failed" >&2; exit 1)
+          echo "Set Amplify env vars: AWS_REGION=${{ steps.tf.outputs.region }}, COGNITO_USER_POOL_ID=${{ steps.tf.outputs.cognito_user_pool_id }}, COGNITO_CLIENT_ID=${{ steps.tf.outputs.cognito_client_id }}"
+          echo "Attach IAM policy to Amplify SSR execution role: ${{ steps.tf.outputs.amplify_ssr_policy_arn }}"
