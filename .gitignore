@@ -41,5 +41,8 @@ yarn-error.log*
 /infra/tf-*.json
 /infra/tf-*.code
 
+# local infra scratch files
+/infra/tmp-*
+
 # local tools/logs
 /tools/
