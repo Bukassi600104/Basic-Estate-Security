@@ -62,8 +62,8 @@ export function getEnv(): AppEnv {
   if (isNextBuildPhase()) {
     cachedEnv = envSchema.parse({
       ...candidate,
-      AWS_REGION: candidate.AWS_REGION ?? "us-east-1",
-      COGNITO_USER_POOL_ID: candidate.COGNITO_USER_POOL_ID ?? "us-east-1_build",
+      AWS_REGION: candidate.AWS_REGION ?? "eu-north-1",
+      COGNITO_USER_POOL_ID: candidate.COGNITO_USER_POOL_ID ?? "eu-north-1_build",
       COGNITO_CLIENT_ID: candidate.COGNITO_CLIENT_ID ?? "build_client_id",
 
       DDB_TABLE_ESTATES: candidate.DDB_TABLE_ESTATES ?? "build_Estates",

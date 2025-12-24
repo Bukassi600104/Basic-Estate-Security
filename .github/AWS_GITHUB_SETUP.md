@@ -10,7 +10,7 @@ This avoids GitHub Actions + GitHub Secrets entirely.
 
 ## 1) Create Terraform remote state (recommended)
 
-Terraform backend cannot bootstrap itself. Create these once in `us-east-1`:
+Terraform backend cannot bootstrap itself. Create these once in your chosen AWS region (commonly the same as your app/backend region):
 
 - S3 bucket for state (example): `basic-estate-security-tf-state-<account>`
 - DynamoDB table for lock (example): `basic-estate-security-tf-locks` with partition key `LockID` (String)
@@ -38,10 +38,10 @@ From `infra/`:
 
 Amplify Console → your app → App settings → Environment variables:
 
-- `AWS_REGION=us-east-1`
+- `AWS_REGION=eu-north-1`
 - `COGNITO_USER_POOL_ID` (Terraform output)
 - `COGNITO_CLIENT_ID` (Terraform output)
-- `COGNITO_USER_POOL_REGION=us-east-1`
+- `COGNITO_USER_POOL_REGION=eu-north-1`
 - All `DDB_TABLE_*` values (Terraform outputs)
 
 ## 4) Grant Amplify SSR permissions (required)

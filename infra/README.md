@@ -11,7 +11,7 @@ Terraform to provision the **data/auth layer** used by the app when hosted on **
 - Terraform >= 1.6
 - AWS credentials configured locally (`aws configure` or environment vars)
 
-Region default is `us-east-1` (North Virginia).
+Region default is `eu-north-1` (Stockholm).
 
 Prefer remote state (S3 + DynamoDB lock table).
 
@@ -43,10 +43,10 @@ After apply, Terraform outputs:
 
 2) Set Amplify environment variables (from Terraform outputs):
 
-- `AWS_REGION` (use `us-east-1`)
+- `AWS_REGION` (use `eu-north-1`)
 - `COGNITO_USER_POOL_ID`
 - `COGNITO_CLIENT_ID`
-- `COGNITO_USER_POOL_REGION` (set to `us-east-1`)
+- `COGNITO_USER_POOL_REGION` (set to `eu-north-1`)
 - `DDB_TABLE_ESTATES`, `DDB_TABLE_USERS`, `DDB_TABLE_RESIDENTS`, `DDB_TABLE_CODES`, `DDB_TABLE_GATES`,
   `DDB_TABLE_VALIDATION_LOGS`, `DDB_TABLE_ACTIVITY_LOGS`, `DDB_TABLE_PWA_INVITES`, `DDB_TABLE_UNIQ`
 
