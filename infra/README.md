@@ -13,7 +13,7 @@ Terraform to provision the **data/auth layer** used by the app when hosted on **
 
 Region default is `us-east-1` (North Virginia).
 
-If you use GitHub Actions for Terraform, prefer remote state (S3 + DynamoDB lock table).
+Prefer remote state (S3 + DynamoDB lock table).
 
 ## 1) Deploy the infrastructure (Cognito + DynamoDB)
 

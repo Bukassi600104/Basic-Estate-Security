@@ -1,66 +1,53 @@
-# GitHub → AWS provisioning setup (OIDC)
+# AWS setup (no GitHub secrets)
 
-This repo includes a GitHub Actions workflow that **provisions the data/auth layer** used by the app when hosted on **AWS Amplify Hosting (Next.js SSR)**:
+Production best-practice for this repo is:
 
-- DynamoDB tables
-- Cognito User Pool + App Client
-- An IAM policy you attach to the Amplify SSR execution role
+- Connect AWS Amplify Hosting to the GitHub repo for build/deploy (Amplify handles this)
+- Provision Cognito + DynamoDB via Terraform from a trusted operator machine (local)
+- Store runtime configuration only in AWS (Amplify environment variables + IAM role permissions)
 
-## 1) Create an AWS IAM Role for GitHub OIDC
+This avoids GitHub Actions + GitHub Secrets entirely.
 
-- Create an IAM OIDC provider for GitHub Actions:
-  - Provider URL: `https://token.actions.githubusercontent.com`
-  - Audience: `sts.amazonaws.com`
+## 1) Create Terraform remote state (recommended)
 
-- Create an IAM role with a trust policy allowing your repo to assume it.
-  - Restrict by `sub` to your repo, e.g. `repo:OWNER/REPO:*`.
+Terraform backend cannot bootstrap itself. Create these once in `us-east-1`:
 
-- Attach permissions needed for:
-  - DynamoDB (create tables, update/describe)
-  - Cognito IDP (create user pool/client)
-  - IAM (create policy)
-  - S3 + DynamoDB (Terraform remote state bucket + lock table)
+- S3 bucket for state (example): `basic-estate-security-tf-state-<account>`
+- DynamoDB table for lock (example): `basic-estate-security-tf-locks` with partition key `LockID` (String)
 
-Minimal/secure IAM is environment-specific; start broad for bootstrapping, then tighten.
+## 2) Provision Cognito + DynamoDB (Terraform, local)
 
-## 2) Create Terraform remote state resources
+From `infra/`:
 
-Terraform backend cannot bootstrap itself. Create these once:
+1) Copy `backend.hcl.example` → `backend.hcl` and fill bucket/table/region.
+   - Do NOT commit `backend.hcl` (it’s ignored by git).
 
-- S3 bucket for state (example): `basic-security-tf-state-<account>`
-- DynamoDB table for lock (example): `basic-security-tf-locks` with partition key `LockID` (String)
-
-In `infra/`:
-
-- Copy `backend.hcl.example` → `backend.hcl` and fill bucket/table.
-- Commit `backend.hcl`? **No** (it’s intentionally ignored). You can store these values as GitHub secrets instead and generate it in CI.
-
-## 3) GitHub secrets required
-
-Add these in GitHub → Settings → Secrets and variables → Actions:
-
-- `AWS_ROLE_TO_ASSUME` (ARN of the IAM role)
-
-Terraform remote state:
-
-- `TF_STATE_BUCKET` (S3 bucket name)
-- `TF_STATE_DDB_TABLE` (DynamoDB lock table name)
-
-The workflow uses a fixed state key `${PROJECT_NAME}/terraform.tfstate`.
-
-## 4) Backend config
-
-The deploy workflow generates `infra/backend.hcl` at runtime from GitHub secrets and runs:
+2) Initialize and apply:
 
 - `terraform init -backend-config=backend.hcl`
+- `terraform apply`
 
-## 5) Run the deploy workflow (recommended first run)
+3) Read outputs:
 
-In GitHub → Actions → "Provision AWS (DynamoDB + Cognito)" → Run workflow.
+- `terraform output -raw region`
+- `terraform output -raw cognito_user_pool_id`
+- `terraform output -raw cognito_client_id`
+- `terraform output -raw amplify_ssr_policy_arn`
 
-After it finishes, use the workflow outputs to:
+## 3) Configure Amplify (all secrets stay in AWS)
 
-1) Set Amplify environment variables:
-  - `AWS_REGION`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` (and the `DDB_TABLE_*` values from Terraform outputs)
+Amplify Console → your app → App settings → Environment variables:
 
-2) Attach the output `amplify_ssr_policy_arn` to the Amplify SSR execution role.
+- `AWS_REGION=us-east-1`
+- `COGNITO_USER_POOL_ID` (Terraform output)
+- `COGNITO_CLIENT_ID` (Terraform output)
+- `COGNITO_USER_POOL_REGION=us-east-1`
+- All `DDB_TABLE_*` values (Terraform outputs)
+
+## 4) Grant Amplify SSR permissions (required)
+
+IAM Console → locate Amplify’s SSR execution role → attach the IAM policy from Terraform output:
+
+- `amplify_ssr_policy_arn`
+
+Without this, server-side routes calling DynamoDB/Cognito will fail with authorization errors.
