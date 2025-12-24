@@ -2,6 +2,5 @@ node_modules
 .next
 .git
 .gitignore
-prisma/dev.db
 *.log
 tools/

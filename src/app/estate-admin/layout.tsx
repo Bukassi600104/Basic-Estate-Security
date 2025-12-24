@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/auth/require-session";
-import { prisma } from "@/lib/db";
 import { LayoutGrid, ListChecks, Settings, UserPlus, Users, DoorOpen } from "lucide-react";
+import { getEstateById } from "@/lib/repos/estates";
 
 export default async function EstateAdminLayout({
   children,
@@ -13,7 +13,7 @@ export default async function EstateAdminLayout({
   if (session.role !== "ESTATE_ADMIN") redirect("/dashboard");
 
   if (session.estateId) {
-    const estate = await prisma.estate.findUnique({ where: { id: session.estateId } });
+    const estate = await getEstateById(session.estateId);
     if (estate && estate.status !== "ACTIVE") {
       return (
         <AppShell title="Estate Admin" nav={[]}>

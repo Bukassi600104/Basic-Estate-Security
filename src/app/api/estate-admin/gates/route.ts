@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
+import { headers } from "next/headers";
 import { getSession } from "@/lib/auth/session";
-import { Prisma } from "@prisma/client";
+import { getEstateById } from "@/lib/repos/estates";
+import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
+import { rateLimit } from "@/lib/security/rate-limit";
+import { createGate, listGatesForEstate } from "@/lib/repos/gates";
+import { putActivityLog } from "@/lib/repos/activity-logs";
 
 const createSchema = z.object({ name: z.string().min(2).max(50) });
 
@@ -15,20 +19,25 @@ export async function GET() {
     return NextResponse.json({ error: "Missing estate" }, { status: 400 });
   }
 
-  const estate = await prisma.estate.findUnique({ where: { id: session.estateId } });
+  const estate = await getEstateById(session.estateId);
   if (!estate || estate.status !== "ACTIVE") {
     return NextResponse.json({ error: "Estate not active" }, { status: 403 });
   }
 
-  const gates = await prisma.gate.findMany({
-    where: { estateId: session.estateId },
-    orderBy: { name: "asc" },
+  const gates = await listGatesForEstate(session.estateId);
+  return NextResponse.json({
+    ok: true,
+    gates: gates.map((g) => ({ id: g.gateId, name: g.name })),
   });
-
-  return NextResponse.json({ gates });
 }
 
 export async function POST(req: Request) {
+  try {
+    enforceSameOriginForMutations(req);
+  } catch {
+    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session || session.role !== "ESTATE_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,7 +46,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing estate" }, { status: 400 });
   }
 
-  const estate = await prisma.estate.findUnique({ where: { id: session.estateId } });
+  const h = headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+  const rl = rateLimit({ key: `estate-admin:gates:create:${session.estateId}:${ip}`, limit: 20, windowMs: 60_000 });
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+  }
+
+  const estate = await getEstateById(session.estateId);
   if (!estate || estate.status !== "ACTIVE") {
     return NextResponse.json({ error: "Estate not active" }, { status: 403 });
   }
@@ -48,25 +64,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  try {
-    const gate = await prisma.gate.create({
-      data: { estateId: session.estateId, name: parsed.data.name.trim() },
-    });
-
-    await prisma.activityLog.create({
-      data: {
-        estateId: session.estateId,
-        type: "GATE_CREATED",
-        message: `Gate created: ${gate.name}`,
-      },
-    });
-
-    return NextResponse.json({ ok: true, gate });
-  } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      return NextResponse.json({ error: "Gate name already exists" }, { status: 409 });
-    }
-
-    return NextResponse.json({ error: "Failed to create gate" }, { status: 500 });
+  const created = await createGate({ estateId: session.estateId, name: parsed.data.name });
+  if (!created.ok) {
+    return NextResponse.json({ error: created.error }, { status: 409 });
   }
+
+  await putActivityLog({
+    estateId: session.estateId,
+    type: "GATE_CREATED",
+    message: created.gate.name,
+  });
+
+  return NextResponse.json({ ok: true, gate: { id: created.gate.gateId, name: created.gate.name } });
 }

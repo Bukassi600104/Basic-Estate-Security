@@ -23,10 +23,6 @@ yarn-error.log*
 .env.local
 .env.*.local
 
-# prisma
-/prisma/dev.db
-/prisma/dev.db-journal
-
 # terraform
 /infra/.terraform/
 /infra/.terraform.lock.hcl

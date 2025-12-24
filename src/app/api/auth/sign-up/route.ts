@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { hashPassword } from "@/lib/auth/password";
-import { setSessionCookie, signSession } from "@/lib/auth/session";
+import { setSessionCookie, verifySession } from "@/lib/auth/session";
 import { z } from "zod";
+import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
+import { rateLimit } from "@/lib/security/rate-limit";
+import { headers } from "next/headers";
+import { cognitoAdminCreateUser, cognitoPasswordSignIn } from "@/lib/aws/cognito";
+import { createEstate } from "@/lib/repos/estates";
+import { putUser } from "@/lib/repos/users";
 
 const bodySchema = z.object({
   estateName: z.string().min(2),
@@ -12,6 +16,19 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  try {
+    enforceSameOriginForMutations(req);
+  } catch {
+    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
+  }
+
+  const h = headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+  const rl = rateLimit({ key: `auth:sign-up:${ip}`, limit: 5, windowMs: 60_000 });
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
@@ -20,50 +37,41 @@ export async function POST(req: Request) {
 
   const { estateName, adminName, email, password } = parsed.data;
 
-  const existing = await prisma.user.findFirst({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ error: "Email already in use" }, { status: 409 });
+  // 1) Create estate record.
+  const estate = await createEstate({ name: estateName });
+
+  // 2) Create Cognito user (no email flow; immediate password set).
+  try {
+    await cognitoAdminCreateUser({
+      username: email,
+      password,
+      email,
+      name: adminName,
+      userAttributes: {
+        "custom:role": "ESTATE_ADMIN",
+        "custom:estateId": estate.estateId,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to create account" }, { status: 409 });
   }
 
-  const passwordHash = await hashPassword(password);
+  // 3) Sign in to get IdToken and set cookie.
+  const tokens = await cognitoPasswordSignIn({ username: email, password });
+  setSessionCookie(tokens.idToken);
 
-  const estate = await prisma.estate.create({
-    data: {
-      name: estateName,
-      activity: {
-        create: {
-          type: "ESTATE_CREATED",
-          message: `Estate created: ${estateName}`,
-        },
-      },
-    },
+  // 4) Create Dynamo user profile keyed by Cognito sub.
+  const session = await verifySession(tokens.idToken);
+  const now = new Date().toISOString();
+  await putUser({
+    userId: session.userId,
+    estateId: estate.estateId,
+    role: "ESTATE_ADMIN",
+    name: adminName,
+    email,
+    createdAt: now,
+    updatedAt: now,
   });
-
-  const user = await prisma.user.create({
-    data: {
-      estateId: estate.id,
-      role: "ESTATE_ADMIN",
-      name: adminName,
-      email,
-      passwordHash,
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      estateId: estate.id,
-      type: "USER_CREATED",
-      message: `Estate admin created: ${adminName}`,
-    },
-  });
-
-  const token = await signSession({
-    sub: user.id,
-    role: user.role,
-    estateId: estate.id,
-    name: user.name,
-  });
-  setSessionCookie(token);
 
   return NextResponse.json({ ok: true });
 }

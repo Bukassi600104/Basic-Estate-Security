@@ -10,8 +10,6 @@ type ResidentUser = {
   name: string;
   phone: string | null;
   email: string | null;
-  telegramUserId: string | null;
-  telegramUsername: string | null;
 };
 
 type Resident = {
@@ -52,7 +50,7 @@ export default function EstateResidentsPage() {
     if (!q) return residents;
     return residents.filter((r) => {
       const users = r.users
-        .map((u) => `${u.name} ${u.phone ?? ""} ${u.email ?? ""} ${u.telegramUsername ?? ""}`)
+        .map((u) => `${u.name} ${u.phone ?? ""} ${u.email ?? ""} ${u.role}`)
         .join(" ")
         .toLowerCase();
       return `${r.name} ${r.houseNumber} ${r.status}`.toLowerCase().includes(q) || users.includes(q);
@@ -94,13 +92,13 @@ export default function EstateResidentsPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-xl font-extrabold tracking-tight text-slate-900">Residents</h1>
-            <p className="mt-1 text-sm text-slate-600">Manage resident status and linked Telegram IDs.</p>
+            <p className="mt-1 text-sm text-slate-600">Manage resident status and linked accounts.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search name, unit, phone, telegram…"
+              placeholder="Search name, unit, phone, email…"
               className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none ring-blue-600/20 focus:ring-4 md:w-80"
             />
             <button
@@ -126,7 +124,7 @@ export default function EstateResidentsPage() {
                 <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Resident</th>
                 <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Unit</th>
                 <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Status</th>
-                <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Telegram IDs</th>
+                <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Accounts</th>
                 <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
@@ -148,10 +146,6 @@ export default function EstateResidentsPage() {
               ) : null}
 
               {filtered.map((r) => {
-                const telegram = r.users
-                  .filter((u) => u.telegramUserId)
-                  .map((u) => `${u.telegramUserId}${u.telegramUsername ? ` (@${u.telegramUsername})` : ""}`);
-
                 return (
                   <tr key={r.id} className="border-b border-slate-100">
                     <td className="py-3 pr-4 font-semibold text-slate-900">{r.name}</td>
@@ -170,20 +164,16 @@ export default function EstateResidentsPage() {
                       </span>
                     </td>
                     <td className="py-3 pr-4 text-slate-700">
-                      {telegram.length ? (
-                        <div className="grid gap-1">
-                          {telegram.map((t) => (
-                            <div key={t} className="font-mono text-xs">
-                              {t}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-slate-500">Not linked</span>
-                      )}
-                      <div className="mt-2 text-xs text-slate-500">
-                        Linked accounts: {r.users.filter((u) => u.telegramUserId).length} / {r.users.length}
+                      <div className="grid gap-1">
+                        {r.users.map((u) => (
+                          <div key={u.id} className="text-xs">
+                            <span className="font-semibold">{u.role}</span>
+                            {u.phone ? <span> · {u.phone}</span> : null}
+                            {u.email ? <span> · {u.email}</span> : null}
+                          </div>
+                        ))}
                       </div>
+                      <div className="mt-2 text-xs text-slate-500">Linked accounts: {r.users.length}</div>
                     </td>
                     <td className="py-3 pr-4">
                       <div className="flex flex-wrap gap-2">

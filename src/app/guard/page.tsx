@@ -11,12 +11,10 @@ export default async function GuardDashboard() {
       <div className="grid gap-3">
         <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Guard access</h2>
         <p className="text-sm text-slate-600">
-          Guards validate visitor codes via Telegram to ensure every attempt is logged
-          (including failures) with the selected gate.
+          Guards validate visitor codes in the Security PWA so every attempt is logged (including failures) with the selected gate.
         </p>
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-          Open the Estate Security Bot in Telegram and use:
-          <span className="font-semibold"> Validate Code</span>.
+          Install the Security PWA using the link shared by your estate admin.
         </div>
       </div>
     </div>

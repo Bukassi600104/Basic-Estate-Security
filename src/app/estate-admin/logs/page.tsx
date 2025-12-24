@@ -1,23 +1,35 @@
 import { requireSession } from "@/lib/auth/require-session";
-import { prisma } from "@/lib/db";
+import { listValidationLogsForEstate } from "@/lib/repos/validation-logs";
+import { listActivityLogsForEstate } from "@/lib/repos/activity-logs";
 
 export default async function EstateLogsPage() {
   const session = await requireSession();
   if (session.role !== "ESTATE_ADMIN" || !session.estateId) return null;
 
-  const [validations, activity] = await Promise.all([
-    prisma.validationLog.findMany({
-      where: { estateId: session.estateId },
-      orderBy: { validatedAt: "desc" },
-      take: 50,
-      include: { guardUser: { select: { name: true, phone: true } } },
-    }),
-    prisma.activityLog.findMany({
-      where: { estateId: session.estateId },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    }),
+  const [validationsRaw, activityRaw] = await Promise.all([
+    listValidationLogsForEstate({ estateId: session.estateId, limit: 50 }),
+    listActivityLogsForEstate({ estateId: session.estateId, limit: 50 }),
   ]);
+
+  const validations = validationsRaw.map((v) => ({
+    id: v.logId,
+    validatedAt: v.validatedAt,
+    gateName: v.gateName,
+    houseNumber: v.houseNumber,
+    residentName: v.residentName,
+    passType: v.passType,
+    outcome: v.outcome,
+    failureReason: v.failureReason,
+    guardUser: { name: v.guardName, phone: v.guardPhone },
+    codeValue: v.codeValue,
+  }));
+
+  const activity = activityRaw.map((a) => ({
+    id: a.activityId,
+    type: a.type,
+    message: a.message,
+    createdAt: a.createdAt,
+  }));
 
   return (
     <div className="grid gap-6">
@@ -33,6 +45,9 @@ export default async function EstateLogsPage() {
             </a>
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Latest 50</div>
           </div>
+        </div>
+        <div className="mt-2 text-sm text-slate-600">
+          Latest validations recorded by guards.
         </div>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">

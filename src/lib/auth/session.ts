@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getEnv } from "@/lib/env";
 
@@ -11,30 +11,51 @@ export type SessionClaims = {
   name: string;
 };
 
-function getKey() {
-  const { AUTH_JWT_SECRET } = getEnv();
-  return new TextEncoder().encode(AUTH_JWT_SECRET);
-}
+type CognitoTokenClaims = {
+  sub?: string;
+  name?: string;
+  "cognito:username"?: string;
+  "cognito:groups"?: string[];
+  "custom:role"?: string;
+  "custom:estateId"?: string;
+  "custom:residentId"?: string;
+};
 
-export async function signSession(claims: SessionClaims) {
-  return new SignJWT({ role: claims.role, estateId: claims.estateId, name: claims.name })
-    .setProtectedHeader({ alg: "HS256" })
-    .setSubject(claims.sub)
-    .setIssuedAt()
-    .setExpirationTime("30d")
-    .sign(getKey());
+let cachedJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJwks() {
+  if (cachedJwks) return cachedJwks;
+  const { AWS_REGION, COGNITO_USER_POOL_ID } = getEnv();
+  const url = new URL(
+    `https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
+  );
+  cachedJwks = createRemoteJWKSet(url);
+  return cachedJwks;
 }
 
 export async function verifySession(token: string) {
-  const { payload } = await jwtVerify(token, getKey());
+  const env = getEnv();
+  const issuer = `https://cognito-idp.${env.AWS_REGION}.amazonaws.com/${env.COGNITO_USER_POOL_ID}`;
+
+  const { payload } = await jwtVerify(token, getJwks(), {
+    issuer,
+    audience: env.COGNITO_CLIENT_ID,
+  });
+
+  const typed = payload as unknown as CognitoTokenClaims;
   const sub = payload.sub;
   if (!sub) throw new Error("Invalid session");
 
+  const roleFromGroups = Array.isArray(typed["cognito:groups"]) ? typed["cognito:groups"][0] : undefined;
+  const role = String(typed["custom:role"] ?? roleFromGroups ?? "");
+  const estateId = typed["custom:estateId"] ? String(typed["custom:estateId"]) : undefined;
+  const name = String(typed.name ?? typed["cognito:username"] ?? "");
+
   return {
     userId: sub,
-    role: String(payload.role ?? ""),
-    estateId: payload.estateId ? String(payload.estateId) : undefined,
-    name: String(payload.name ?? ""),
+    role,
+    estateId,
+    name,
   };
 }
 

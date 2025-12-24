@@ -54,8 +54,6 @@ Optional:
 Create an AWS Secrets Manager secret (JSON) named `prod/app-secrets` with keys:
 
 - `AUTH_JWT_SECRET`
-- `TELEGRAM_BOT_TOKEN` (optional)
-- `TELEGRAM_WEBHOOK_SECRET` (optional, recommended)
 
 ECS injects these at runtime; GitHub Actions does not store them.
 
@@ -77,7 +75,6 @@ In GitHub → Actions → "Deploy (AWS ECS + RDS)" → Run workflow:
 After it finishes, copy the CloudFront URL from the workflow logs:
 
 - Web app: `https://<cloudfront-domain>/`
-- Telegram webhook: `https://<cloudfront-domain>/api/telegram/webhook`
 
 Then run the workflow again with:
 

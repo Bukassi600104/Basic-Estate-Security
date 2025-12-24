@@ -1,25 +1,23 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/auth/require-session";
-import { prisma } from "@/lib/db";
 import { SuperAdminEstatesTable } from "@/app/super-admin/estates-table";
+import { listEstatesPage } from "@/lib/repos/estates";
 
 export default async function SuperAdminDashboard() {
   const session = await requireSession();
   if (session.role !== "SUPER_ADMIN") return null;
 
-  const estates = await prisma.estate.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const page = await listEstatesPage({ limit: 50 });
 
   return (
     <SuperAdminEstatesTable
-      estates={estates.map((e) => ({
-        id: e.id,
+      initialEstates={page.items.map((e) => ({
+        id: e.estateId,
         name: e.name,
-        status: e.status,
-        createdAt: e.createdAt.toISOString(),
+        // The UI only supports these statuses; treat legacy INACTIVE as SUSPENDED.
+        status: (e.status === "INACTIVE" ? "SUSPENDED" : e.status) as "ACTIVE" | "SUSPENDED" | "TERMINATED",
+        createdAt: e.createdAt,
       }))}
+      initialNextCursor={page.nextCursor ? Buffer.from(JSON.stringify(page.nextCursor), "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") : null}
     />
   );
 }

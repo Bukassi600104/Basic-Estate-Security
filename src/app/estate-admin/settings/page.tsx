@@ -11,12 +11,21 @@ type Estate = {
   status: EstateStatus;
 };
 
+type PwaLinks = {
+  resident: string;
+  security: string;
+  expiresAt: string;
+};
+
 export default function EstateSettingsPage() {
   const [estate, setEstate] = useState<Estate | null>(null);
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pwaLinks, setPwaLinks] = useState<PwaLinks | null>(null);
+  const [generatingLinks, setGeneratingLinks] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -55,6 +64,37 @@ export default function EstateSettingsPage() {
       setError(e instanceof Error ? e.message : "Failed to update estate");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function generateInstallLinks() {
+    setGeneratingLinks(true);
+    setError(null);
+    setCopied(null);
+    try {
+      const res = await fetch("/api/estate-admin/pwa-links", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Failed to generate links");
+
+      const links = data.links as PwaLinks | undefined;
+      if (!links?.resident || !links?.security || !links?.expiresAt) {
+        throw new Error("Unexpected response");
+      }
+      setPwaLinks(links);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to generate links");
+    } finally {
+      setGeneratingLinks(false);
+    }
+  }
+
+  async function copyToClipboard(label: string, text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      window.setTimeout(() => setCopied(null), 1500);
+    } catch {
+      // ignore
     }
   }
 
@@ -111,7 +151,7 @@ export default function EstateSettingsPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="text-sm font-semibold text-slate-900">Estate status</div>
               <p className="mt-1 text-sm text-slate-600">
-                Suspended estates block all Telegram actions. Terminated is permanent.
+                Suspended estates block all Resident/Security PWA access. Terminated is permanent.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -149,6 +189,62 @@ export default function EstateSettingsPage() {
                   </button>
                 ) : null}
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="text-sm font-semibold text-slate-900">PWA install links</div>
+              <p className="mt-1 text-sm text-slate-600">
+                Generate private install links for residents and security guards. Regenerating revokes previous links.
+              </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={generatingLinks || saving}
+                  onClick={generateInstallLinks}
+                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {generatingLinks ? "Generating…" : "Generate links"}
+                </button>
+              </div>
+
+              {pwaLinks ? (
+                <div className="mt-4 grid gap-3">
+                  <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Resident</div>
+                  <div className="flex flex-col gap-2 md:flex-row">
+                    <input
+                      readOnly
+                      value={pwaLinks.resident}
+                      className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard("resident", pwaLinks.resident)}
+                      className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
+                    >
+                      {copied === "resident" ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+
+                  <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Security</div>
+                  <div className="flex flex-col gap-2 md:flex-row">
+                    <input
+                      readOnly
+                      value={pwaLinks.security}
+                      className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard("security", pwaLinks.security)}
+                      className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
+                    >
+                      {copied === "security" ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+
+                  <div className="text-sm text-slate-600">Expires: {new Date(pwaLinks.expiresAt).toLocaleString()}</div>
+                </div>
+              ) : null}
             </div>
           </div>
         ) : (

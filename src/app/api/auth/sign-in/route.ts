@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyPassword } from "@/lib/auth/password";
-import { setSessionCookie, signSession } from "@/lib/auth/session";
+import { setSessionCookie, verifySession } from "@/lib/auth/session";
 import { z } from "zod";
+import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
+import { rateLimit } from "@/lib/security/rate-limit";
+import { headers } from "next/headers";
+import { cognitoPasswordSignIn } from "@/lib/aws/cognito";
+import { getUserById } from "@/lib/repos/users";
 
 const bodySchema = z.object({
   identifier: z.string().min(3),
@@ -10,6 +13,12 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  try {
+    enforceSameOriginForMutations(req);
+  } catch {
+    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
@@ -18,27 +27,33 @@ export async function POST(req: Request) {
 
   const { identifier, password } = parsed.data;
 
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [{ email: identifier }, { phone: identifier }],
-    },
+  const h = headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+  const rl = rateLimit({
+    key: `auth:sign-in:${ip}:${identifier.toLowerCase()}`,
+    limit: 10,
+    windowMs: 60_000,
   });
-  if (!user) {
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+  }
+
+  let tokens;
+  try {
+    tokens = await cognitoPasswordSignIn({ username: identifier, password });
+  } catch {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
+  // Store IdToken in the existing session cookie (Cognito-backed now).
+  setSessionCookie(tokens.idToken);
 
-  const token = await signSession({
-    sub: user.id,
-    role: user.role,
-    estateId: user.estateId ?? undefined,
-    name: user.name,
-  });
-  setSessionCookie(token);
+  // Defensive: ensure we have a user profile; if missing, treat as unauthorized.
+  const session = await verifySession(tokens.idToken);
+  const profile = await getUserById(session.userId);
+  if (!profile) {
+    return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
+  }
 
   return NextResponse.json({ ok: true });
 }

@@ -1,6 +1,21 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/auth/require-session";
-import { prisma } from "@/lib/db";
+import { listValidationLogsForEstatePage } from "@/lib/repos/validation-logs";
+import { listActivityLogsForEstatePage } from "@/lib/repos/activity-logs";
+import { listResidentsForEstatePage } from "@/lib/repos/residents";
+import { listGuardsForEstatePage } from "@/lib/repos/users";
+import { SuperAdminValidationsSection } from "@/app/super-admin/estates/[estateId]/validations-section";
+import { SuperAdminActivitySection } from "@/app/super-admin/estates/[estateId]/activity-section";
+import { SuperAdminGuardsSection } from "@/app/super-admin/estates/[estateId]/guards-section";
+import { SuperAdminResidentsSection } from "@/app/super-admin/estates/[estateId]/residents-section";
+
+function base64UrlEncode(input: string) {
+  return Buffer.from(input, "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
 
 export default async function SuperAdminEstatePage({
   params,
@@ -10,16 +25,14 @@ export default async function SuperAdminEstatePage({
   const session = await requireSession();
   if (session.role !== "SUPER_ADMIN") return null;
 
-  const estate = await prisma.estate.findUnique({
-    where: { id: params.estateId },
-  });
-  if (!estate) return null;
+  const estateId = params.estateId;
 
-  const validations = await prisma.validationLog.findMany({
-    where: { estateId: estate.id },
-    orderBy: { validatedAt: "desc" },
-    take: 50,
-  });
+  const [validationsPage, activityPage, residentsPage, guardsPage] = await Promise.all([
+    listValidationLogsForEstatePage({ estateId, limit: 50 }),
+    listActivityLogsForEstatePage({ estateId, limit: 50 }),
+    listResidentsForEstatePage({ estateId, limit: 50 }),
+    listGuardsForEstatePage({ estateId, limit: 50 }),
+  ]);
 
   return (
     <div>
@@ -30,45 +43,41 @@ export default async function SuperAdminEstatePage({
         >
           Back to estates
         </Link>
-        <div className="text-sm font-semibold text-slate-900">{estate.name}</div>
+        <div className="text-sm font-semibold text-slate-900">{estateId}</div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold">Recent validations</h2>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-slate-600">
-              <tr className="border-b border-slate-200">
-                <th className="py-2 pr-4 font-semibold">Time</th>
-                <th className="py-2 pr-4 font-semibold">House</th>
-                <th className="py-2 pr-4 font-semibold">Resident</th>
-                <th className="py-2 pr-4 font-semibold">Type</th>
-                <th className="py-2 pr-4 font-semibold">Decision</th>
-              </tr>
-            </thead>
-            <tbody>
-              {validations.map((v) => (
-                <tr key={v.id} className="border-b border-slate-100">
-                  <td className="py-2 pr-4 text-slate-700">
-                    {new Date(v.validatedAt).toLocaleString()}
-                  </td>
-                  <td className="py-2 pr-4 text-slate-700">{v.houseNumber}</td>
-                  <td className="py-2 pr-4 text-slate-700">{v.residentName}</td>
-                  <td className="py-2 pr-4 text-slate-700">{v.passType}</td>
-                  <td className="py-2 pr-4 text-slate-700">{v.decision}</td>
-                </tr>
-              ))}
-              {validations.length === 0 ? (
-                <tr>
-                  <td className="py-3 text-slate-600" colSpan={5}>
-                    No validations yet.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
+      <SuperAdminValidationsSection
+        estateId={estateId}
+        initialValidations={validationsPage.items}
+        initialNextCursor={validationsPage.nextCursor ? base64UrlEncode(JSON.stringify(validationsPage.nextCursor)) : null}
+      />
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <SuperAdminResidentsSection
+          estateId={estateId}
+          initialResidents={residentsPage.items}
+          initialNextCursor={residentsPage.nextCursor ? base64UrlEncode(JSON.stringify(residentsPage.nextCursor)) : null}
+        />
+
+        <SuperAdminGuardsSection
+          estateId={estateId}
+          initialGuards={guardsPage.items
+            .map((u) => ({
+              userId: u.userId,
+              name: u.name,
+              identifier: u.email ?? u.phone ?? "—",
+              createdAt: u.createdAt,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name))}
+          initialNextCursor={guardsPage.nextCursor ? base64UrlEncode(JSON.stringify(guardsPage.nextCursor)) : null}
+        />
       </div>
+
+      <SuperAdminActivitySection
+        estateId={estateId}
+        initialActivity={activityPage.items}
+        initialNextCursor={activityPage.nextCursor ? base64UrlEncode(JSON.stringify(activityPage.nextCursor)) : null}
+      />
     </div>
   );
 }

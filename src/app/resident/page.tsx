@@ -9,12 +9,10 @@ export default async function ResidentDashboard() {
       <div className="grid gap-3">
         <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Resident access</h2>
         <p className="text-sm text-slate-600">
-          Residents generate visitor codes and manage house-help codes via Telegram.
+          Residents generate visitor codes and manage recurring access codes in the Resident PWA.
         </p>
         <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-          Open the Estate Security Bot in Telegram and use the buttons:
-          <span className="font-semibold"> Generate Visitor Code</span> and
-          <span className="font-semibold"> Manage House Help Codes</span>.
+          Install the Resident PWA using the link shared by your estate admin.
         </div>
       </div>
     </div>

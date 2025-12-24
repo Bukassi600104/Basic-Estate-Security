@@ -8,21 +8,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prisma": "prisma",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate:deploy": "prisma migrate deploy",
-    "db:generate": "prisma generate",
-    "db:seed": "node prisma/seed.mjs",
-    "db:clear": "node scripts/clear-dev-data.mjs",
-    "tg:webhook:set": "node scripts/telegram-webhook.mjs --url",
-    "tg:webhook:info": "node scripts/telegram-webhook.mjs --get",
-    "tg:webhook:delete": "node scripts/telegram-webhook.mjs --delete",
-    "tg:cloudflare": "node scripts/cloudflare-tunnel-webhook.mjs"
+    "dev:delete-user": "node scripts/delete-test-user.mjs",
+    "db:seed": "echo db:seed not-implemented",
+    "db:clear": "echo db:clear not-implemented"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.956.0",
-    "@prisma/client": "^6.0.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.956.0",
+    "@aws-sdk/client-dynamodb": "^3.956.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "jose": "^5.9.6",
@@ -32,6 +24,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.4",
+    "@aws-sdk/lib-dynamodb": "^3.956.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -43,7 +36,6 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.20",
     "postcss": "^8.4.49",
-    "prisma": "^6.0.0",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2"
   }

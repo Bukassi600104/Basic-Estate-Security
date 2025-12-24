@@ -1,17 +1,20 @@
-# AWS Terraform (eu-north-1) — ECS + ALB + CloudFront + RDS MySQL
+# AWS Terraform
 
-This is a minimal Terraform setup to deploy the existing Next.js app to AWS:
+Terraform to deploy the Next.js app to AWS with AWS-native persistence and auth:
 
 - ECR repository
 - ECS Fargate service (public subnets, `assign_public_ip = true`)
 - ALB (HTTP) + target group health check on `GET /api/healthz`
 - CloudFront distribution in front of the ALB (HTTPS on `*.cloudfront.net`, no custom domain required)
-- RDS MySQL (private subnets, not publicly accessible)
+- DynamoDB tables (multi-table)
+- Cognito User Pool + App Client (Terraform creates them; app reads `COGNITO_USER_POOL_ID` + `COGNITO_CLIENT_ID`)
 
 ## Prereqs
 
 - Terraform >= 1.6
 - AWS credentials configured locally (`aws configure` or environment vars)
+
+If you deploy via GitHub Actions, prefer remote state (S3 + DynamoDB lock table).
 
 ## 1) Deploy the infrastructure
 
@@ -33,7 +36,8 @@ After apply, Terraform outputs:
 - `ecr_repository_url`
 - `cloudfront_domain_name` (your public HTTPS host)
 - `alb_dns_name`
-- `rds_endpoint` (+ a generated `db_password` if you didn’t provide one)
+
+It also creates DynamoDB tables with GSIs that the app expects.
 
 ## 2) Build and push the app image to ECR
 
@@ -50,33 +54,16 @@ From repo root:
 3. Update `container_image` in `terraform.tfvars` and re-apply:
    - `terraform apply`
 
-## 3) Initialize DB schema (Prisma migrations)
+## Migration note
 
-This repo currently uses Prisma. After the service is up and `DATABASE_URL` points at RDS, run migrations.
+If you previously deployed an older “RDS/Prisma” stack from this folder, this configuration is intentionally different (DynamoDB + Cognito).
 
-Recommended production pattern:
-
-- Generate an initial migration locally:
-  - `npm run db:migrate`
-- Deploy migrations against RDS:
-  - `npm run db:migrate:deploy`
-
-(You can run this from a machine that can reach RDS. For this minimal setup RDS is private, so run migrations from inside the VPC or temporarily from a bastion/SSM session.)
-
-## 4) Telegram webhook
-
-Once CloudFront is deployed, set Telegram webhook to:
-
-- `https://<cloudfront_domain_name>/api/telegram/webhook`
-
-You can set it using the repo scripts:
-
-- `node scripts/telegram-webhook.mjs --url https://<cloudfront_domain_name>/api/telegram/webhook`
-
-If you set `TELEGRAM_WEBHOOK_SECRET`, CloudFront must forward the header `x-telegram-bot-api-secret-token` (this Terraform uses an AllViewer origin request policy, which forwards headers).
+- Expect `terraform plan` to show large changes (including removing RDS resources).
+- Treat this as a cutover, not an in-place DB migration. DynamoDB tables will start empty unless you backfill.
+- If you still need the old stack, use a separate Terraform state/key (or workspace) so applies don’t destroy it.
 
 ## Notes / trade-offs (intentional for minimal setup)
 
-- ECS tasks run in public subnets with public IPs so they can call Telegram APIs without requiring a NAT gateway.
+- ECS tasks run in public subnets with public IPs to avoid requiring a NAT gateway.
 - CloudFront caching is disabled and all viewer values are forwarded to avoid breaking cookie auth.
-- For scaling beyond a few tasks, consider RDS Proxy and tighter CloudFront forwarding policies.
+- For scaling beyond a few tasks, consider tightening CloudFront forwarding policies.

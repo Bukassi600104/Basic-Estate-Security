@@ -123,7 +123,7 @@ export default function EstateGatesPage() {
               {!loading && gates.length === 0 ? (
                 <tr>
                   <td className="py-4 text-rose-800" colSpan={2}>
-                    No gates configured. Add at least one gate to enable validation in Telegram.
+                    No gates configured. Add at least one gate to enable validation in the Security PWA.
                   </td>
                 </tr>
               ) : null}

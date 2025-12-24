@@ -1,4 +1,4 @@
-name: Deploy (AWS ECS + RDS)
+name: Deploy (AWS ECS + DynamoDB)
 
 on:
   workflow_dispatch:
@@ -11,14 +11,6 @@ on:
         description: "ECS desired task count"
         required: true
         default: "1"
-      run_migrations:
-        description: "Run Prisma migrate deploy via ECS run-task"
-        required: true
-        default: "true"
-      run_seed:
-        description: "Run seed via ECS run-task (optional env must be set)"
-        required: true
-        default: "false"
 
 permissions:
   id-token: write
@@ -35,14 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve app secrets name
-        run: |
-          if [ -n "${{ secrets.APP_SECRETS_NAME }}" ]; then
-            echo "APP_SECRETS_NAME=${{ secrets.APP_SECRETS_NAME }}" >> $GITHUB_ENV
-          else
-            echo "APP_SECRETS_NAME=prod/app-secrets" >> $GITHUB_ENV
-          fi
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -57,28 +41,6 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: "Preflight: verify required app secrets"
-        run: |
-          echo "Checking Secrets Manager secret: ${APP_SECRETS_NAME}"
-          SECRET_STRING=$(aws secretsmanager get-secret-value --secret-id "${APP_SECRETS_NAME}" --query SecretString --output text)
-          if [ -z "$SECRET_STRING" ] || [ "$SECRET_STRING" = "None" ]; then
-            echo "SecretString is empty for ${APP_SECRETS_NAME}" >&2
-            exit 1
-          fi
-
-          if ! echo "$SECRET_STRING" | jq -e . >/dev/null 2>&1; then
-            echo "SecretString for ${APP_SECRETS_NAME} is not valid JSON." >&2
-            echo "Expected a JSON object like: {\"AUTH_JWT_SECRET\":\"...\",\"TELEGRAM_BOT_TOKEN\":\"...\",\"TELEGRAM_WEBHOOK_SECRET\":\"...\"}" >&2
-            exit 1
-          fi
-
-          # Ensure required JSON keys exist (avoid ECS task start failures).
-          echo "$SECRET_STRING" | jq -e '.AUTH_JWT_SECRET and (.AUTH_JWT_SECRET|length>=20)' >/dev/null
-          echo "$SECRET_STRING" | jq -e '.TELEGRAM_BOT_TOKEN and (.TELEGRAM_BOT_TOKEN|length>=1)' >/dev/null
-          echo "$SECRET_STRING" | jq -e '.TELEGRAM_WEBHOOK_SECRET and (.TELEGRAM_WEBHOOK_SECRET|length>=16)' >/dev/null
-
-          echo "Secrets preflight OK"
 
       - name: Compute image URI
         id: img
@@ -111,7 +73,6 @@ jobs:
           TF_VAR_desired_count: 0
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_app_secrets_name: ${{ env.APP_SECRETS_NAME }}
         run: |
           if aws ecr describe-repositories --repository-names "${PROJECT_NAME}" >/dev/null 2>&1; then
             terraform state list 2>/dev/null | grep -q '^aws_ecr_repository\.app$' \
@@ -125,7 +86,6 @@ jobs:
           TF_VAR_desired_count: 0
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_app_secrets_name: ${{ env.APP_SECRETS_NAME }}
         run: |
           terraform apply -auto-approve
 
@@ -145,7 +105,6 @@ jobs:
           TF_VAR_desired_count: ${{ github.event.inputs.desired_count }}
           TF_VAR_project_name: ${{ env.PROJECT_NAME }}
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_app_secrets_name: ${{ env.APP_SECRETS_NAME }}
         run: |
           terraform apply -auto-approve
 
@@ -162,30 +121,9 @@ jobs:
           echo "alb_dns=$(terraform output -raw alb_dns_name)" >> $GITHUB_OUTPUT
           echo "cloudfront_domain=$(terraform output -raw cloudfront_domain_name)" >> $GITHUB_OUTPUT
 
-      - name: Run Prisma migrations (ECS one-off)
-        if: ${{ github.event.inputs.run_migrations == 'true' }}
-        run: |
-          aws ecs run-task \
-            --cluster "${{ steps.tf.outputs.cluster_name }}" \
-            --task-definition "${{ steps.tf.outputs.task_def_arn }}" \
-            --launch-type FARGATE \
-            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.tf.outputs.subnets }}],securityGroups=[${{ steps.tf.outputs.sg_id }}],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"app","command":["npm","run","db:migrate:deploy"]}]}'
-
-      - name: Run seed (ECS one-off)
-        if: ${{ github.event.inputs.run_seed == 'true' }}
-        run: |
-          aws ecs run-task \
-            --cluster "${{ steps.tf.outputs.cluster_name }}" \
-            --task-definition "${{ steps.tf.outputs.task_def_arn }}" \
-            --launch-type FARGATE \
-            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.tf.outputs.subnets }}],securityGroups=[${{ steps.tf.outputs.sg_id }}],assignPublicIp=ENABLED}" \
-            --overrides '{"containerOverrides":[{"name":"app","command":["npm","run","db:seed"]}]}'
-
       - name: Show public URL + webhook hint
         run: |
           echo "CloudFront URL: https://${{ steps.tf.outputs.cloudfront_domain }}/"
-          echo "Telegram webhook: https://${{ steps.tf.outputs.cloudfront_domain }}/api/telegram/webhook"
 
       - name: "Smoke check: ALB + CloudFront health"
         run: |

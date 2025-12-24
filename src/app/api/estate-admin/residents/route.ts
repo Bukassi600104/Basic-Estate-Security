@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { headers } from "next/headers";
 import { getSession } from "@/lib/auth/session";
-import { hashPassword } from "@/lib/auth/password";
-import { nanoid } from "nanoid";
+import { getEstateById } from "@/lib/repos/estates";
+import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
+import { rateLimit } from "@/lib/security/rate-limit";
+import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
+import { putUser, listUsersForResident } from "@/lib/repos/users";
+import { createResident, listResidentsForEstate } from "@/lib/repos/residents";
+import { putActivityLog } from "@/lib/repos/activity-logs";
 
 const bodySchema = z.object({
   residentName: z.string().min(2),
@@ -16,10 +20,61 @@ const bodySchema = z.object({
 });
 
 function generatePassword() {
-  return nanoid(12);
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const digits = "23456789";
+  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
+  const rest = Array.from({ length: 10 }, () => pick(upper + lower + digits)).join("");
+  return `${pick(upper)}${pick(lower)}${pick(digits)}!${rest}`;
+}
+
+async function createCognitoAndProfile(params: {
+  estateId: string;
+  role: "RESIDENT" | "RESIDENT_DELEGATE";
+  username: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  residentId: string;
+}) {
+  const password = generatePassword();
+
+  await cognitoAdminCreateUser({
+    username: params.username,
+    password,
+    email: params.email,
+    phoneNumber: params.phone && params.phone.startsWith("+") ? params.phone : undefined,
+    name: params.name,
+    userAttributes: {
+      "custom:role": params.role,
+      "custom:estateId": params.estateId,
+    },
+  });
+
+  const sub = await cognitoAdminGetUserSub({ username: params.username });
+  const now = new Date().toISOString();
+  await putUser({
+    userId: sub,
+    estateId: params.estateId,
+    role: params.role,
+    name: params.name,
+    email: params.email,
+    phone: params.phone,
+    residentId: params.residentId,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  return { sub, password };
 }
 
 export async function POST(req: Request) {
+  try {
+    enforceSameOriginForMutations(req);
+  } catch {
+    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
+  }
+
   const session = await getSession();
   if (!session || session.role !== "ESTATE_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,7 +83,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing estate" }, { status: 400 });
   }
 
-  const estate = await prisma.estate.findUnique({ where: { id: session.estateId } });
+  const h = headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+  const rl = rateLimit({ key: `estate-admin:residents:onboard:${session.estateId}:${ip}`, limit: 10, windowMs: 60_000 });
+  if (!rl.ok) {
+    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+  }
+
+  const estate = await getEstateById(session.estateId);
   if (!estate || estate.status !== "ACTIVE") {
     return NextResponse.json({ error: "Estate not active" }, { status: 403 });
   }
@@ -54,110 +116,63 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Approved numbers must be unique" }, { status: 400 });
   }
 
+  // 1) Create resident record.
+  const resident = await createResident({
+    estateId: session.estateId,
+    name: residentName.trim(),
+    houseNumber: houseNumber.trim(),
+    phone: residentPhone.trim(),
+    email: residentEmail.trim(),
+    status: "APPROVED",
+  });
+
+  // 2) Create Cognito users + Dynamo user profiles (linked via residentId).
+  let residentPassword: string;
   try {
-    // Create resident and login users.
-    const residentPassword = generatePassword();
-    const residentPasswordHash = await hashPassword(residentPassword);
+    const createdResident = await createCognitoAndProfile({
+      estateId: session.estateId,
+      role: "RESIDENT",
+      username: residentPhone.trim(),
+      name: resident.name,
+      email: resident.email,
+      phone: resident.phone,
+      residentId: resident.residentId,
+    });
+    residentPassword = createdResident.password;
 
-    const created = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const resident = await tx.resident.create({
-        data: {
-          estateId: session.estateId!,
-          name: residentName,
-          houseNumber,
-          primaryPhone: residentPhone,
-          email: residentEmail || null,
-          status: "APPROVED",
-        },
+    const delegatePasswords: Array<{ phone: string; password: string }> = [];
+    for (const phone of approvedPhones) {
+      const createdDelegate = await createCognitoAndProfile({
+        estateId: session.estateId,
+        role: "RESIDENT_DELEGATE",
+        username: phone,
+        name: `${resident.name} (Delegate)`,
+        phone,
+        residentId: resident.residentId,
       });
+      delegatePasswords.push({ phone, password: createdDelegate.password });
+    }
 
-      const residentUser = await tx.user.create({
-        data: {
-          estateId: session.estateId!,
-          role: "RESIDENT",
-          name: residentName,
-          email: residentEmail,
-          phone: residentPhone,
-          passwordHash: residentPasswordHash,
-          residentId: resident.id,
-        },
-      });
-
-      const delegateResults: Array<{ phone: string; password: string }> = [];
-
-      for (const [index, phone] of approvedPhones.entries()) {
-        const password = generatePassword();
-        const passwordHash = await hashPassword(password);
-
-        await tx.user.create({
-          data: {
-            estateId: session.estateId!,
-            role: "RESIDENT_DELEGATE",
-            name: `${residentName} (Approved #${index + 1})`,
-            email: null,
-            phone,
-            passwordHash,
-            residentId: resident.id,
-          },
-        });
-
-        delegateResults.push({
-          phone,
-          password,
-        });
-      }
-
-      await tx.activityLog.create({
-        data: {
-          estateId: session.estateId!,
-          type: "RESIDENT_CREATED",
-          message: `Resident onboarded: ${residentName} (House ${houseNumber})`,
-        },
-      });
-
-      return {
-        residentUser,
-        residentPassword,
-        delegates: delegateResults,
-      };
+    await putActivityLog({
+      estateId: session.estateId,
+      type: "RESIDENT_ONBOARDED",
+      message: `${resident.name} (Unit ${resident.houseNumber})`,
     });
 
     return NextResponse.json({
       ok: true,
       credentials: {
         resident: {
-          name: created.residentUser.name,
-          email: created.residentUser.email,
-          phone: created.residentUser.phone,
-          password: created.residentPassword,
+          name: resident.name,
+          email: resident.email ?? residentEmail.trim(),
+          phone: resident.phone ?? residentPhone.trim(),
+          password: residentPassword,
         },
-        delegates: created.delegates,
+        delegates: delegatePasswords,
       },
     });
-  } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2002") {
-        const target = Array.isArray((err.meta as any)?.target) ? ((err.meta as any).target as string[]) : [];
-        const key = target.join(",");
-
-        if (key.includes("houseNumber")) {
-          return NextResponse.json({ error: "House number already exists in this estate" }, { status: 409 });
-        }
-        if (key.includes("primaryPhone")) {
-          return NextResponse.json({ error: "Resident phone already exists in this estate" }, { status: 409 });
-        }
-        if (key.includes("phone")) {
-          return NextResponse.json({ error: "Phone already in use" }, { status: 409 });
-        }
-        if (key.includes("email")) {
-          return NextResponse.json({ error: "Email already in use" }, { status: 409 });
-        }
-
-        return NextResponse.json({ error: "Duplicate value" }, { status: 409 });
-      }
-    }
-
-    return NextResponse.json({ error: "Failed to onboard resident" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Unable to create resident accounts" }, { status: 409 });
   }
 }
 
@@ -170,29 +185,30 @@ export async function GET() {
     return NextResponse.json({ error: "Missing estate" }, { status: 400 });
   }
 
-  const estate = await prisma.estate.findUnique({ where: { id: session.estateId } });
+  const estate = await getEstateById(session.estateId);
   if (!estate || estate.status !== "ACTIVE") {
     return NextResponse.json({ error: "Estate not active" }, { status: 403 });
   }
 
-  const residents = await prisma.resident.findMany({
-    where: { estateId: session.estateId },
-    orderBy: { houseNumber: "asc" },
-    include: {
-      users: {
-        select: {
-          id: true,
-          role: true,
-          name: true,
-          phone: true,
-          email: true,
-          telegramUserId: true,
-          telegramUsername: true,
-        },
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  });
+  const residents = await listResidentsForEstate(session.estateId, 250);
+  const enriched = await Promise.all(
+    residents.map(async (r) => {
+      const users = await listUsersForResident({ estateId: session.estateId!, residentId: r.residentId, limit: 10 });
+      return {
+        id: r.residentId,
+        name: r.name,
+        houseNumber: r.houseNumber,
+        status: r.status,
+        users: users.map((u) => ({
+          id: u.userId,
+          role: u.role,
+          name: u.name,
+          phone: u.phone ?? null,
+          email: u.email ?? null,
+        })),
+      };
+    }),
+  );
 
-  return NextResponse.json({ residents });
+  return NextResponse.json({ ok: true, residents: enriched });
 }

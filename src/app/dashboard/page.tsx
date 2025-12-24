@@ -15,12 +15,12 @@ export default async function DashboardRouter() {
       return (
         <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
           <div className="grid gap-3">
-            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Use Telegram</h2>
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Use your PWA</h2>
             <p className="text-sm text-slate-600">
-              Your day-to-day actions happen in Telegram. This web dashboard is primarily for admins.
+              Your day-to-day actions happen in the Resident or Security PWA. This web dashboard is primarily for admins.
             </p>
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-              Open the Estate Security Bot in Telegram and follow the on-screen buttons.
+              Ask your estate admin for the install link to your PWA.
             </div>
           </div>
         </div>
