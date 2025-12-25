@@ -9,8 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "dev:delete-user": "node scripts/delete-test-user.mjs",
-    "db:seed": "echo db:seed not-implemented",
-    "db:clear": "echo db:clear not-implemented"
+    "db:clear": "node scripts/clear-all-data.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.956.0",

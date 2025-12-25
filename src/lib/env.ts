@@ -26,11 +26,6 @@ export type AppEnv = z.infer<typeof envSchema>;
 
 let cachedEnv: AppEnv | null = null;
 
-function isNextBuildPhase() {
-  const phase = process.env.NEXT_PHASE;
-  return typeof phase === "string" && phase.includes("build");
-}
-
 export function getEnv(): AppEnv {
   if (cachedEnv) return cachedEnv;
 
@@ -56,26 +51,6 @@ export function getEnv(): AppEnv {
   const parsed = envSchema.safeParse(candidate);
   if (parsed.success) {
     cachedEnv = parsed.data;
-    return cachedEnv;
-  }
-
-  if (isNextBuildPhase()) {
-    cachedEnv = envSchema.parse({
-      ...candidate,
-      AWS_REGION: candidate.AWS_REGION ?? "eu-north-1",
-      COGNITO_USER_POOL_ID: candidate.COGNITO_USER_POOL_ID ?? "eu-north-1_build",
-      COGNITO_CLIENT_ID: candidate.COGNITO_CLIENT_ID ?? "build_client_id",
-
-      DDB_TABLE_ESTATES: candidate.DDB_TABLE_ESTATES ?? "build_Estates",
-      DDB_TABLE_USERS: candidate.DDB_TABLE_USERS ?? "build_Users",
-      DDB_TABLE_RESIDENTS: candidate.DDB_TABLE_RESIDENTS ?? "build_Residents",
-      DDB_TABLE_CODES: candidate.DDB_TABLE_CODES ?? "build_Codes",
-      DDB_TABLE_GATES: candidate.DDB_TABLE_GATES ?? "build_Gates",
-      DDB_TABLE_VALIDATION_LOGS: candidate.DDB_TABLE_VALIDATION_LOGS ?? "build_ValidationLogs",
-      DDB_TABLE_ACTIVITY_LOGS: candidate.DDB_TABLE_ACTIVITY_LOGS ?? "build_ActivityLogs",
-      DDB_TABLE_PWA_INVITES: candidate.DDB_TABLE_PWA_INVITES ?? "build_PwaInvites",
-      DDB_TABLE_UNIQ: candidate.DDB_TABLE_UNIQ ?? "build_Uniq",
-    });
     return cachedEnv;
   }
 

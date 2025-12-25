@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Building2, KeyRound, ShieldCheck } from "lucide-react";
 
+export const dynamic = "force-static";
+
 function Feature({
   icon,
   title,
