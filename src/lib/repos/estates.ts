@@ -1,4 +1,4 @@
-import { PutCommand, GetCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, UpdateCommand, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { nanoid } from "nanoid";
 import { getDdbDocClient } from "@/lib/aws/dynamo";
 import { getEnv } from "@/lib/env";
@@ -51,6 +51,17 @@ export async function getEstateById(estateId: string) {
   );
 
   return (res.Item as EstateRecord | undefined) ?? null;
+}
+
+export async function deleteEstateById(estateId: string) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+  await ddb.send(
+    new DeleteCommand({
+      TableName: env.DDB_TABLE_ESTATES,
+      Key: { estateId },
+    }),
+  );
 }
 
 export async function updateEstate(params: {

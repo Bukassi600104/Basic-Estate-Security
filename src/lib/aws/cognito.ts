@@ -5,6 +5,7 @@ import {
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   AdminGetUserCommand,
+  AdminDeleteUserCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { getEnv } from "@/lib/env";
 
@@ -100,4 +101,16 @@ export async function cognitoAdminGetUserSub(params: { username: string }) {
   const sub = attrs.find((a) => a.Name === "sub")?.Value;
   if (!sub) throw new Error("Missing Cognito sub");
   return sub;
+}
+
+export async function cognitoAdminDeleteUser(params: { username: string }) {
+  const env = getEnv();
+  const client = getCognitoClient();
+
+  await client.send(
+    new AdminDeleteUserCommand({
+      UserPoolId: env.COGNITO_USER_POOL_ID,
+      Username: params.username,
+    }),
+  );
 }
