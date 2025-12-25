@@ -8,6 +8,7 @@ import { cognitoAdminCreateUser, cognitoPasswordSignIn } from "@/lib/aws/cognito
 import { createEstate, deleteEstateById } from "@/lib/repos/estates";
 import { putUser } from "@/lib/repos/users";
 import { cognitoAdminDeleteUser } from "@/lib/aws/cognito";
+import { randomUUID } from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -19,10 +20,13 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const debugId = randomUUID();
+  let stage = "init";
   let createdEstateId: string | null = null;
   let createdUsername: string | null = null;
 
   try {
+    stage = "csrf";
     try {
       enforceSameOriginForMutations(req);
     } catch {
@@ -36,6 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
   }
 
+    stage = "parse";
     const json = await req.json().catch(() => null);
     const parsed = bodySchema.safeParse(json);
     if (!parsed.success) {
@@ -45,10 +50,12 @@ export async function POST(req: Request) {
     const { estateName, adminName, email, password } = parsed.data;
 
     // 1) Create estate record.
+    stage = "create_estate";
     const estate = await createEstate({ name: estateName });
     createdEstateId = estate.estateId;
 
     // 2) Create Cognito user (no email flow; immediate password set).
+    stage = "create_cognito_user";
     try {
       await cognitoAdminCreateUser({
         username: email,
@@ -68,10 +75,12 @@ export async function POST(req: Request) {
     }
 
     // 3) Sign in to get IdToken and set cookie.
+    stage = "sign_in";
     const tokens = await cognitoPasswordSignIn({ username: email, password });
     setSessionCookie(tokens.idToken);
 
     // 4) Create Dynamo user profile keyed by Cognito sub.
+    stage = "create_profile";
     const session = await verifySession(tokens.idToken);
     const now = new Date().toISOString();
     await putUser({
@@ -86,7 +95,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("/api/auth/sign-up failed", error);
+    const e = error as any;
+    const safe = {
+      debugId,
+      stage,
+      name: typeof e?.name === "string" ? e.name : "UnknownError",
+      message: typeof e?.message === "string" ? e.message : "Unknown error",
+      httpStatusCode: typeof e?.$metadata?.httpStatusCode === "number" ? e.$metadata.httpStatusCode : null,
+    };
+    console.error("sign_up_failed", JSON.stringify(safe));
 
     // Best-effort cleanup if we partially created data.
     if (createdUsername) {
@@ -96,6 +113,6 @@ export async function POST(req: Request) {
       await deleteEstateById(createdEstateId).catch(() => null);
     }
 
-    return NextResponse.json({ error: "Sign-up failed" }, { status: 500 });
+    return NextResponse.json({ error: "Sign-up failed", debugId }, { status: 500 });
   }
 }
