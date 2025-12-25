@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Lock, LogIn, Mail } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +22,7 @@ export default function SignInPage() {
       const res = await fetch("/api/auth/sign-in", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ identifier, password, rememberMe }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Sign-in failed");
@@ -65,13 +67,14 @@ export default function SignInPage() {
 
             <form className="mt-8 grid gap-5" onSubmit={onSubmit}>
               <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Email or phone</span>
+                <span className="font-semibold text-slate-700">Email</span>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
                     className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
+                    type="email"
                     autoComplete="username"
                     required
                   />
@@ -83,15 +86,42 @@ export default function SignInPage() {
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-12 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-600 hover:bg-slate-100"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </label>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                <label className="inline-flex items-center gap-2 text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-slate-300"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <span className="font-semibold">Remember me</span>
+                </label>
+                <div className="text-xs font-semibold text-slate-500">
+                  Use only on a private device.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600">
+                Never share your password. If you suspect compromise, change it immediately.
+              </div>
 
               {error ? (
                 <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">

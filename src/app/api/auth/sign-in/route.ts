@@ -1,18 +1,23 @@
 import { NextResponse } from "next/server";
-import { setSessionCookie, verifySession } from "@/lib/auth/session";
+import { setSessionCookieWithOptions, verifySession } from "@/lib/auth/session";
 import { z } from "zod";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { headers } from "next/headers";
 import { cognitoPasswordSignIn } from "@/lib/aws/cognito";
 import { getUserById } from "@/lib/repos/users";
+import { randomUUID } from "node:crypto";
+
+export const runtime = "nodejs";
 
 const bodySchema = z.object({
   identifier: z.string().min(3),
   password: z.string().min(1),
+  rememberMe: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
+  const debugId = randomUUID();
   try {
     enforceSameOriginForMutations(req);
   } catch {
@@ -41,12 +46,24 @@ export async function POST(req: Request) {
   let tokens;
   try {
     tokens = await cognitoPasswordSignIn({ username: identifier, password });
-  } catch {
+  } catch (error) {
+    const e = error as any;
+    const name = typeof e?.name === "string" ? e.name : "UnknownError";
+    if (name === "ZodError") {
+      console.error(
+        "sign_in_failed",
+        JSON.stringify({ debugId, name, message: typeof e?.message === "string" ? e.message : "" }),
+      );
+      return NextResponse.json(
+        { error: "Server not configured", debugId },
+        { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+      );
+    }
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
   // Store IdToken in the existing session cookie (Cognito-backed now).
-  setSessionCookie(tokens.idToken);
+  setSessionCookieWithOptions(tokens.idToken, { rememberMe: parsed.data.rememberMe });
 
   // Defensive: ensure we have a user profile; if missing, treat as unauthorized.
   const session = await verifySession(tokens.idToken);

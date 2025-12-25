@@ -3,6 +3,8 @@ import { getEnv } from "@/lib/env";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -25,9 +27,24 @@ export async function GET() {
       tables.map((tableName) => client.send(new DescribeTableCommand({ TableName: tableName }))),
     );
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(
+      { ok: true },
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    );
   } catch (error) {
     console.error("/api/readyz failed", error);
-    return NextResponse.json({ error: "Not ready" }, { status: 503 });
+    return NextResponse.json(
+      { error: "Not ready" },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    );
   }
 }

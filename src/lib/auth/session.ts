@@ -81,6 +81,24 @@ export function setSessionCookie(token: string) {
   });
 }
 
+export function setSessionCookieWithOptions(
+  token: string,
+  options: {
+    rememberMe?: boolean;
+  } = {},
+) {
+  const rememberMe = options.rememberMe ?? true;
+
+  cookies().set(SESSION_COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    // If rememberMe is false, omit maxAge so the cookie becomes a session cookie.
+    ...(rememberMe ? { maxAge: 60 * 60 * 24 * 30 } : {}),
+  });
+}
+
 export function clearSessionCookie() {
   cookies().set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
