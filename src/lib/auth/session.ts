@@ -25,9 +25,10 @@ let cachedJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
 function getJwks() {
   if (cachedJwks) return cachedJwks;
-  const { AWS_REGION, COGNITO_USER_POOL_ID } = getEnv();
+  const { AWS_REGION, COGNITO_USER_POOL_ID, COGNITO_USER_POOL_REGION } = getEnv();
+  const region = COGNITO_USER_POOL_REGION ?? AWS_REGION;
   const url = new URL(
-    `https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
+    `https://cognito-idp.${region}.amazonaws.com/${COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
   );
   cachedJwks = createRemoteJWKSet(url);
   return cachedJwks;
@@ -35,7 +36,8 @@ function getJwks() {
 
 export async function verifySession(token: string) {
   const env = getEnv();
-  const issuer = `https://cognito-idp.${env.AWS_REGION}.amazonaws.com/${env.COGNITO_USER_POOL_ID}`;
+  const region = env.COGNITO_USER_POOL_REGION ?? env.AWS_REGION;
+  const issuer = `https://cognito-idp.${region}.amazonaws.com/${env.COGNITO_USER_POOL_ID}`;
 
   const { payload } = await jwtVerify(token, getJwks(), {
     issuer,
