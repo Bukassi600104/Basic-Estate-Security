@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, Lock, Mail, User, UserPlus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, Lock, Mail, MapPin, User, UserPlus } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [estateName, setEstateName] = useState("");
+  const [estateAddress, setEstateAddress] = useState("");
   const [adminName, setAdminName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,10 +25,16 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ estateName, adminName, email, password }),
+        body: JSON.stringify({ estateName, estateAddress, adminName, email, password }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Sign-up failed");
+      if (!res.ok) {
+        const message =
+          typeof data?.debugId === "string" && data.debugId.length
+            ? `${data.error ?? "Sign-up failed"} (debugId: ${data.debugId})`
+            : (data.error ?? "Sign-up failed");
+        throw new Error(message);
+      }
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -101,11 +108,24 @@ export default function SignUpPage() {
                     </div>
                   </label>
 
+                  <label className="grid gap-2 text-sm">
+                    <span className="font-semibold text-slate-700">Estate address</span>
+                    <div className="relative">
+                      <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                        value={estateAddress}
+                        onChange={(e) => setEstateAddress(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </label>
+
                   <button
                     type="button"
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700"
                     onClick={() => {
-                      if (estateName.trim().length) setStep(2);
+                      if (estateName.trim().length && estateAddress.trim().length) setStep(2);
                     }}
                   >
                     Continue

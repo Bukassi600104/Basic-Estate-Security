@@ -30,7 +30,9 @@ export function getEnv(): AppEnv {
   if (cachedEnv) return cachedEnv;
 
   const candidate = {
-    AWS_REGION: process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION,
+    // Prefer an explicit app-level region override (useful in hosting environments
+    // where AWS_REGION may reflect the compute region, not the data plane region).
+    AWS_REGION: process.env.APP_AWS_REGION ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION,
 
     COGNITO_USER_POOL_ID: process.env.COGNITO_USER_POOL_ID,
     COGNITO_CLIENT_ID: process.env.COGNITO_CLIENT_ID,

@@ -16,12 +16,13 @@ export type EstateRecord = {
   updatedAt: string;
 };
 
-export async function createEstate(params: { name: string }) {
+export async function createEstate(params: { name: string; address?: string }) {
   const now = new Date().toISOString();
   const estate: EstateRecord = {
     estateId: `est_${nanoid(12)}`,
     name: params.name,
     status: "ACTIVE",
+    address: params.address?.trim() ? params.address.trim() : undefined,
     gsi1pk: "ESTATES",
     createdAt: now,
     updatedAt: now,

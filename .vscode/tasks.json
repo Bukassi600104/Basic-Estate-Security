@@ -1,0 +1,168 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "probe-output",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"echo",
+				"hi"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "prod-signup-probe",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$email = \"probe+\" + (Get-Date -Format \"yyyyMMddHHmmss\") + \"@example.com\"; $body = @{ estateName = \"Probe Estate\"; estateAddress = \"1 Probe Street\"; adminName = \"Probe Admin\"; email = $email; password = \"Str0ngPassw0rd\" } | ConvertTo-Json; $headers = @{ Origin = \"https://main.d18ktaplzyr50v.amplifyapp.com\"; \"Sec-Fetch-Site\" = \"same-origin\" }; $resp = Invoke-WebRequest -Method Post -Uri \"https://main.d18ktaplzyr50v.amplifyapp.com/api/auth/sign-up\" -Headers $headers -ContentType \"application/json\" -Body $body -MaximumRedirection 0 -SkipHttpErrorCheck; Write-Output (\"STATUS \" + $resp.StatusCode + \" BODY \" + $resp.Content)"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "prod-signup-curl",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"curl.exe",
+				"-i",
+				"-s",
+				"-X",
+				"POST",
+				"https://main.d18ktaplzyr50v.amplifyapp.com/api/auth/sign-up",
+				"-H",
+				"Content-Type: application/json",
+				"-H",
+				"Origin: https://main.d18ktaplzyr50v.amplifyapp.com",
+				"-H",
+				"Sec-Fetch-Site: same-origin",
+				"--data-binary",
+				"{\"estateName\":\"Probe Estate\",\"estateAddress\":\"1 Probe Street\",\"adminName\":\"Probe Admin\",\"email\":\"probe_20251225@example.com\",\"password\":\"Str0ngPassw0rd\"}"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "probe-prod-signup",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\probe-prod-signup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "cwl-debugid",
+			"type": "shell",
+			"command": "aws",
+			"args": [
+				"--region",
+				"eu-north-1",
+				"logs",
+				"filter-log-events",
+				"--log-group-name",
+				"/aws/amplify/d18ktaplzyr50v",
+				"--filter-pattern",
+				"138476a9-67f0-4a29-89c4-4cb260d959f2",
+				"--max-items",
+				"5"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "local-signup-probe",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoProfile",
+				"-ExecutionPolicy",
+				"Bypass",
+				"-File",
+				"scripts\\probe-local-signup.ps1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "dev-server",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"dev"
+			],
+			"isBackground": true
+		},
+		{
+			"label": "build",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--porcelain"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "amplify-redeploy-main",
+			"type": "shell",
+			"command": "aws",
+			"args": [
+				"amplify",
+				"start-job",
+				"--app-id",
+				"d18ktaplzyr50v",
+				"--branch-name",
+				"main",
+				"--job-type",
+				"RELEASE",
+				"--region",
+				"eu-north-1",
+				"--profile",
+				"basic_estate_security"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "amplify-job-status",
+			"type": "shell",
+			"command": "aws",
+			"args": [
+				"amplify",
+				"get-job",
+				"--app-id",
+				"d18ktaplzyr50v",
+				"--branch-name",
+				"main",
+				"--job-id",
+				"9",
+				"--region",
+				"eu-north-1",
+				"--profile",
+				"basic_estate_security",
+				"--query",
+				"job.summary.status",
+				"--output",
+				"text"
+			],
+			"isBackground": false
+		}
+	]
+}

@@ -1,52 +1,43 @@
 
 # Copilot Instructions — Basic Estate Security
 
-## Architecture & Data Flow
-- **Next.js App Router** in `src/app/` (UI + API routes).
-- **PWA-first**: Residents/guards use PWA (no Telegram/third-party dependency); web UI is for admins.
-- **Persistence**: DynamoDB (multi-table). Prefer small repos in `src/lib/repos/*`.
-- **Auth**: Cognito User Pool JWT in `bs_session` cookie (see `src/lib/auth/session.ts`). No NextAuth.
+## What this repo is
+- Next.js 14 App Router: UI + API live under `src/app/*`.
+- Product split: admin dashboard vs PWA-first Resident/Security apps:
+	- `src/app/resident-app/*`, `src/app/security-app/*` (install/claim flows)
+	- PWA assets in `public/resident-app/*`, `public/security-app/*`
+- Persistence: DynamoDB multi-table via thin repos in `src/lib/repos/*` (prefer extending repos over ad-hoc DDB calls).
+- Auth: AWS Cognito User Pool; IdToken is stored as `bs_session` cookie (`src/lib/auth/session.ts`). No NextAuth.
 
-## Roles & Routing
-- Roles: `User.role` (string: `SUPER_ADMIN`, `ESTATE_ADMIN`, `RESIDENT`, `RESIDENT_DELEGATE`, `GUARD`). Compare as string literals.
-- Role router: `src/app/dashboard/page.tsx` (admins → dashboards, others → PWA guidance).
-- Layouts enforce role access: `src/app/[role]/layout.tsx` (e.g., `estate-admin`, `resident`, `guard`, `super-admin`).
-- Shared shell: `src/components/app-shell.tsx` (header, sign-out action).
+## Roles + request context
+- Roles are string literals: `SUPER_ADMIN | ESTATE_ADMIN | RESIDENT | RESIDENT_DELEGATE | GUARD`.
+- Middleware only checks “signed-in” for protected prefixes (`src/middleware.ts`). Role gating happens in pages/layouts and API routes.
+- Current user lookup is: session → user profile (DDB) → estate (DDB) via `requireCurrentUser()` (`src/lib/auth/current-user.ts`). It returns `null` (don’t assume throw).
 
-## Code/Pass Rules
-- **Guest codes**: On-demand, expire after 6h or on validation (`USED`, `expiresAt=now`).
-- **Staff codes**: 183 days, renewable, validation does NOT expire them.
-- **Suspension**: Suspended residents can’t generate codes; all their codes expire immediately.
-- **Estate status**: If not `ACTIVE`, block PWA/code APIs.
-- **Validation logging**: Every attempt logs a `ValidationLog` (success/failure, gate snapshot, user-safe `failureReason` on fail).
+## API route conventions (match existing patterns)
+- Validate inputs with `zod` inside the route (e.g. `src/app/api/auth/sign-in/route.ts`).
+- Responses are JSON: success `{ ok: true, ... }`, failure `{ error: string }` with user-safe messages.
+- Cookie-authenticated mutations must call `enforceSameOriginForMutations(req)` (`src/lib/security/same-origin.ts`).
+- Add per-route rate limiting via `rateLimit({ key, limit, windowMs })` keyed by IP/user when relevant (`src/lib/security/rate-limit.ts`).
+- Always enforce tenant boundaries: require user `estateId`, and verify loaded entities match it.
+- Routes that use Node-only APIs (Cognito admin, `node:crypto`) set `export const runtime = "nodejs"` (see `src/app/api/auth/sign-in/route.ts`).
 
-## API & Implementation Patterns
-- Admin APIs: `src/app/api/estate-admin/*` (residents, gates, logs, settings, onboarding).
-- Resident code APIs: `src/app/api/resident/codes/*` (generate/list/renew).
-- Guard APIs: `src/app/api/guard/*` (lookup/validate).
-- API routes: Always return `{ ok: true }` or `{ error }` (user-safe messages).
-- Tenant boundaries: Always filter by `estateId` from session/user.
-- Prefer small, focused route handlers over shared service layers.
+## Domain rules (codes + validation)
+- Estate must be `ACTIVE` for guard/resident code flows (checked in routes).
+- Residents must be `APPROVED` to generate/renew; `SUSPENDED` blocks actions.
+- Guest codes: single-use 6h TTL; on successful validation, atomically mark `USED` and write a `ValidationLog` (`src/app/api/guard/validate/route.ts`).
+- Staff codes: 183-day TTL; guard validation does not expire them; renewal extends expiry (`src/app/api/resident/codes/[codeId]/renew/route.ts`).
+- Every guard validate attempt writes a `ValidationLog` (success/failure + `failureReason`).
 
-## Developer Workflows (Windows/PowerShell)
-- Use `*.cmd` shims (not `npm.ps1`/`npx.ps1`):
-  - Install: `npm.cmd install`
-  - Dev: `npm.cmd run dev`
-- Local config:
-  - Copy `.env.example` → `.env`
-  - Set Cognito + DynamoDB env vars (see `src/lib/env.ts`)
+## DynamoDB modeling assumptions
+- GSI names are fixed in code: typically `GSI1`, sometimes `GSI2` (e.g. code lookup by `codeId`).
+- Key shapes are intentional: `CodeRecord.codeKey = ESTATE#{estateId}#CODE#{codeValue}` and `residentKey = ESTATE#{estateId}#RESIDENT#{residentId}` (`src/lib/repos/codes.ts`).
+- Some list/read paths may fall back to `Scan` if a GSI isn’t provisioned yet or older items lack indexed attributes (migration safety net; see `README.md`). Avoid relying on this in production.
+- Infra + recommended GSIs are documented in `README.md` and `infra/README.md`.
 
-## Infra & Deployment
-- AWS: Amplify Hosting for Next.js SSR (target). DynamoDB + Cognito for data/auth.
-- Health check: `GET /api/healthz`.
+## Developer workflow (Windows)
+- Install/run/lint: `npm.cmd install`, `npm.cmd run dev`, `npm.cmd run lint`.
+- Local env: copy `.env.example` → `.env`; env is validated strictly via `zod` (`src/lib/env.ts`).
+- Useful scripts: `npm.cmd run db:clear`, `npm.cmd run dev:delete-user`, and `scripts/probe-prod-signup.ps1`.
 
-Legacy infra notes may still exist under `infra/` but Prisma/ECS migration commands are removed.
-
-## Examples & References
-- Role-based layouts: `src/app/estate-admin/layout.tsx`, etc.
-- Auth/session: `src/lib/auth/session.ts`, `src/middleware.ts`.
-- Code rules: `src/app/api/resident/codes/`, `src/app/api/guard/validate/`.
-- Infra: `infra/README.md`.
-
----
-If any section is unclear or incomplete, please provide feedback for further iteration.
+If anything about the DynamoDB indexes/keys is unclear for your change, tell me which entity/route you’re touching and I’ll tighten the guidance.

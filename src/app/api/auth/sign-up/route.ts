@@ -14,6 +14,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   estateName: z.string().min(2),
+  estateAddress: z.string().min(2),
   adminName: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(8),
@@ -47,11 +48,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const { estateName, adminName, email, password } = parsed.data;
+    const { estateName, estateAddress, adminName, email, password } = parsed.data;
 
     // 1) Create estate record.
     stage = "create_estate";
-    const estate = await createEstate({ name: estateName });
+    const estate = await createEstate({ name: estateName, address: estateAddress });
     createdEstateId = estate.estateId;
 
     // 2) Create Cognito user (no email flow; immediate password set).
@@ -105,12 +106,25 @@ export async function POST(req: Request) {
     };
     console.error("sign_up_failed", JSON.stringify(safe));
 
+    // Common misconfigurations: missing env vars, wrong AWS region, or missing IAM permissions.
+    const looksLikeConfigProblem =
+      safe.name === "ZodError" ||
+      safe.name === "CredentialsProviderError" ||
+      safe.name === "UnrecognizedClientException" ||
+      safe.name === "AccessDeniedException" ||
+      safe.name === "ResourceNotFoundException" ||
+      safe.httpStatusCode === 403;
+
     // Best-effort cleanup if we partially created data.
     if (createdUsername) {
       await cognitoAdminDeleteUser({ username: createdUsername }).catch(() => null);
     }
     if (createdEstateId) {
       await deleteEstateById(createdEstateId).catch(() => null);
+    }
+
+    if (looksLikeConfigProblem) {
+      return NextResponse.json({ error: "Server not configured", debugId }, { status: 503 });
     }
 
     return NextResponse.json({ error: "Sign-up failed", debugId }, { status: 500 });
