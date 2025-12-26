@@ -17,6 +17,7 @@ const envSchema = z.object({
   DDB_TABLE_ACTIVITY_LOGS: z.string().min(1),
   DDB_TABLE_PWA_INVITES: z.string().min(1),
   DDB_TABLE_UNIQ: z.string().min(1),
+  DDB_TABLE_RATE_LIMITS: z.string().min(1),
 
   // Optional for local/dev; if set, will be used for Cognito admin APIs.
   COGNITO_USER_POOL_REGION: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
@@ -46,6 +47,7 @@ export function getEnv(): AppEnv {
     DDB_TABLE_ACTIVITY_LOGS: process.env.DDB_TABLE_ACTIVITY_LOGS,
     DDB_TABLE_PWA_INVITES: process.env.DDB_TABLE_PWA_INVITES,
     DDB_TABLE_UNIQ: process.env.DDB_TABLE_UNIQ,
+    DDB_TABLE_RATE_LIMITS: process.env.DDB_TABLE_RATE_LIMITS,
 
     COGNITO_USER_POOL_REGION: process.env.COGNITO_USER_POOL_REGION,
   };

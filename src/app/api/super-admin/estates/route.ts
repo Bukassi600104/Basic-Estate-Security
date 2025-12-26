@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth/session";
+import { requireRoleSession } from "@/lib/auth/guards";
 import { listEstatesPage, type DdbCursor } from "@/lib/repos/estates";
 
 function base64UrlEncode(input: string) {
@@ -26,10 +26,8 @@ function decodeCursor(param: string | null): DdbCursor | undefined {
 }
 
 export async function GET(req: Request) {
-  const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["SUPER_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
   const url = new URL(req.url);
   const limitRaw = url.searchParams.get("limit");

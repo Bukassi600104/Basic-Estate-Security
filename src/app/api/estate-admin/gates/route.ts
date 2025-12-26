@@ -1,30 +1,30 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { headers } from "next/headers";
-import { getSession } from "@/lib/auth/session";
-import { getEstateById } from "@/lib/repos/estates";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
+import {
+  enforceSameOriginOr403,
+  requireActiveEstate,
+  requireEstateId,
+  requireRoleSession,
+} from "@/lib/auth/guards";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { createGate, listGatesForEstate } from "@/lib/repos/gates";
 import { putActivityLog } from "@/lib/repos/activity-logs";
 
 const createSchema = z.object({ name: z.string().min(2).max(50) });
 
 export async function GET() {
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
 
-  const gates = await listGatesForEstate(session.estateId);
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
+
+  const gates = await listGatesForEstate(estateId);
   return NextResponse.json({
     ok: true,
     gates: gates.map((g) => ({ id: g.gateId, name: g.name })),
@@ -32,31 +32,39 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
-  }
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
 
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
+
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({ key: `estate-admin:gates:create:${session.estateId}:${ip}`, limit: 20, windowMs: 60_000 });
+  const rl = await rateLimitHybrid({
+    category: "OPS",
+    key: `estate-admin:gates:create:${estateId}:${ip}`,
+    limit: 20,
+    windowMs: 60_000,
+  });
   if (!rl.ok) {
-    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
 
   const json = await req.json().catch(() => null);
   const parsed = createSchema.safeParse(json);
@@ -64,13 +72,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const created = await createGate({ estateId: session.estateId, name: parsed.data.name });
+  const created = await createGate({ estateId, name: parsed.data.name });
   if (!created.ok) {
     return NextResponse.json({ error: created.error }, { status: 409 });
   }
 
   await putActivityLog({
-    estateId: session.estateId,
+    estateId,
     type: "GATE_CREATED",
     message: created.gate.name,
   });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth/session";
-import { getEstateById } from "@/lib/repos/estates";
+import { requireRoleSession } from "@/lib/auth/guards";
+import { requireEstateExists } from "@/lib/auth/guards";
 import { listActivityLogsForEstatePage, type DdbCursor } from "@/lib/repos/activity-logs";
 
 function base64UrlEncode(input: string) {
@@ -27,15 +27,11 @@ function decodeCursor(param: string | null): DdbCursor | undefined {
 }
 
 export async function GET(req: Request, { params }: { params: { estateId: string } }) {
-  const session = await getSession();
-  if (!session || session.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["SUPER_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
-  const estate = await getEstateById(params.estateId);
-  if (!estate) {
-    return NextResponse.json({ error: "Estate not found" }, { status: 404 });
-  }
+  const estateRes = await requireEstateExists(params.estateId);
+  if (!estateRes.ok) return estateRes.response;
 
   const url = new URL(req.url);
   const limitRaw = url.searchParams.get("limit");

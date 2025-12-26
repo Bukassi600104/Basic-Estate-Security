@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireCurrentUser } from "@/lib/auth/current-user";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
 import { headers } from "next/headers";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
+import {
+  enforceSameOriginOr403,
+  requireActiveEstateForCurrentUser,
+  requireCurrentUserEstateId,
+  requireCurrentUserWithRoles,
+} from "@/lib/auth/guards";
 import { getCodeByValue } from "@/lib/repos/codes";
 import { getResidentById } from "@/lib/repos/residents";
 
@@ -17,33 +21,39 @@ function isExpired(params: { status: string; expiresAtIso: string; nowIso: strin
 }
 
 export async function POST(req: Request) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
-  }
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
 
-  const user = await requireCurrentUser();
-  if (!user || user.role !== "GUARD") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!user.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const userRes = await requireCurrentUserWithRoles({ roles: ["GUARD"] });
+  if (!userRes.ok) return userRes.response;
+  const user = userRes.value;
 
-  if (user.estate?.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate suspended" }, { status: 403 });
-  }
+  const estateIdRes = requireCurrentUserEstateId(user);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
+
+  const active = requireActiveEstateForCurrentUser(user);
+  if (!active.ok) return active.response;
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({
+  const rl = await rateLimitHybrid({
+    category: "OPS",
     key: `guard:lookup:${ip}:${user.id}`,
     limit: 60,
     windowMs: 60_000,
   });
   if (!rl.ok) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
   const json = await req.json().catch(() => null);
@@ -55,13 +65,13 @@ export async function POST(req: Request) {
   const nowIso = new Date().toISOString();
   const codeValue = parsed.data.code.trim();
 
-  const code = await getCodeByValue({ estateId: user.estateId, codeValue });
-  if (!code || code.estateId !== user.estateId) {
+  const code = await getCodeByValue({ estateId, codeValue });
+  if (!code || code.estateId !== estateId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const resident = await getResidentById(code.residentId);
-  if (!resident || resident.estateId !== user.estateId) {
+  if (!resident || resident.estateId !== estateId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

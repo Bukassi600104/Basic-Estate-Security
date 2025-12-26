@@ -10,6 +10,8 @@ export default function SignInPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,35 @@ export default function SignInPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ identifier, password, rememberMe }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Sign-in failed");
+
+      if (data?.challenge === "SOFTWARE_TOKEN_MFA") {
+        setMfaRequired(true);
+        return;
+      }
+
+      if (data?.ok !== true) throw new Error(data.error ?? "Sign-in failed");
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign-in failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onConfirmMfa(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/sign-in", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ identifier, code: mfaCode, rememberMe }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Sign-in failed");
@@ -65,7 +96,7 @@ export default function SignInPage() {
               Enter your credentials to access the estate dashboard.
             </p>
 
-            <form className="mt-8 grid gap-5" onSubmit={onSubmit}>
+            <form className="mt-8 grid gap-5" onSubmit={mfaRequired ? onConfirmMfa : onSubmit}>
               <label className="grid gap-2 text-sm">
                 <span className="font-semibold text-slate-700">Email</span>
                 <div className="relative">
@@ -76,33 +107,51 @@ export default function SignInPage() {
                     onChange={(e) => setIdentifier(e.target.value)}
                     type="email"
                     autoComplete="username"
+                    disabled={mfaRequired}
                     required
                   />
                 </div>
               </label>
 
-              <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Password</span>
-                <div className="relative">
-                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-12 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-600 hover:bg-slate-100"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </label>
+              {mfaRequired ? (
+                <label className="grid gap-2 text-sm">
+                  <span className="font-semibold text-slate-700">Authenticator code</span>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                      value={mfaCode}
+                      onChange={(e) => setMfaCode(e.target.value)}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      required
+                    />
+                  </div>
+                </label>
+              ) : (
+                <label className="grid gap-2 text-sm">
+                  <span className="font-semibold text-slate-700">Password</span>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-12 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-600 hover:bg-slate-100"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </label>
+              )}
 
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                 <label className="inline-flex items-center gap-2 text-slate-700">
@@ -134,7 +183,7 @@ export default function SignInPage() {
                 disabled={loading}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
               >
-                {loading ? "Signing in…" : "Access dashboard"}
+                {loading ? "Signing in…" : mfaRequired ? "Confirm code" : "Access dashboard"}
                 <ArrowRight className="h-4 w-4" />
               </button>
             </form>

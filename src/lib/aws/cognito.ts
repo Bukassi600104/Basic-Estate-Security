@@ -2,6 +2,13 @@ import {
   CognitoIdentityProviderClient,
   type InitiateAuthCommandInput,
   InitiateAuthCommand,
+  RespondToAuthChallengeCommand,
+  type RespondToAuthChallengeCommandInput,
+  AssociateSoftwareTokenCommand,
+  VerifySoftwareTokenCommand,
+  SetUserMFAPreferenceCommand,
+  GetUserCommand,
+  UpdateUserAttributesCommand,
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   AdminGetUserCommand,
@@ -37,8 +44,53 @@ export async function cognitoPasswordSignIn(params: {
   };
 
   const res = await client.send(new InitiateAuthCommand(input));
+
+  if (res.ChallengeName && res.Session) {
+    return {
+      kind: "CHALLENGE" as const,
+      challengeName: res.ChallengeName,
+      session: res.Session,
+    };
+  }
+
   const auth = res.AuthenticationResult;
-  if (!auth?.IdToken) throw new Error("Missing Cognito IdToken");
+  if (!auth?.IdToken || !auth.AccessToken || !auth.RefreshToken) {
+    throw new Error("Missing Cognito tokens");
+  }
+
+  return {
+    kind: "TOKENS" as const,
+    idToken: auth.IdToken,
+    accessToken: auth.AccessToken,
+    refreshToken: auth.RefreshToken,
+    expiresIn: auth.ExpiresIn,
+    tokenType: auth.TokenType,
+  };
+}
+
+export async function cognitoRespondToSoftwareTokenMfa(params: {
+  username: string;
+  session: string;
+  code: string;
+}) {
+  const env = getEnv();
+  const client = getCognitoClient();
+
+  const input: RespondToAuthChallengeCommandInput = {
+    ClientId: env.COGNITO_CLIENT_ID,
+    ChallengeName: "SOFTWARE_TOKEN_MFA",
+    Session: params.session,
+    ChallengeResponses: {
+      USERNAME: params.username,
+      SOFTWARE_TOKEN_MFA_CODE: params.code,
+    },
+  };
+
+  const res = await client.send(new RespondToAuthChallengeCommand(input));
+  const auth = res.AuthenticationResult;
+  if (!auth?.IdToken || !auth.AccessToken || !auth.RefreshToken) {
+    throw new Error("Missing Cognito tokens");
+  }
 
   return {
     idToken: auth.IdToken,
@@ -46,6 +98,93 @@ export async function cognitoPasswordSignIn(params: {
     refreshToken: auth.RefreshToken,
     expiresIn: auth.ExpiresIn,
     tokenType: auth.TokenType,
+  };
+}
+
+export async function cognitoRefreshSession(params: { refreshToken: string }) {
+  const env = getEnv();
+  const client = getCognitoClient();
+
+  const input: InitiateAuthCommandInput = {
+    AuthFlow: "REFRESH_TOKEN_AUTH",
+    ClientId: env.COGNITO_CLIENT_ID,
+    AuthParameters: {
+      REFRESH_TOKEN: params.refreshToken,
+    },
+  };
+
+  const res = await client.send(new InitiateAuthCommand(input));
+  const auth = res.AuthenticationResult;
+  if (!auth?.IdToken || !auth.AccessToken) {
+    throw new Error("Missing refreshed tokens");
+  }
+
+  return {
+    idToken: auth.IdToken,
+    accessToken: auth.AccessToken,
+    expiresIn: auth.ExpiresIn,
+    tokenType: auth.TokenType,
+  };
+}
+
+export async function cognitoStartTotpEnrollment(params: { accessToken: string }) {
+  const client = getCognitoClient();
+  const res = await client.send(
+    new AssociateSoftwareTokenCommand({
+      AccessToken: params.accessToken,
+    }),
+  );
+
+  if (!res.SecretCode || !res.Session) {
+    throw new Error("Missing TOTP enrollment data");
+  }
+
+  return {
+    secretCode: res.SecretCode,
+    session: res.Session,
+  };
+}
+
+export async function cognitoVerifyTotpEnrollment(params: {
+  accessToken: string;
+  session: string;
+  code: string;
+}) {
+  const client = getCognitoClient();
+  const res = await client.send(
+    new VerifySoftwareTokenCommand({
+      AccessToken: params.accessToken,
+      Session: params.session,
+      UserCode: params.code,
+    }),
+  );
+
+  if (res.Status !== "SUCCESS") {
+    throw new Error("Invalid code");
+  }
+
+  await client.send(
+    new SetUserMFAPreferenceCommand({
+      AccessToken: params.accessToken,
+      SoftwareTokenMfaSettings: {
+        Enabled: true,
+        PreferredMfa: true,
+      },
+    }),
+  );
+
+  // Mark MFA as enabled for app-layer enforcement.
+  await client.send(
+    new UpdateUserAttributesCommand({
+      AccessToken: params.accessToken,
+      UserAttributes: [{ Name: "custom:mfaEnabled", Value: "true" }],
+    }),
+  );
+
+  // Return a small amount of identity info for UI labels if needed.
+  const user = await client.send(new GetUserCommand({ AccessToken: params.accessToken }));
+  return {
+    username: user.Username,
   };
 }
 

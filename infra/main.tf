@@ -14,11 +14,20 @@ locals {
   ddb_table_activity_logs   = "${var.project_name}_ActivityLogs"
   ddb_table_pwa_invites     = "${var.project_name}_PwaInvites"
   ddb_table_uniq            = "${var.project_name}_Uniq"
+  ddb_table_rate_limits     = "${var.project_name}_RateLimits"
 }
 
 # Cognito (auth)
 resource "aws_cognito_user_pool" "this" {
   name = "${local.name}-user-pool"
+
+  # Allow users to enroll in MFA (TOTP). We'll enforce it for privileged users
+  # at the app layer (middleware) by requiring a custom attribute flag.
+  mfa_configuration = "OPTIONAL"
+
+  software_token_mfa_configuration {
+    enabled = true
+  }
 
   # Use email as the username value.
   username_attributes      = ["email"]
@@ -55,6 +64,17 @@ resource "aws_cognito_user_pool" "this" {
     string_attribute_constraints {
       min_length = 1
       max_length = 64
+    }
+  }
+
+  schema {
+    name                = "mfaEnabled"
+    attribute_data_type = "String"
+    mutable             = true
+    required            = false
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 8
     }
   }
 
@@ -334,6 +354,25 @@ resource "aws_dynamodb_table" "uniq" {
   tags = local.tags
 }
 
+resource "aws_dynamodb_table" "rate_limits" {
+  name         = local.ddb_table_rate_limits
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "rateLimitKey"
+
+  attribute {
+    name = "rateLimitKey"
+    type = "S"
+  }
+
+  # DynamoDB TTL expects epoch seconds (Number).
+  ttl {
+    attribute_name = "ttlEpochSeconds"
+    enabled        = true
+  }
+
+  tags = local.tags
+}
+
 # IAM policy you can attach to Amplify's SSR execution role.
 # This is required so server-side routes can read/write DynamoDB and perform Cognito Admin APIs.
 data "aws_iam_policy_document" "amplify_ssr_access" {
@@ -371,6 +410,8 @@ data "aws_iam_policy_document" "amplify_ssr_access" {
       "${aws_dynamodb_table.pwa_invites.arn}/index/*",
       aws_dynamodb_table.uniq.arn,
       "${aws_dynamodb_table.uniq.arn}/index/*",
+      aws_dynamodb_table.rate_limits.arn,
+      "${aws_dynamodb_table.rate_limits.arn}/index/*",
     ]
   }
 
@@ -379,6 +420,12 @@ data "aws_iam_policy_document" "amplify_ssr_access" {
     effect = "Allow"
     actions = [
       "cognito-idp:InitiateAuth",
+      "cognito-idp:RespondToAuthChallenge",
+      "cognito-idp:AssociateSoftwareToken",
+      "cognito-idp:VerifySoftwareToken",
+      "cognito-idp:SetUserMFAPreference",
+      "cognito-idp:GetUser",
+      "cognito-idp:UpdateUserAttributes",
       "cognito-idp:AdminCreateUser",
       "cognito-idp:AdminSetUserPassword",
       "cognito-idp:AdminGetUser",

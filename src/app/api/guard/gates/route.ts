@@ -1,21 +1,24 @@
 import { NextResponse } from "next/server";
-import { requireCurrentUser } from "@/lib/auth/current-user";
+import {
+  requireActiveEstateForCurrentUser,
+  requireCurrentUserEstateId,
+  requireCurrentUserWithRoles,
+} from "@/lib/auth/guards";
 import { listGatesForEstate } from "@/lib/repos/gates";
 
 export async function GET() {
-  const user = await requireCurrentUser();
-  if (!user || user.role !== "GUARD") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!user.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const userRes = await requireCurrentUserWithRoles({ roles: ["GUARD"] });
+  if (!userRes.ok) return userRes.response;
+  const user = userRes.value;
 
-  if (user.estate?.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate suspended" }, { status: 403 });
-  }
+  const estateIdRes = requireCurrentUserEstateId(user);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
 
-  const gates = await listGatesForEstate(user.estateId);
+  const active = requireActiveEstateForCurrentUser(user);
+  if (!active.ok) return active.response;
+
+  const gates = await listGatesForEstate(estateId);
   return NextResponse.json({
     ok: true,
     gates: gates.map((g) => ({ id: g.gateId, name: g.name })),

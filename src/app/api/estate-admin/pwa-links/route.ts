@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { getSession } from "@/lib/auth/session";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
-import { getEstateById } from "@/lib/repos/estates";
+import {
+  enforceSameOriginOr403,
+  requireActiveEstate,
+  requireEstateId,
+  requireRoleSession,
+} from "@/lib/auth/guards";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { createNewPwaLinks } from "@/lib/repos/pwa-invites";
 
 function baseUrlFromHeaders() {
@@ -17,24 +20,18 @@ function baseUrlFromHeaders() {
 }
 
 export async function POST(req: Request) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
-  }
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
 
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
+
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
 
   const baseUrl = baseUrlFromHeaders();
   if (!baseUrl) {
@@ -43,20 +40,30 @@ export async function POST(req: Request) {
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({
-    key: `estate-admin:pwa-links:${ip}:${session.userId}`,
+  const rl = await rateLimitHybrid({
+    category: "OPS",
+    key: `estate-admin:pwa-links:${ip}:${sessionRes.value.userId}`,
     limit: 10,
     windowMs: 60_000,
   });
   if (!rl.ok) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
   const links = await createNewPwaLinks({
-    estateId: session.estateId,
-    createdByUserId: session.userId,
+    estateId,
+    createdByUserId: sessionRes.value.userId,
     expiresAtIso: expiresAt.toISOString(),
   });
 

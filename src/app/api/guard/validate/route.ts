@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireCurrentUser } from "@/lib/auth/current-user";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
 import { headers } from "next/headers";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
+import {
+  enforceSameOriginOr403,
+  requireActiveEstateForCurrentUser,
+  requireCurrentUserEstateId,
+  requireCurrentUserWithRoles,
+} from "@/lib/auth/guards";
 import { getDdbDocClient } from "@/lib/aws/dynamo";
 import { getEnv } from "@/lib/env";
 import { getCodeByValue, makeCodeKey } from "@/lib/repos/codes";
@@ -48,33 +52,39 @@ function mapFailureToUserMessage(failureReason: string) {
 }
 
 export async function POST(req: Request) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
-  }
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
 
-  const guard = await requireCurrentUser();
-  if (!guard || guard.role !== "GUARD") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!guard.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const guardRes = await requireCurrentUserWithRoles({ roles: ["GUARD"] });
+  if (!guardRes.ok) return guardRes.response;
+  const guard = guardRes.value;
 
-  if (guard.estate?.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate suspended" }, { status: 403 });
-  }
+  const estateIdRes = requireCurrentUserEstateId(guard);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
+
+  const active = requireActiveEstateForCurrentUser(guard);
+  if (!active.ok) return active.response;
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({
+  const rl = await rateLimitHybrid({
+    category: "OPS",
     key: `guard:validate:${ip}:${guard.id}`,
     limit: 60,
     windowMs: 60_000,
   });
   if (!rl.ok) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
   const json = await req.json().catch(() => null);
@@ -91,10 +101,10 @@ export async function POST(req: Request) {
   const gateId = parsed.data.gateId;
 
   const gate = await getGateById(gateId);
-  if (!gate || gate.estateId !== guard.estateId) {
+  if (!gate || gate.estateId !== estateId) {
     const log = {
       logId: newValidationLogId(),
-      estateId: guard.estateId,
+      estateId,
       validatedAt: timestamp,
       gateId,
       gateName: gate?.name ?? "Unknown",
@@ -110,11 +120,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: mapFailureToUserMessage("GATE_NOT_FOUND") }, { status: 400 });
   }
 
-  const code = await getCodeByValue({ estateId: guard.estateId, codeValue });
-  if (!code || code.estateId !== guard.estateId) {
+  const code = await getCodeByValue({ estateId, codeValue });
+  if (!code || code.estateId !== estateId) {
     const log = {
       logId: newValidationLogId(),
-      estateId: guard.estateId,
+      estateId,
       validatedAt: timestamp,
       gateId: gate.gateId,
       gateName: gate.name,
@@ -131,10 +141,10 @@ export async function POST(req: Request) {
   }
 
   const resident = await getResidentById(code.residentId);
-  if (!resident || resident.estateId !== guard.estateId) {
+  if (!resident || resident.estateId !== estateId) {
     const log = {
       logId: newValidationLogId(),
-      estateId: guard.estateId,
+      estateId,
       validatedAt: timestamp,
       gateId: gate.gateId,
       gateName: gate.name,
@@ -156,7 +166,7 @@ export async function POST(req: Request) {
   if (resident.status === "SUSPENDED") {
     const log = {
       logId: newValidationLogId(),
-      estateId: guard.estateId,
+      estateId,
       validatedAt: timestamp,
       gateId: gate.gateId,
       gateName: gate.name,
@@ -178,7 +188,7 @@ export async function POST(req: Request) {
   if (code.status !== "ACTIVE") {
     const log = {
       logId: newValidationLogId(),
-      estateId: guard.estateId,
+      estateId,
       validatedAt: timestamp,
       gateId: gate.gateId,
       gateName: gate.name,
@@ -200,7 +210,7 @@ export async function POST(req: Request) {
   if (codeExpired({ status: code.status, expiresAt: code.expiresAt, now: timestamp })) {
     const log = {
       logId: newValidationLogId(),
-      estateId: guard.estateId,
+      estateId,
       validatedAt: timestamp,
       gateId: gate.gateId,
       gateName: gate.name,
@@ -221,7 +231,7 @@ export async function POST(req: Request) {
 
   const successLog = {
     logId: newValidationLogId(),
-    estateId: guard.estateId,
+    estateId,
     validatedAt: timestamp,
     gateId: gate.gateId,
     gateName: gate.name,
@@ -239,7 +249,7 @@ export async function POST(req: Request) {
   if (code.passType === "GUEST") {
     // Guest codes are single-use: mark USED + expire immediately on successful validation.
     // Do this atomically alongside writing the log.
-    const codeKey = makeCodeKey({ estateId: guard.estateId, codeValue: code.codeValue });
+    const codeKey = makeCodeKey({ estateId, codeValue: code.codeValue });
     const now = timestamp;
 
     try {

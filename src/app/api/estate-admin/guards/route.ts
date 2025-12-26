@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { headers } from "next/headers";
-import { getSession } from "@/lib/auth/session";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
+import { enforceSameOriginOr403, requireEstateId, requireRoleSession } from "@/lib/auth/guards";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
 import { putUser } from "@/lib/repos/users";
 import { putActivityLog } from "@/lib/repos/activity-logs";
@@ -23,25 +22,35 @@ function generatePassword() {
 }
 
 export async function POST(req: Request) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
-  }
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
 
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
+
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({ key: `estate-admin:guards:create:${session.estateId}:${ip}`, limit: 10, windowMs: 60_000 });
+  const rl = await rateLimitHybrid({
+    category: "OPS",
+    key: `estate-admin:guards:create:${estateId}:${ip}`,
+    limit: 10,
+    windowMs: 60_000,
+  });
   if (!rl.ok) {
-    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
   const json = await req.json().catch(() => null);
@@ -64,7 +73,7 @@ export async function POST(req: Request) {
       name,
       userAttributes: {
         "custom:role": "GUARD",
-        "custom:estateId": session.estateId,
+        "custom:estateId": estateId,
       },
     });
   } catch {
@@ -75,7 +84,7 @@ export async function POST(req: Request) {
   const now = new Date().toISOString();
   await putUser({
     userId: sub,
-    estateId: session.estateId,
+    estateId,
     role: "GUARD",
     name,
     email: isEmail ? identifier : undefined,
@@ -85,7 +94,7 @@ export async function POST(req: Request) {
   });
 
   await putActivityLog({
-    estateId: session.estateId,
+    estateId,
     type: "GUARD_CREATED",
     message: `${name} (${identifier})`,
   });

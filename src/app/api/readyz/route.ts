@@ -21,6 +21,7 @@ export async function GET() {
       env.DDB_TABLE_ACTIVITY_LOGS,
       env.DDB_TABLE_PWA_INVITES,
       env.DDB_TABLE_UNIQ,
+      env.DDB_TABLE_RATE_LIMITS,
     ];
 
     await Promise.all(

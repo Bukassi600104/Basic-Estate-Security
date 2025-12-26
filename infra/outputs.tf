@@ -46,6 +46,22 @@ output "ddb_table_uniq" {
   value = aws_dynamodb_table.uniq.name
 }
 
+output "ddb_table_rate_limits" {
+  value = aws_dynamodb_table.rate_limits.name
+}
+
 output "amplify_ssr_policy_arn" {
   value = aws_iam_policy.amplify_ssr_access.arn
+}
+
+output "frontdoor_cloudfront_domain_name" {
+  value = try(aws_cloudfront_distribution.frontdoor[0].domain_name, null)
+}
+
+output "frontdoor_cloudfront_distribution_id" {
+  value = try(aws_cloudfront_distribution.frontdoor[0].id, null)
+}
+
+output "frontdoor_waf_web_acl_arn" {
+  value = try(aws_wafv2_web_acl.frontdoor[0].arn, null)
 }

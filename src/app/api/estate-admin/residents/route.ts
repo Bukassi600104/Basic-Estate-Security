@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { headers } from "next/headers";
-import { getSession } from "@/lib/auth/session";
-import { getEstateById } from "@/lib/repos/estates";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
+import {
+  enforceSameOriginOr403,
+  requireActiveEstate,
+  requireEstateId,
+  requireRoleSession,
+} from "@/lib/auth/guards";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
 import { putUser, listUsersForResident } from "@/lib/repos/users";
 import { createResident, listResidentsForEstate } from "@/lib/repos/residents";
@@ -69,31 +72,39 @@ async function createCognitoAndProfile(params: {
 }
 
 export async function POST(req: Request) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
-  }
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
 
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
+
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({ key: `estate-admin:residents:onboard:${session.estateId}:${ip}`, limit: 10, windowMs: 60_000 });
+  const rl = await rateLimitHybrid({
+    category: "OPS",
+    key: `estate-admin:residents:onboard:${estateId}:${ip}`,
+    limit: 10,
+    windowMs: 60_000,
+  });
   if (!rl.ok) {
-    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
 
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
@@ -118,7 +129,7 @@ export async function POST(req: Request) {
 
   // 1) Create resident record.
   const resident = await createResident({
-    estateId: session.estateId,
+    estateId,
     name: residentName.trim(),
     houseNumber: houseNumber.trim(),
     phone: residentPhone.trim(),
@@ -130,7 +141,7 @@ export async function POST(req: Request) {
   let residentPassword: string;
   try {
     const createdResident = await createCognitoAndProfile({
-      estateId: session.estateId,
+      estateId,
       role: "RESIDENT",
       username: residentPhone.trim(),
       name: resident.name,
@@ -143,7 +154,7 @@ export async function POST(req: Request) {
     const delegatePasswords: Array<{ phone: string; password: string }> = [];
     for (const phone of approvedPhones) {
       const createdDelegate = await createCognitoAndProfile({
-        estateId: session.estateId,
+        estateId,
         role: "RESIDENT_DELEGATE",
         username: phone,
         name: `${resident.name} (Delegate)`,
@@ -154,7 +165,7 @@ export async function POST(req: Request) {
     }
 
     await putActivityLog({
-      estateId: session.estateId,
+      estateId,
       type: "RESIDENT_ONBOARDED",
       message: `${resident.name} (Unit ${resident.houseNumber})`,
     });
@@ -177,23 +188,20 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
 
-  const residents = await listResidentsForEstate(session.estateId, 250);
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
+
+  const residents = await listResidentsForEstate(estateId, 250);
   const enriched = await Promise.all(
     residents.map(async (r) => {
-      const users = await listUsersForResident({ estateId: session.estateId!, residentId: r.residentId, limit: 10 });
+      const users = await listUsersForResident({ estateId, residentId: r.residentId, limit: 10 });
       return {
         id: r.residentId,
         name: r.name,

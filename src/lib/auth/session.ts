@@ -3,12 +3,17 @@ import { cookies } from "next/headers";
 import { getEnv } from "@/lib/env";
 
 export const SESSION_COOKIE_NAME = "bs_session";
+export const ACCESS_COOKIE_NAME = "bs_access";
+export const REFRESH_COOKIE_NAME = "bs_refresh";
+export const MFA_CHALLENGE_COOKIE_NAME = "bs_mfa_challenge";
+export const MFA_SETUP_COOKIE_NAME = "bs_mfa_setup";
 
 export type SessionClaims = {
-  sub: string;
+  userId: string;
   role: string;
   estateId?: string;
   name: string;
+  mfaEnabled?: boolean;
 };
 
 type CognitoTokenClaims = {
@@ -19,6 +24,7 @@ type CognitoTokenClaims = {
   "custom:role"?: string;
   "custom:estateId"?: string;
   "custom:residentId"?: string;
+  "custom:mfaEnabled"?: string;
 };
 
 let cachedJwks: ReturnType<typeof createRemoteJWKSet> | null = null;
@@ -52,12 +58,14 @@ export async function verifySession(token: string) {
   const role = String(typed["custom:role"] ?? roleFromGroups ?? "");
   const estateId = typed["custom:estateId"] ? String(typed["custom:estateId"]) : undefined;
   const name = String(typed.name ?? typed["cognito:username"] ?? "");
+  const mfaEnabled = String(typed["custom:mfaEnabled"] ?? "").toLowerCase() === "true";
 
   return {
     userId: sub,
     role,
     estateId,
     name,
+    mfaEnabled,
   };
 }
 
@@ -101,6 +109,90 @@ export function setSessionCookieWithOptions(
 
 export function clearSessionCookie() {
   cookies().set(SESSION_COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export function setAccessCookie(token: string) {
+  cookies().set(ACCESS_COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    // Access tokens are short-lived; keep a short cookie lifetime.
+    maxAge: 60 * 60,
+  });
+}
+
+export function setRefreshCookie(token: string, options: { rememberMe?: boolean } = {}) {
+  const rememberMe = options.rememberMe ?? true;
+
+  cookies().set(REFRESH_COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    ...(rememberMe ? { maxAge: 60 * 60 * 24 * 30 } : {}),
+  });
+}
+
+export function clearRefreshCookie() {
+  cookies().set(REFRESH_COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export function clearAccessCookie() {
+  cookies().set(ACCESS_COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export function setMfaChallengeCookie(session: string) {
+  cookies().set(MFA_CHALLENGE_COOKIE_NAME, session, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    // Cognito challenge sessions are short-lived.
+    maxAge: 10 * 60,
+  });
+}
+
+export function clearMfaChallengeCookie() {
+  cookies().set(MFA_CHALLENGE_COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export function setMfaSetupCookie(session: string) {
+  cookies().set(MFA_SETUP_COOKIE_NAME, session, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 10 * 60,
+  });
+}
+
+export function clearMfaSetupCookie() {
+  cookies().set(MFA_SETUP_COOKIE_NAME, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

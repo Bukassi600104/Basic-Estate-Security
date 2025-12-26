@@ -1,37 +1,57 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth/session";
 import { z } from "zod";
-import { getEstateById } from "@/lib/repos/estates";
-import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
+import {
+  assertTenant,
+  enforceSameOriginOr403,
+  requireActiveEstate,
+  requireEstateId,
+  requireRoleSession,
+} from "@/lib/auth/guards";
 import { deleteGate, getGateById, updateGateName } from "@/lib/repos/gates";
 import { putActivityLog } from "@/lib/repos/activity-logs";
+import { headers } from "next/headers";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 
 const patchSchema = z.object({ name: z.string().min(2).max(50) });
 
 export async function PATCH(req: Request, { params }: { params: { gateId: string } }) {
-  try {
-    enforceSameOriginForMutations(req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
+  const origin = enforceSameOriginOr403(req);
+  if (!origin.ok) return origin.response;
+
+  const h = headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+  const rl = await rateLimitHybrid({
+    category: "OPS",
+    key: `estate-admin:gate:patch:${ip}:${params.gateId}`,
+    limit: 60,
+    windowMs: 60_000,
+  });
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
+
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
 
   const gate = await getGateById(params.gateId);
-  if (!gate || gate.estateId !== session.estateId) {
-    return NextResponse.json({ error: "Gate not found" }, { status: 404 });
-  }
+  const tenant = assertTenant({ entityEstateId: gate?.estateId, sessionEstateId: estateId, notFoundMessage: "Gate not found" });
+  if (!tenant.ok) return tenant.response;
 
   const json = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(json);
@@ -45,7 +65,7 @@ export async function PATCH(req: Request, { params }: { params: { gateId: string
   }
 
   await putActivityLog({
-    estateId: session.estateId,
+    estateId,
     type: "GATE_UPDATED",
     message: `${gate.name} -> ${updated.name}`,
   });
@@ -54,33 +74,47 @@ export async function PATCH(req: Request, { params }: { params: { gateId: string
 }
 
 export async function DELETE(_req: Request, { params }: { params: { gateId: string } }) {
-  try {
-    enforceSameOriginForMutations(_req);
-  } catch {
-    return NextResponse.json({ error: "Bad origin" }, { status: 403 });
+  const origin = enforceSameOriginOr403(_req);
+  if (!origin.ok) return origin.response;
+
+  const h = headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+  const rl = await rateLimitHybrid({
+    category: "OPS",
+    key: `estate-admin:gate:delete:${ip}:${params.gateId}`,
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: rl.error },
+      {
+        status: rl.status,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+        },
+      },
+    );
   }
 
-  const session = await getSession();
-  if (!session || session.role !== "ESTATE_ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!session.estateId) {
-    return NextResponse.json({ error: "Missing estate" }, { status: 400 });
-  }
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
 
-  const estate = await getEstateById(session.estateId);
-  if (!estate || estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate not active" }, { status: 403 });
-  }
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
+
+  const estateRes = await requireActiveEstate(estateId);
+  if (!estateRes.ok) return estateRes.response;
 
   const gate = await getGateById(params.gateId);
-  if (!gate || gate.estateId !== session.estateId) {
-    return NextResponse.json({ error: "Gate not found" }, { status: 404 });
-  }
+  const tenant = assertTenant({ entityEstateId: gate?.estateId, sessionEstateId: estateId, notFoundMessage: "Gate not found" });
+  if (!tenant.ok) return tenant.response;
 
   await deleteGate(params.gateId);
   await putActivityLog({
-    estateId: session.estateId,
+    estateId,
     type: "GATE_REMOVED",
     message: gate.name,
   });

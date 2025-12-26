@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { setSessionCookie, verifySession } from "@/lib/auth/session";
+import { setAccessCookie, setRefreshCookie, setSessionCookie, verifySession } from "@/lib/auth/session";
 import { z } from "zod";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { rateLimit } from "@/lib/security/rate-limit";
 import { headers } from "next/headers";
 import { cognitoAdminCreateUser, cognitoPasswordSignIn } from "@/lib/aws/cognito";
 import { createEstate, deleteEstateById } from "@/lib/repos/estates";
 import { putUser } from "@/lib/repos/users";
 import { cognitoAdminDeleteUser } from "@/lib/aws/cognito";
 import { randomUUID } from "node:crypto";
+import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 
 export const runtime = "nodejs";
 
@@ -34,12 +34,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Bad origin" }, { status: 403 });
     }
 
-  const h = headers();
-  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
-  const rl = rateLimit({ key: `auth:sign-up:${ip}`, limit: 5, windowMs: 60_000 });
-  if (!rl.ok) {
-    return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
-  }
+    const h = headers();
+    const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
+    const rl = await rateLimitHybrid({
+      category: "LOGIN",
+      key: `auth:sign-up:${ip}`,
+      limit: 5,
+      windowMs: 60_000,
+    });
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: rl.error },
+        {
+          status: rl.status,
+          headers: {
+            "Cache-Control": "no-store, max-age=0",
+            ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
+          },
+        },
+      );
+    }
 
     stage = "parse";
     const json = await req.json().catch(() => null);
@@ -77,12 +91,18 @@ export async function POST(req: Request) {
 
     // 3) Sign in to get IdToken and set cookie.
     stage = "sign_in";
-    const tokens = await cognitoPasswordSignIn({ username: email, password });
-    setSessionCookie(tokens.idToken);
+    const auth = await cognitoPasswordSignIn({ username: email, password });
+    if (auth.kind !== "TOKENS") {
+      return NextResponse.json({ error: "Unable to sign in" }, { status: 401 });
+    }
+
+    setSessionCookie(auth.idToken);
+    setAccessCookie(auth.accessToken);
+    setRefreshCookie(auth.refreshToken);
 
     // 4) Create Dynamo user profile keyed by Cognito sub.
     stage = "create_profile";
-    const session = await verifySession(tokens.idToken);
+    const session = await verifySession(auth.idToken);
     const now = new Date().toISOString();
     await putUser({
       userId: session.userId,
