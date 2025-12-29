@@ -53,6 +53,9 @@ export async function PATCH(req: Request, { params }: { params: { gateId: string
   const tenant = assertTenant({ entityEstateId: gate?.estateId, sessionEstateId: estateId, notFoundMessage: "Gate not found" });
   if (!tenant.ok) return tenant.response;
 
+  // gate is guaranteed non-null after assertTenant passes
+  const oldGateName = gate!.name;
+
   const json = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(json);
   if (!parsed.success) {
@@ -67,7 +70,7 @@ export async function PATCH(req: Request, { params }: { params: { gateId: string
   await putActivityLog({
     estateId,
     type: "GATE_UPDATED",
-    message: `${gate.name} -> ${updated.name}`,
+    message: `${oldGateName} -> ${updated.name}`,
   });
 
   return NextResponse.json({ ok: true, gate: { id: updated.gateId, name: updated.name } });
@@ -112,11 +115,14 @@ export async function DELETE(_req: Request, { params }: { params: { gateId: stri
   const tenant = assertTenant({ entityEstateId: gate?.estateId, sessionEstateId: estateId, notFoundMessage: "Gate not found" });
   if (!tenant.ok) return tenant.response;
 
+  // gate is guaranteed non-null after assertTenant passes
+  const gateName = gate!.name;
+
   await deleteGate(params.gateId);
   await putActivityLog({
     estateId,
     type: "GATE_REMOVED",
-    message: gate.name,
+    message: gateName,
   });
 
   return NextResponse.json({ ok: true });

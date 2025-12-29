@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function MfaSetupPage() {
+function MfaSetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/dashboard";
@@ -150,5 +150,13 @@ export default function MfaSetupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function MfaSetupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <MfaSetupContent />
+    </Suspense>
   );
 }
