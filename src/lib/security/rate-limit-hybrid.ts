@@ -75,7 +75,18 @@ export async function rateLimitHybrid(params: {
     }
 
     return { ok: true, source: "ddb" };
-  } catch {
+  } catch (err) {
+    // Log the actual error for debugging
+    const e = err as Error & { name?: string; code?: string; $metadata?: { httpStatusCode?: number } };
+    console.error("rate_limit_ddb_error", JSON.stringify({
+      key: params.key,
+      category: params.category,
+      errorName: e?.name ?? "Unknown",
+      errorMessage: e?.message ?? "Unknown error",
+      errorCode: e?.code ?? null,
+      httpStatusCode: e?.$metadata?.httpStatusCode ?? null,
+    }));
+
     // Fail-safe policy:
     // - LOGIN: fail-closed (block) if durable limiter fails.
     // - OPS: fail-open (do not hard-block), but keep in-memory throttling.

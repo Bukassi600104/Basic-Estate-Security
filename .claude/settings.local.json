@@ -4,7 +4,10 @@
       "mcp__ide__getDiagnostics",
       "WebFetch(domain:github.com)",
       "Bash(aws dynamodb list-tables:*)",
-      "Bash(aws sso login:*)"
+      "Bash(aws sso login:*)",
+      "Bash(aws iam get-policy-version:*)",
+      "Bash(aws iam create-policy-version:*)",
+      "Bash(git add:*)"
     ]
   }
 }
