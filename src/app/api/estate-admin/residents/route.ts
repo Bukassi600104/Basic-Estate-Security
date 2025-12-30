@@ -10,7 +10,7 @@ import {
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
 import { putUser, listUsersForResident } from "@/lib/repos/users";
-import { createResident, listResidentsForEstate } from "@/lib/repos/residents";
+import { createResident, listResidentsForEstate, deleteResident } from "@/lib/repos/residents";
 import { putActivityLog } from "@/lib/repos/activity-logs";
 
 const bodySchema = z.object({
@@ -181,8 +181,35 @@ export async function POST(req: Request) {
         delegates: delegatePasswords,
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Unable to create resident accounts" }, { status: 409 });
+  } catch (err) {
+    const e = err as Error & { name?: string; code?: string; message?: string };
+    console.error("resident_onboard_cognito_failed", JSON.stringify({
+      errorName: e?.name ?? "Unknown",
+      errorMessage: e?.message ?? "Unknown error",
+      errorCode: (e as any)?.code ?? null,
+      residentPhone: residentPhone.trim(),
+      residentEmail: residentEmail || "(not provided)",
+    }));
+
+    // Rollback: delete orphaned resident record since Cognito failed
+    try {
+      await deleteResident(resident.residentId);
+      console.log("resident_onboard_rollback_success", JSON.stringify({ residentId: resident.residentId }));
+    } catch (rollbackErr) {
+      console.error("resident_onboard_rollback_failed", JSON.stringify({
+        residentId: resident.residentId,
+        error: (rollbackErr as Error)?.message ?? "Unknown",
+      }));
+    }
+
+    // Provide more helpful error messages based on error type
+    if (e?.name === "UsernameExistsException") {
+      return NextResponse.json({ error: "A user with this phone number already exists" }, { status: 409 });
+    }
+    if (e?.name === "InvalidParameterException") {
+      return NextResponse.json({ error: "Invalid phone number format. Use international format (e.g., +234...)" }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Unable to create resident accounts. Please try again." }, { status: 409 });
   }
 }
 
