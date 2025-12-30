@@ -11,8 +11,10 @@ type Credentials = {
     email: string;
     phone: string;
     password: string;
+    verificationCode: string;
   };
   delegates: Array<{ phone: string; password: string; username: string }>;
+  verificationCode: string;
 };
 
 export default function OnboardResidentPage() {
@@ -187,6 +189,25 @@ export default function OnboardResidentPage() {
           </p>
 
           <div className="mt-4 grid gap-3">
+            {/* Estate Verification Code - Required for login */}
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="text-sm font-semibold text-blue-900">Estate Verification Code</div>
+              <p className="mt-1 text-xs text-blue-700">
+                All residents and delegates need this code to sign in to the portal.
+              </p>
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-white px-3 py-2">
+                <div className="text-lg font-mono font-bold text-blue-900">{credentials.verificationCode}</div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+                  onClick={() => copy(credentials.verificationCode)}
+                >
+                  <ClipboardCopy className="h-4 w-4" />
+                  Copy
+                </button>
+              </div>
+            </div>
+
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div className="text-sm font-semibold">Resident</div>
               <div className="mt-2 text-sm text-slate-700">

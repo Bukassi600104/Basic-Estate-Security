@@ -13,6 +13,7 @@ export type ResidentRecord = {
   status: ResidentStatus;
   phone?: string;
   email?: string;
+  verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR}
   createdAt: string;
   updatedAt: string;
 };
@@ -26,6 +27,7 @@ export async function createResident(params: {
   phone?: string;
   email?: string;
   status?: ResidentStatus;
+  verificationCode?: string;
 }) {
   const env = getEnv();
   const ddb = getDdbDocClient();
@@ -39,6 +41,7 @@ export async function createResident(params: {
     status: params.status ?? "APPROVED",
     phone: params.phone,
     email: params.email,
+    verificationCode: params.verificationCode,
     createdAt: now,
     updatedAt: now,
   };
@@ -130,4 +133,32 @@ export async function getResidentById(residentId: string) {
   );
 
   return (res.Item as ResidentRecord | undefined) ?? null;
+}
+
+/**
+ * Find resident by phone number within an estate.
+ * Normalizes phone numbers for comparison.
+ */
+export async function findResidentByPhoneInEstate(params: {
+  estateId: string;
+  phone: string;
+}): Promise<ResidentRecord | null> {
+  const normalizedPhone = normalizePhone(params.phone);
+  const residents = await listResidentsForEstate(params.estateId, 500);
+  return (
+    residents.find((r) => r.phone && normalizePhone(r.phone) === normalizedPhone) ?? null
+  );
+}
+
+/**
+ * Normalize phone number for comparison.
+ * Removes all non-digit chars except leading +.
+ */
+function normalizePhone(phone: string): string {
+  const cleaned = phone.replace(/[^\d+]/g, "");
+  // If doesn't start with +, assume Nigerian number
+  if (!cleaned.startsWith("+")) {
+    return `+234${cleaned.replace(/^0/, "")}`;
+  }
+  return cleaned;
 }

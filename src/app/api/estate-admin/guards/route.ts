@@ -6,6 +6,8 @@ import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
 import { putUser } from "@/lib/repos/users";
 import { putActivityLog } from "@/lib/repos/activity-logs";
+import { getEstateById, deriveEstateInitials } from "@/lib/repos/estates";
+import { generateVerificationCode } from "@/lib/auth/verification-code";
 
 const bodySchema = z.object({
   name: z.string().min(2),
@@ -64,6 +66,15 @@ export async function POST(req: Request) {
   const isEmail = identifier.includes("@");
   const password = generatePassword();
 
+  // Get estate to derive verification code
+  const estate = await getEstateById(estateId);
+  if (!estate) {
+    return NextResponse.json({ error: "Estate not found" }, { status: 404 });
+  }
+  // Use stored initials or derive from name (for backward compatibility)
+  const estateInitials = estate.initials || deriveEstateInitials(estate.name);
+  const verificationCode = generateVerificationCode(estateInitials);
+
   try {
     await cognitoAdminCreateUser({
       username: identifier,
@@ -89,6 +100,7 @@ export async function POST(req: Request) {
     name,
     email: isEmail ? identifier : undefined,
     phone: !isEmail ? identifier : undefined,
+    verificationCode,
     createdAt: now,
     updatedAt: now,
   });
@@ -101,6 +113,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    credentials: { name, identifier, password },
+    credentials: { name, identifier, password, verificationCode },
   });
 }

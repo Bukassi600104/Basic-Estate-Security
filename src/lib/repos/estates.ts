@@ -8,6 +8,7 @@ export type EstateStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "TERMINATED";
 export type EstateRecord = {
   estateId: string;
   name: string;
+  initials: string; // Auto-derived from name, e.g., "BG" for "Blue Gardens"
   status: EstateStatus;
   address?: string | null;
   // Optional index key for scalable listing (GSI1).
@@ -16,11 +17,25 @@ export type EstateRecord = {
   updatedAt: string;
 };
 
+/**
+ * Derive 2-letter initials from estate name.
+ * E.g., "Blue Gardens" -> "BG", "Lekki Phase 1" -> "LP"
+ */
+export function deriveEstateInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "XX";
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase();
+  }
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 export async function createEstate(params: { name: string; address?: string }) {
   const now = new Date().toISOString();
   const estate: EstateRecord = {
     estateId: `est_${nanoid(12)}`,
     name: params.name,
+    initials: deriveEstateInitials(params.name),
     status: "ACTIVE",
     address: params.address?.trim() ? params.address.trim() : undefined,
     gsi1pk: "ESTATES",
@@ -133,4 +148,16 @@ export async function listEstatesPage(params?: { limit?: number; cursor?: DdbCur
 export async function listEstates(params?: { limit?: number }) {
   const page = await listEstatesPage({ limit: params?.limit });
   return page.items;
+}
+
+/**
+ * Find estate by name (case-insensitive match).
+ * Returns null if not found.
+ */
+export async function findEstateByName(name: string): Promise<EstateRecord | null> {
+  const normalized = name.toLowerCase().replace(/\s+/g, " ").trim();
+  const estates = await listEstates({ limit: 500 });
+  return (
+    estates.find((e) => e.name.toLowerCase().replace(/\s+/g, " ").trim() === normalized) ?? null
+  );
 }

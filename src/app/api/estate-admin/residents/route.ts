@@ -12,6 +12,8 @@ import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognit
 import { putUser, listUsersForResident } from "@/lib/repos/users";
 import { createResident, listResidentsForEstate, deleteResident } from "@/lib/repos/residents";
 import { putActivityLog } from "@/lib/repos/activity-logs";
+import { getEstateById, deriveEstateInitials } from "@/lib/repos/estates";
+import { generateVerificationCode } from "@/lib/auth/verification-code";
 
 const bodySchema = z.object({
   residentName: z.string().min(2),
@@ -130,7 +132,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Approved numbers must be unique" }, { status: 400 });
   }
 
-  // 1) Create resident record.
+  // Get estate to derive verification code
+  const estate = await getEstateById(estateId);
+  if (!estate) {
+    return NextResponse.json({ error: "Estate not found" }, { status: 404 });
+  }
+  // Use stored initials or derive from name (for backward compatibility)
+  const estateInitials = estate.initials || deriveEstateInitials(estate.name);
+  const verificationCode = generateVerificationCode(estateInitials);
+
+  // 1) Create resident record with verification code.
   const resident = await createResident({
     estateId,
     name: residentName.trim(),
@@ -138,6 +149,7 @@ export async function POST(req: Request) {
     phone: residentPhone.trim(),
     email: residentEmail || undefined,
     status: "APPROVED",
+    verificationCode,
   });
 
   // 2) Create Cognito users + Dynamo user profiles (linked via residentId).
@@ -180,8 +192,10 @@ export async function POST(req: Request) {
           email: resident.email ?? residentEmail.trim(),
           phone: resident.phone ?? residentPhone.trim(),
           password: residentPassword,
+          verificationCode,
         },
         delegates: delegatePasswords,
+        verificationCode, // Estate-level code for all users
       },
     });
   } catch (err) {

@@ -17,6 +17,7 @@ export type UserRecord = {
   email?: string;
   phone?: string;
   residentId?: string;
+  verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR} (for guards)
   createdAt: string;
   updatedAt: string;
 };
@@ -221,4 +222,32 @@ export async function updateUserResidentId(params: { userId: string; residentId:
       ConditionExpression: "attribute_exists(userId)",
     }),
   );
+}
+
+/**
+ * Find guard by phone number within an estate.
+ * Normalizes phone numbers for comparison.
+ */
+export async function findGuardByPhoneInEstate(params: {
+  estateId: string;
+  phone: string;
+}): Promise<UserRecord | null> {
+  const normalizedPhone = normalizePhone(params.phone);
+  const { items: guards } = await listGuardsForEstatePage({ estateId: params.estateId, limit: 500 });
+  return (
+    guards.find((g) => g.phone && normalizePhone(g.phone) === normalizedPhone) ?? null
+  );
+}
+
+/**
+ * Normalize phone number for comparison.
+ * Removes all non-digit chars except leading +.
+ */
+function normalizePhone(phone: string): string {
+  const cleaned = phone.replace(/[^\d+]/g, "");
+  // If doesn't start with +, assume Nigerian number
+  if (!cleaned.startsWith("+")) {
+    return `+234${cleaned.replace(/^0/, "")}`;
+  }
+  return cleaned;
 }

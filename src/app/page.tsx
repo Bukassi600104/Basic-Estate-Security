@@ -58,6 +58,18 @@ export default function HomePage() {
           <nav className="flex items-center gap-2">
             <Link
               className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              href="/auth/resident-verify"
+            >
+              Residents
+            </Link>
+            <Link
+              className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              href="/auth/guard-verify"
+            >
+              Security Guards
+            </Link>
+            <Link
+              className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
               href="/auth/sign-in"
             >
               Admin Login

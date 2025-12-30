@@ -12,6 +12,7 @@ export function GuardCreator() {
     name: string;
     identifier: string;
     password: string;
+    verificationCode: string;
   }>(null);
 
   async function copy(text: string) {
@@ -96,21 +97,45 @@ export function GuardCreator() {
       </form>
 
       {created ? (
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5">
-          <div className="text-sm font-extrabold text-slate-900">Guard credentials</div>
-          <div className="mt-2 text-sm text-slate-700">
-            <span className="font-extrabold">{created.name}</span> — {created.identifier}
+        <div className="mt-6 grid gap-4">
+          {/* Estate Verification Code - Required for login */}
+          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+            <div className="text-sm font-semibold text-blue-900">Estate Verification Code</div>
+            <p className="mt-1 text-xs text-blue-700">
+              Guards need this code to sign in to their portal.
+            </p>
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-white px-3 py-2">
+              <div className="text-lg font-mono font-bold text-blue-900">{created.verificationCode}</div>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+                onClick={() => copy(created.verificationCode)}
+              >
+                <ClipboardCopy className="h-4 w-4" />
+                Copy
+              </button>
+            </div>
           </div>
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <div className="text-sm font-mono font-extrabold text-slate-900">{created.password}</div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
-              onClick={() => copy(created.password)}
-            >
-              <ClipboardCopy className="h-4 w-4" />
-              Copy
-            </button>
+
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div className="text-sm font-extrabold text-slate-900">Guard credentials</div>
+            <div className="mt-2 text-sm text-slate-700">
+              <span className="font-extrabold">{created.name}</span> — {created.identifier}
+            </div>
+            <div className="mt-3 grid gap-2">
+              <div className="text-xs font-semibold text-slate-600 uppercase">Password</div>
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <div className="text-sm font-mono font-extrabold text-slate-900">{created.password}</div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
+                  onClick={() => copy(created.password)}
+                >
+                  <ClipboardCopy className="h-4 w-4" />
+                  Copy
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
