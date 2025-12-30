@@ -26,6 +26,9 @@ const nextConfig = {
     // SSR credentials for Amplify WEB_COMPUTE runtime
     SSR_ACCESS_KEY_ID: process.env.SSR_ACCESS_KEY_ID,
     SSR_SECRET_ACCESS_KEY: process.env.SSR_SECRET_ACCESS_KEY,
+
+    // App URL for generating PWA links
+    APP_URL: process.env.APP_URL,
   },
 };
 

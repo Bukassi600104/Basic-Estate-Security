@@ -10,12 +10,24 @@ import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { createNewPwaLinks } from "@/lib/repos/pwa-invites";
 
 function baseUrlFromHeaders() {
+  // Use explicit APP_URL if set (recommended for production)
+  if (process.env.APP_URL) {
+    return process.env.APP_URL.replace(/\/$/, ""); // Remove trailing slash
+  }
+
   const h = headers();
   const forwardedProto = h.get("x-forwarded-proto");
   const proto = forwardedProto ? forwardedProto.split(",")[0].trim() : "https";
   const forwardedHost = h.get("x-forwarded-host");
   const host = forwardedHost ? forwardedHost.split(",")[0].trim() : h.get("host");
+
   if (!host) return null;
+
+  // Prevent localhost URLs in production
+  if (host.includes("localhost") && process.env.NODE_ENV === "production") {
+    return null;
+  }
+
   return `${proto}://${host}`;
 }
 
