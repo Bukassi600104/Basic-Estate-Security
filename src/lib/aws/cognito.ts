@@ -15,14 +15,18 @@ import {
   AdminDeleteUserCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { getEnv } from "@/lib/env";
+import { getSsrCredentials } from "./ssr-credentials";
 
 let cachedClient: CognitoIdentityProviderClient | null = null;
 
 export function getCognitoClient() {
   if (cachedClient) return cachedClient;
   const env = getEnv();
+  const credentials = getSsrCredentials();
+
   cachedClient = new CognitoIdentityProviderClient({
     region: env.COGNITO_USER_POOL_REGION ?? env.AWS_REGION,
+    ...(credentials ? { credentials } : {}),
   });
   return cachedClient;
 }
