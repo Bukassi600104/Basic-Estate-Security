@@ -17,7 +17,7 @@ const bodySchema = z.object({
   residentName: z.string().min(2),
   houseNumber: z.string().min(1),
   residentPhone: z.string().min(6),
-  residentEmail: z.string().email(),
+  residentEmail: z.string().email().optional().or(z.literal("")),
   approvedPhone1: z.string().min(6).optional().or(z.literal("")),
   approvedPhone2: z.string().min(6).optional().or(z.literal("")),
 });
@@ -113,17 +113,16 @@ export async function POST(req: Request) {
   }
 
   const { residentName, houseNumber, residentPhone } = parsed.data;
-  const residentEmail = String(parsed.data.residentEmail);
+  const residentEmail = parsed.data.residentEmail ? String(parsed.data.residentEmail).trim() : "";
 
   const approvedPhones = [parsed.data.approvedPhone1, parsed.data.approvedPhone2]
     .map((p) => (p ? String(p).trim() : ""))
     .filter(Boolean);
 
-  if (approvedPhones.some((p) => p === residentPhone)) {
-    return NextResponse.json({ error: "Approved number cannot match resident phone" }, { status: 400 });
-  }
+  // Filter out approved phones that match the resident phone (they can use the resident's own account)
+  const uniqueApprovedPhones = approvedPhones.filter((p) => p !== residentPhone.trim());
 
-  if (new Set(approvedPhones).size !== approvedPhones.length) {
+  if (new Set(uniqueApprovedPhones).size !== uniqueApprovedPhones.length) {
     return NextResponse.json({ error: "Approved numbers must be unique" }, { status: 400 });
   }
 
@@ -133,7 +132,7 @@ export async function POST(req: Request) {
     name: residentName.trim(),
     houseNumber: houseNumber.trim(),
     phone: residentPhone.trim(),
-    email: residentEmail.trim(),
+    email: residentEmail || undefined,
     status: "APPROVED",
   });
 
@@ -152,7 +151,7 @@ export async function POST(req: Request) {
     residentPassword = createdResident.password;
 
     const delegatePasswords: Array<{ phone: string; password: string }> = [];
-    for (const phone of approvedPhones) {
+    for (const phone of uniqueApprovedPhones) {
       const createdDelegate = await createCognitoAndProfile({
         estateId,
         role: "RESIDENT_DELEGATE",

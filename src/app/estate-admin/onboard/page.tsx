@@ -132,7 +132,6 @@ export default function OnboardResidentPage() {
                 value={residentEmail}
                 onChange={(e) => setResidentEmail(e.target.value)}
                 type="email"
-                required
               />
             </label>
           </div>
