@@ -18,8 +18,6 @@ export default function EstateSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
-  const [baseUrl, setBaseUrl] = useState("");
 
   async function load() {
     setLoading(true);
@@ -39,8 +37,6 @@ export default function EstateSettingsPage() {
 
   useEffect(() => {
     load();
-    // Set base URL from window location
-    setBaseUrl(window.location.origin);
   }, []);
 
   async function save(partial: Partial<{ status: EstateStatus; address: string }>) {
@@ -60,16 +56,6 @@ export default function EstateSettingsPage() {
       setError(e instanceof Error ? e.message : "Failed to update estate");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function copyToClipboard(label: string, text: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(label);
-      window.setTimeout(() => setCopied(null), 1500);
-    } catch {
-      // ignore
     }
   }
 
@@ -173,51 +159,6 @@ export default function EstateSettingsPage() {
                     Terminate
                   </button>
                 ) : null}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">Portal Access Links</div>
-              <p className="mt-1 text-sm text-slate-600">
-                Share these links with residents and security guards. They will sign in with their credentials to access their respective portals.
-              </p>
-
-              <div className="mt-4 grid gap-3">
-                <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Resident Portal</div>
-                <div className="flex flex-col gap-2 md:flex-row">
-                  <input
-                    readOnly
-                    value={baseUrl ? `${baseUrl}/resident-app` : ""}
-                    className="h-11 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard("resident", `${baseUrl}/resident-app`)}
-                    className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
-                  >
-                    {copied === "resident" ? "Copied" : "Copy"}
-                  </button>
-                </div>
-
-                <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Security Portal</div>
-                <div className="flex flex-col gap-2 md:flex-row">
-                  <input
-                    readOnly
-                    value={baseUrl ? `${baseUrl}/security-app` : ""}
-                    className="h-11 flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard("security", `${baseUrl}/security-app`)}
-                    className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
-                  >
-                    {copied === "security" ? "Copied" : "Copy"}
-                  </button>
-                </div>
-
-                <div className="rounded-xl bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
-                  Residents and guards must first be added to your estate before they can sign in. After signing in, they will be automatically directed to their portal.
-                </div>
               </div>
             </div>
           </div>

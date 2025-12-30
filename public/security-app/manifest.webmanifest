@@ -1,9 +1,0 @@
-{
-  "name": "Security App",
-  "short_name": "Security",
-  "start_url": "/security-app",
-  "scope": "/security-app/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff"
-}

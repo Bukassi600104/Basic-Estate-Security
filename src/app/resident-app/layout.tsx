@@ -1,12 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { requireSession } from "@/lib/auth/require-session";
-import { PwaSwRegister } from "@/components/pwa-sw-register";
 import { getEstateById } from "@/lib/repos/estates";
 
 export const metadata = {
   title: "Resident Portal",
-  manifest: "/resident-app/manifest.webmanifest",
 };
 
 export default async function ResidentAppLayout({ children }: { children: ReactNode }) {
@@ -29,7 +27,6 @@ export default async function ResidentAppLayout({ children }: { children: ReactN
 
   return (
     <div className="min-h-[calc(100vh-2rem)]">
-      <PwaSwRegister swPath="/resident-app/sw.js" scope="/resident-app/" />
       {children}
     </div>
   );

@@ -1,9 +1,0 @@
-{
-  "name": "Resident App",
-  "short_name": "Resident",
-  "start_url": "/resident-app",
-  "scope": "/resident-app/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff"
-}

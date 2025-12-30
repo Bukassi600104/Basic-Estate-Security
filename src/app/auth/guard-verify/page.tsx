@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   Eye,
@@ -57,45 +58,54 @@ export default function GuardVerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Background gradients */}
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-blue-200/40 blur-[128px]" />
-        <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-indigo-200/30 blur-[128px]" />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Background decoration */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-emerald-100/60 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-teal-100/40 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2">
-        {/* Form column */}
-        <div className="flex items-center px-6 py-10 lg:px-12">
-          <div className="w-full max-w-md">
-            <div className="flex items-center justify-between">
-              <Link
-                href="/"
-                className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
-              >
-                Back to home
-              </Link>
-              <div className="hidden items-center gap-2 text-sm font-semibold text-slate-500 sm:flex">
-                <ShieldCheck className="h-4 w-4" />
-                Security Guard Access
-              </div>
-            </div>
+      <div className="mx-auto flex min-h-screen max-w-lg flex-col px-5 py-6 lg:justify-center lg:py-12">
+        {/* Header */}
+        <header className="flex items-center justify-between page-enter">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md touch-target"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back</span>
+          </Link>
+          <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+            <ShieldCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Security</span>
+          </div>
+        </header>
 
-            <h1 className="mt-10 text-3xl font-extrabold tracking-tight text-slate-900">
-              Security Guard sign-in
+        {/* Main content */}
+        <main className="mt-8 flex-1 lg:mt-12 page-enter">
+          {/* Branding */}
+          <div className="text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/25">
+              <ShieldCheck className="h-8 w-8" />
+            </div>
+            <h1 className="mt-5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Security Guard Sign-in
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              Enter your estate details and verification code to access your security portal.
+              Enter your estate details and verification code
             </p>
+          </div>
 
-            <form className="mt-8 grid gap-5" onSubmit={onSubmit}>
+          {/* Form */}
+          <form className="mt-8 stagger-children" onSubmit={onSubmit}>
+            <div className="space-y-4">
               {/* Estate Name */}
-              <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Estate name</span>
-                <div className="relative">
-                  <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">Estate name</span>
+                <div className="relative mt-2">
+                  <Building2 className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-base font-medium text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-600/20"
                     value={estateName}
                     onChange={(e) => setEstateName(e.target.value)}
                     placeholder="Blue Gardens Estate"
@@ -105,12 +115,12 @@ export default function GuardVerifyPage() {
               </label>
 
               {/* Guard Name */}
-              <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Your name</span>
-                <div className="relative">
-                  <ShieldCheck className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">Your name</span>
+                <div className="relative mt-2">
+                  <ShieldCheck className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-base font-medium text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-600/20"
                     value={guardName}
                     onChange={(e) => setGuardName(e.target.value)}
                     placeholder="John Doe"
@@ -120,12 +130,12 @@ export default function GuardVerifyPage() {
               </label>
 
               {/* Phone Number */}
-              <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Phone number</span>
-                <div className="relative">
-                  <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">Phone number</span>
+                <div className="relative mt-2">
+                  <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-base font-medium text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-600/20"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     type="tel"
@@ -136,30 +146,30 @@ export default function GuardVerifyPage() {
               </label>
 
               {/* Verification Code */}
-              <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Verification code</span>
-                <div className="relative">
-                  <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">Verification code</span>
+                <div className="relative mt-2">
+                  <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium uppercase text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-4 text-base font-medium uppercase tracking-wider text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 placeholder:normal-case placeholder:tracking-normal focus:border-emerald-400 focus:ring-4 focus:ring-emerald-600/20"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
                     placeholder="BS-XX-2025"
                     required
                   />
                 </div>
-                <span className="text-xs text-slate-500">
-                  Your estate admin provided this code when you were registered.
+                <span className="mt-1.5 block text-xs text-slate-500">
+                  Your estate admin provided this code when you were registered
                 </span>
               </label>
 
               {/* Password */}
-              <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">Password</span>
-                <div className="relative">
-                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <label className="block">
+                <span className="text-sm font-semibold text-slate-700">Password</span>
+                <div className="relative mt-2">
+                  <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-12 text-sm font-medium text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-14 text-base font-medium text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-600/20"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     type={showPassword ? "text" : "password"}
@@ -169,72 +179,82 @@ export default function GuardVerifyPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-600 hover:bg-slate-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl p-2.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 touch-target"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </label>
+            </div>
 
-              {/* Error display */}
-              {error ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
-                  {error}
-                </div>
-              ) : null}
+            {/* Error display */}
+            {error ? (
+              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 error-state">
+                {error}
+              </div>
+            ) : null}
 
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
-              >
-                {loading ? (
-                  <>
-                    <Spinner className="text-white" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    Sign in
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </form>
+            {/* Desktop submit button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-6 hidden w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-emerald-600/25 transition-all hover:shadow-xl hover:shadow-emerald-600/30 disabled:opacity-60 sm:inline-flex btn-interactive"
+            >
+              {loading ? (
+                <>
+                  <Spinner className="text-white" />
+                  Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
+            </button>
 
-            <p className="mt-6 text-center text-sm text-slate-600">
+            {/* Footer link - desktop */}
+            <p className="mt-6 hidden text-center text-sm text-slate-600 sm:block">
               Are you an estate admin?{" "}
-              <Link href="/auth/sign-in" className="font-semibold text-blue-600 hover:underline">
+              <Link href="/auth/sign-in" className="font-semibold text-emerald-600 hover:underline">
                 Sign in here
               </Link>
             </p>
-          </div>
+          </form>
+        </main>
+
+        {/* Mobile bottom action bar */}
+        <div className="bottom-action-bar sm:hidden">
+          <button
+            type="submit"
+            form="guard-form"
+            disabled={loading}
+            onClick={onSubmit}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-emerald-600/25 transition-all disabled:opacity-60"
+          >
+            {loading ? (
+              <>
+                <Spinner className="text-white" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                Sign in
+                <ArrowRight className="h-5 w-5" />
+              </>
+            )}
+          </button>
+          <p className="mt-3 text-center text-sm text-slate-600">
+            Estate admin?{" "}
+            <Link href="/auth/sign-in" className="font-semibold text-emerald-600">
+              Sign in here
+            </Link>
+          </p>
         </div>
 
-        {/* Right side decorative panel */}
-        <div className="relative hidden overflow-hidden border-l border-slate-200 bg-slate-900 lg:block">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-indigo-600/20" />
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{
-              backgroundImage: "radial-gradient(white 1px, transparent 1px)",
-              backgroundSize: "24px 24px",
-            }}
-          />
-          <div className="relative flex h-full flex-col items-center justify-center px-12 text-center">
-            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-              <ShieldCheck className="h-12 w-12 text-white" />
-            </div>
-            <h2 className="mt-8 text-2xl font-extrabold text-white">
-              Security Portal
-            </h2>
-            <p className="mt-4 max-w-sm text-sm text-slate-300">
-              Validate visitor access codes and manage gate entries. Keep your estate secure.
-            </p>
-          </div>
-        </div>
+        {/* Spacer for mobile bottom bar */}
+        <div className="h-32 sm:hidden" />
       </div>
     </div>
   );
