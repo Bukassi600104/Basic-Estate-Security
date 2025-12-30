@@ -34,19 +34,23 @@ function generatePassword() {
 async function createCognitoAndProfile(params: {
   estateId: string;
   role: "RESIDENT" | "RESIDENT_DELEGATE";
-  username: string;
   name: string;
   email?: string;
-  phone?: string;
+  phone: string;
   residentId: string;
 }) {
   const password = generatePassword();
 
+  // Cognito is configured with username_attributes = ["email"], so we need an email-like username
+  // Use provided email, or generate a unique one from phone number
+  const cleanPhone = params.phone.replace(/[^0-9]/g, "");
+  const cognitoUsername = params.email || `resident-${cleanPhone}@estate.local`;
+
   await cognitoAdminCreateUser({
-    username: params.username,
+    username: cognitoUsername,
     password,
-    email: params.email,
-    phoneNumber: params.phone && params.phone.startsWith("+") ? params.phone : undefined,
+    email: params.email || `resident-${cleanPhone}@estate.local`,
+    phoneNumber: params.phone.startsWith("+") ? params.phone : undefined,
     name: params.name,
     userAttributes: {
       "custom:role": params.role,
@@ -54,7 +58,7 @@ async function createCognitoAndProfile(params: {
     },
   });
 
-  const sub = await cognitoAdminGetUserSub({ username: params.username });
+  const sub = await cognitoAdminGetUserSub({ username: cognitoUsername });
   const now = new Date().toISOString();
   await putUser({
     userId: sub,
@@ -68,7 +72,7 @@ async function createCognitoAndProfile(params: {
     updatedAt: now,
   });
 
-  return { sub, password };
+  return { sub, password, cognitoUsername };
 }
 
 export async function POST(req: Request) {
@@ -142,25 +146,23 @@ export async function POST(req: Request) {
     const createdResident = await createCognitoAndProfile({
       estateId,
       role: "RESIDENT",
-      username: residentPhone.trim(),
       name: resident.name,
       email: resident.email,
-      phone: resident.phone,
+      phone: resident.phone ?? residentPhone.trim(),
       residentId: resident.residentId,
     });
     residentPassword = createdResident.password;
 
-    const delegatePasswords: Array<{ phone: string; password: string }> = [];
+    const delegatePasswords: Array<{ phone: string; password: string; username: string }> = [];
     for (const phone of uniqueApprovedPhones) {
       const createdDelegate = await createCognitoAndProfile({
         estateId,
         role: "RESIDENT_DELEGATE",
-        username: phone,
         name: `${resident.name} (Delegate)`,
         phone,
         residentId: resident.residentId,
       });
-      delegatePasswords.push({ phone, password: createdDelegate.password });
+      delegatePasswords.push({ phone, password: createdDelegate.password, username: createdDelegate.cognitoUsername });
     }
 
     await putActivityLog({
@@ -174,6 +176,7 @@ export async function POST(req: Request) {
       credentials: {
         resident: {
           name: resident.name,
+          username: createdResident.cognitoUsername,
           email: resident.email ?? residentEmail.trim(),
           phone: resident.phone ?? residentPhone.trim(),
           password: residentPassword,

@@ -7,11 +7,12 @@ import { ArrowLeft, ClipboardCopy, UserPlus } from "lucide-react";
 type Credentials = {
   resident: {
     name: string;
+    username: string;
     email: string;
     phone: string;
     password: string;
   };
-  delegates: Array<{ phone: string; password: string }>;
+  delegates: Array<{ phone: string; password: string; username: string }>;
 };
 
 export default function OnboardResidentPage() {
@@ -189,38 +190,68 @@ export default function OnboardResidentPage() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <div className="text-sm font-semibold">Resident</div>
               <div className="mt-2 text-sm text-slate-700">
-                {credentials.resident.name} — {credentials.resident.email} • {credentials.resident.phone}
+                {credentials.resident.name} • {credentials.resident.phone}
               </div>
-              <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
-                <div className="text-sm font-mono">{credentials.resident.password}</div>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-                  onClick={() => copy(credentials.resident.password)}
-                >
-                  <ClipboardCopy className="h-4 w-4" />
-                  Copy
-                </button>
+              <div className="mt-3 grid gap-2">
+                <div className="text-xs font-semibold text-slate-600 uppercase">Login Username</div>
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="text-sm font-mono break-all">{credentials.resident.username}</div>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+                    onClick={() => copy(credentials.resident.username)}
+                  >
+                    <ClipboardCopy className="h-4 w-4" />
+                    Copy
+                  </button>
+                </div>
+                <div className="text-xs font-semibold text-slate-600 uppercase">Password</div>
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="text-sm font-mono">{credentials.resident.password}</div>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+                    onClick={() => copy(credentials.resident.password)}
+                  >
+                    <ClipboardCopy className="h-4 w-4" />
+                    Copy
+                  </button>
+                </div>
               </div>
             </div>
 
             {credentials.delegates.length ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-sm font-semibold">Approved numbers</div>
+                <div className="text-sm font-semibold">Approved numbers (Delegates)</div>
                 <div className="mt-3 grid gap-3">
                   {credentials.delegates.map((d) => (
                     <div key={d.phone} className="rounded-xl border border-slate-200 bg-white p-3">
                       <div className="text-sm font-semibold text-slate-900">{d.phone}</div>
-                      <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                        <div className="text-sm font-mono">{d.password}</div>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-                          onClick={() => copy(d.password)}
-                        >
-                          <ClipboardCopy className="h-4 w-4" />
-                          Copy
-                        </button>
+                      <div className="mt-2 grid gap-2">
+                        <div className="text-xs font-semibold text-slate-600 uppercase">Login Username</div>
+                        <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                          <div className="text-sm font-mono break-all">{d.username}</div>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+                            onClick={() => copy(d.username)}
+                          >
+                            <ClipboardCopy className="h-4 w-4" />
+                            Copy
+                          </button>
+                        </div>
+                        <div className="text-xs font-semibold text-slate-600 uppercase">Password</div>
+                        <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                          <div className="text-sm font-mono">{d.password}</div>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+                            onClick={() => copy(d.password)}
+                          >
+                            <ClipboardCopy className="h-4 w-4" />
+                            Copy
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
