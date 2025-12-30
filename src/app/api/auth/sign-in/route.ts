@@ -77,7 +77,7 @@ export async function POST(req: Request) {
 
       // Unsupported challenge for now.
       console.error("sign_in_unsupported_challenge", JSON.stringify({ debugId, challenge: auth.challengeName }));
-      return NextResponse.json({ error: "Sign-in requires additional steps", debugId }, { status: 401 });
+      return NextResponse.json({ error: "Sign-in requires additional steps. Please contact support." }, { status: 401 });
     }
 
     // Successful auth.
@@ -90,17 +90,17 @@ export async function POST(req: Request) {
   } catch (error) {
     const e = error as any;
     const name = typeof e?.name === "string" ? e.name : "UnknownError";
-    if (name === "ZodError") {
+    if (name === "ZodError" || name === "CredentialsProviderError") {
       console.error(
         "sign_in_failed",
         JSON.stringify({ debugId, name, message: typeof e?.message === "string" ? e.message : "" }),
       );
       return NextResponse.json(
-        { error: "Server not configured", debugId },
+        { error: "Service temporarily unavailable. Please try again later." },
         { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
       );
     }
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
   // Store IdToken in the existing session cookie (Cognito-backed now).

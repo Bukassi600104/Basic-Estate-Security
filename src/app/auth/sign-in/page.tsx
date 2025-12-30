@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, Info, Lock, LogIn, Mail } from "lucide-react";
+import { Spinner } from "@/components/Spinner";
 
 function SignInForm() {
   const router = useRouter();
@@ -204,8 +205,17 @@ function SignInForm() {
                 disabled={loading}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
               >
-                {loading ? "Signing in…" : mfaRequired ? "Confirm code" : "Access dashboard"}
-                <ArrowRight className="h-4 w-4" />
+                {loading ? (
+                  <>
+                    <Spinner className="text-white" />
+                    {mfaRequired ? "Verifying…" : "Signing in…"}
+                  </>
+                ) : (
+                  <>
+                    {mfaRequired ? "Confirm code" : "Access dashboard"}
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </button>
             </form>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Spinner } from "@/components/Spinner";
 
 type EstateStatus = "ACTIVE" | "SUSPENDED" | "TERMINATED";
 
@@ -112,7 +113,10 @@ export default function EstateSettingsPage() {
         ) : null}
 
         {loading ? (
-          <div className="mt-6 text-sm text-slate-600">Loading…</div>
+          <div className="mt-6 flex items-center gap-2 text-sm text-slate-600">
+            <Spinner className="text-slate-500" />
+            Loading…
+          </div>
         ) : estate ? (
           <div className="mt-6 grid gap-6">
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -140,9 +144,16 @@ export default function EstateSettingsPage() {
                   type="button"
                   disabled={saving}
                   onClick={() => save({ address })}
-                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
                 >
-                  {saving ? "Saving…" : "Save"}
+                  {saving ? (
+                    <>
+                      <Spinner className="text-white" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save"
+                  )}
                 </button>
               </div>
             </div>
@@ -201,9 +212,16 @@ export default function EstateSettingsPage() {
                   type="button"
                   disabled={generatingLinks || saving}
                   onClick={generateAccessLinks}
-                  className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
                 >
-                  {generatingLinks ? "Generating…" : "Generate access links"}
+                  {generatingLinks ? (
+                    <>
+                      <Spinner className="text-white" />
+                      Generating…
+                    </>
+                  ) : (
+                    "Generate access links"
+                  )}
                 </button>
               </div>
 

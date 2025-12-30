@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       httpStatusCode: e?.$metadata?.httpStatusCode ?? null,
     }));
     return NextResponse.json(
-      { error: `Unable to start MFA setup (${e?.name}: ${e?.message?.slice(0, 100)})` },
+      { error: "Unable to start MFA setup. Please try again later." },
       { status: 500 },
     );
   }

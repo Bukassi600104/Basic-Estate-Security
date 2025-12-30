@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, Lock, Mail, MapPin, User, UserPlus } from "lucide-react";
+import { Spinner } from "@/components/Spinner";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -34,11 +35,7 @@ export default function SignUpPage() {
           router.push(`/auth/sign-in?email=${encodeURIComponent(email)}&message=account_exists`);
           return;
         }
-        const message =
-          typeof data?.debugId === "string" && data.debugId.length
-            ? `${data.error ?? "Sign-up failed"} (debugId: ${data.debugId})`
-            : (data.error ?? "Sign-up failed");
-        throw new Error(message);
+        throw new Error(data.error ?? "Sign-up failed");
       }
       router.push("/dashboard");
       router.refresh();
@@ -213,8 +210,17 @@ export default function SignUpPage() {
                       disabled={loading}
                       className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
                     >
-                      {loading ? "Creating…" : "Create estate"}
-                      <ArrowRight className="h-4 w-4" />
+                      {loading ? (
+                        <>
+                          <Spinner className="text-white" />
+                          Creating…
+                        </>
+                      ) : (
+                        <>
+                          Create estate
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </>

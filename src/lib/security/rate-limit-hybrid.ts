@@ -87,24 +87,15 @@ export async function rateLimitHybrid(params: {
       httpStatusCode: e?.$metadata?.httpStatusCode ?? null,
     }));
 
-    // Fail-safe policy:
-    // - LOGIN: fail-closed (block) if durable limiter fails.
-    // - OPS: fail-open (do not hard-block), but keep in-memory throttling.
-    if (params.category === "LOGIN") {
-      return {
-        ok: false,
-        status: 503,
-        error: `Temporarily unavailable (${e?.name}: ${e?.message?.slice(0, 200)})`,
-        source: "blocked",
-      };
-    }
-
+    // Fail-open policy: If DynamoDB rate limiting fails, fall back to in-memory
+    // rate limiting. This ensures the app remains available even if there are
+    // infrastructure issues with DynamoDB credentials.
     const rl = rateLimitMemory({ key: `mem:${params.key}`, limit: params.limit, windowMs: params.windowMs });
     if (!rl.ok) {
       return {
         ok: false,
         status: 429,
-        error: "Too many attempts",
+        error: "Too many attempts. Please wait a moment and try again.",
         retryAfterSeconds: rl.retryAfterSeconds,
         remainingSeconds: rl.remainingSeconds,
         source: "memory",

@@ -154,9 +154,9 @@ export async function POST(req: Request) {
     }
 
     if (looksLikeConfigProblem) {
-      return NextResponse.json({ error: "Server not configured", debugId }, { status: 503 });
+      return NextResponse.json({ error: "Service temporarily unavailable. Please try again later." }, { status: 503 });
     }
 
-    return NextResponse.json({ error: "Sign-up failed", debugId }, { status: 500 });
+    return NextResponse.json({ error: "Unable to complete sign-up. Please try again." }, { status: 500 });
   }
 }
