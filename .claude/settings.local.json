@@ -15,7 +15,9 @@
       "Bash(aws logs filter-log-events:*)",
       "Bash(aws lambda list-functions:*)",
       "Bash(aws iam list-role-policies:*)",
-      "Bash(aws logs describe-log-streams:*)"
+      "Bash(aws logs describe-log-streams:*)",
+      "Bash(curl:*)",
+      "Bash(aws amplify:*)"
     ]
   }
 }

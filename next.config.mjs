@@ -21,6 +21,7 @@ const nextConfig = {
     DDB_TABLE_ACTIVITY_LOGS: process.env.DDB_TABLE_ACTIVITY_LOGS,
     DDB_TABLE_PWA_INVITES: process.env.DDB_TABLE_PWA_INVITES,
     DDB_TABLE_UNIQ: process.env.DDB_TABLE_UNIQ,
+    DDB_TABLE_RATE_LIMITS: process.env.DDB_TABLE_RATE_LIMITS,
   },
 };
 
