@@ -83,9 +83,19 @@ export async function POST(req: Request) {
         },
       });
       createdUsername = email;
-    } catch {
+    } catch (err) {
       // Roll back estate so failed sign-ups don't leave orphan estates.
       await deleteEstateById(estate.estateId).catch(() => null);
+
+      // Check if user already exists
+      const e = err as Error & { name?: string };
+      if (e?.name === "UsernameExistsException") {
+        return NextResponse.json(
+          { error: "An account with this email already exists", code: "ACCOUNT_EXISTS" },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json({ error: "Unable to create account" }, { status: 409 });
     }
 

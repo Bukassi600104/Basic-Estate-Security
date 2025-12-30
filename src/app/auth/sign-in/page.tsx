@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight, Eye, EyeOff, Info, Lock, LogIn, Mail } from "lucide-react";
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -15,6 +16,19 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+
+  // Handle redirect from sign-up when account already exists
+  useEffect(() => {
+    const email = searchParams.get("email");
+    const message = searchParams.get("message");
+    if (email) {
+      setIdentifier(email);
+    }
+    if (message === "account_exists") {
+      setInfoMessage("An account with this email already exists. Please sign in.");
+    }
+  }, [searchParams]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -172,6 +186,13 @@ export default function SignInPage() {
                 Never share your password. If you suspect compromise, change it immediately.
               </div>
 
+              {infoMessage ? (
+                <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800">
+                  <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  {infoMessage}
+                </div>
+              ) : null}
+
               {error ? (
                 <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
                   {error}
@@ -223,5 +244,13 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <SignInForm />
+    </Suspense>
   );
 }

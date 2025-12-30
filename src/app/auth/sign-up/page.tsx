@@ -29,6 +29,11 @@ export default function SignUpPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        // If account already exists, redirect to sign-in
+        if (data?.code === "ACCOUNT_EXISTS") {
+          router.push(`/auth/sign-in?email=${encodeURIComponent(email)}&message=account_exists`);
+          return;
+        }
         const message =
           typeof data?.debugId === "string" && data.debugId.length
             ? `${data.error ?? "Sign-up failed"} (debugId: ${data.debugId})`
