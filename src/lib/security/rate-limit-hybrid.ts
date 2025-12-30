@@ -94,7 +94,7 @@ export async function rateLimitHybrid(params: {
       return {
         ok: false,
         status: 503,
-        error: "Temporarily unavailable",
+        error: `Temporarily unavailable (${e?.name}: ${e?.message?.slice(0, 200)})`,
         source: "blocked",
       };
     }
