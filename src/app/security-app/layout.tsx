@@ -1,29 +1,31 @@
-import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { requireSession } from "@/lib/auth/require-session";
 import { PwaSwRegister } from "@/components/pwa-sw-register";
-import { getInviteById } from "@/lib/repos/pwa-invites";
 import { getEstateById } from "@/lib/repos/estates";
 
 export const metadata = {
-  title: "Security PWA",
+  title: "Security Portal",
   manifest: "/security-app/manifest.webmanifest",
 };
 
 export default async function SecurityAppLayout({ children }: { children: ReactNode }) {
-  const inviteId = cookies().get("pwa_security_invite")?.value;
-  if (!inviteId) notFound();
+  // Require authenticated session - redirect to sign-in if not logged in
+  const session = await requireSession({ redirectTo: "/auth/sign-in" });
 
-  const invite = await getInviteById(inviteId);
-  const nowIso = new Date().toISOString();
-  if (!invite || invite.type !== "SECURITY" || invite.revokedAt || invite.expiresAt <= nowIso) notFound();
+  // Only allow guards
+  if (session.role !== "GUARD") {
+    // If user is logged in but wrong role, redirect to dashboard
+    redirect("/dashboard");
+  }
 
-  const estate = await getEstateById(invite.estateId);
-  if (!estate || estate.status !== "ACTIVE") notFound();
-
-  const session = await requireSession();
-  if (session.role !== "GUARD") notFound();
+  // Verify estate is active
+  if (session.estateId) {
+    const estate = await getEstateById(session.estateId);
+    if (!estate || estate.status !== "ACTIVE") {
+      notFound();
+    }
+  }
 
   return (
     <div className="min-h-[calc(100vh-2rem)]">
