@@ -109,10 +109,22 @@ export async function POST(req: Request) {
   setRefreshCookie(tokens.refreshToken, { rememberMe: parsed.data.rememberMe });
 
   // Defensive: ensure we have a user profile; if missing, treat as unauthorized.
-  const session = await verifySession(tokens.idToken);
-  const profile = await getUserById(session.userId);
-  if (!profile) {
-    return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
+  try {
+    const session = await verifySession(tokens.idToken);
+    const profile = await getUserById(session.userId);
+    if (!profile) {
+      return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
+    }
+  } catch (error) {
+    const e = error as Error & { name?: string };
+    console.error(
+      "sign_in_profile_check_failed",
+      JSON.stringify({ debugId, name: e?.name ?? "Unknown", message: e?.message ?? "" }),
+    );
+    return NextResponse.json(
+      { error: "Service temporarily unavailable. Please try again." },
+      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   }
 
   return NextResponse.json({ ok: true });
@@ -176,10 +188,22 @@ export async function PUT(req: Request) {
     setAccessCookie(tokens.accessToken);
     setRefreshCookie(tokens.refreshToken, { rememberMe: parsed.data.rememberMe });
 
-    const session = await verifySession(tokens.idToken);
-    const profile = await getUserById(session.userId);
-    if (!profile) {
-      return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
+    try {
+      const session = await verifySession(tokens.idToken);
+      const profile = await getUserById(session.userId);
+      if (!profile) {
+        return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
+      }
+    } catch (profileError) {
+      const pe = profileError as Error & { name?: string };
+      console.error(
+        "sign_in_mfa_profile_check_failed",
+        JSON.stringify({ debugId, name: pe?.name ?? "Unknown", message: pe?.message ?? "" }),
+      );
+      return NextResponse.json(
+        { error: "Service temporarily unavailable. Please try again." },
+        { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
+      );
     }
 
     return NextResponse.json({ ok: true });

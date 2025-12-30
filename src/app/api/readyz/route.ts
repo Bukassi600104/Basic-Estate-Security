@@ -1,6 +1,7 @@
-import { DynamoDBClient, DescribeTableCommand } from "@aws-sdk/client-dynamodb";
+import { DescribeTableCommand } from "@aws-sdk/client-dynamodb";
 import { getEnv } from "@/lib/env";
 import { NextResponse } from "next/server";
+import { getDdbDocClient } from "@/lib/aws/dynamo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +10,7 @@ export const revalidate = 0;
 export async function GET() {
   try {
     const env = getEnv();
-    const client = new DynamoDBClient({ region: env.AWS_REGION });
+    const client = getDdbDocClient();
 
     const tables = [
       env.DDB_TABLE_ESTATES,
