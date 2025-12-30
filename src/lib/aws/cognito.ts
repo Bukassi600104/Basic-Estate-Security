@@ -133,6 +133,7 @@ export async function cognitoRefreshSession(params: { refreshToken: string }) {
 
 export async function cognitoStartTotpEnrollment(params: { accessToken: string }) {
   const client = getCognitoClient();
+
   const res = await client.send(
     new AssociateSoftwareTokenCommand({
       AccessToken: params.accessToken,

@@ -21,16 +21,9 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const session = await verifySession(token);
+    await verifySession(token);
 
-    // Privileged users must complete MFA setup.
-    const isPrivileged = session.role === "SUPER_ADMIN" || session.role === "ESTATE_ADMIN";
-    if (isPrivileged && !session.mfaEnabled) {
-      const url = new URL("/auth/mfa-setup", req.url);
-      url.searchParams.set("next", pathname);
-      return NextResponse.redirect(url);
-    }
-
+    // MFA requirement removed - users go directly to dashboard after sign-up.
     return NextResponse.next();
   } catch {
     const url = new URL("/auth/sign-in", req.url);
