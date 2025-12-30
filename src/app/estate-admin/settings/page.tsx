@@ -11,10 +11,9 @@ type Estate = {
   status: EstateStatus;
 };
 
-type PwaLinks = {
+type AccessLinks = {
   resident: string;
   security: string;
-  expiresAt: string;
 };
 
 export default function EstateSettingsPage() {
@@ -23,7 +22,7 @@ export default function EstateSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pwaLinks, setPwaLinks] = useState<PwaLinks | null>(null);
+  const [accessLinks, setAccessLinks] = useState<AccessLinks | null>(null);
   const [generatingLinks, setGeneratingLinks] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -67,7 +66,7 @@ export default function EstateSettingsPage() {
     }
   }
 
-  async function generateInstallLinks() {
+  async function generateAccessLinks() {
     setGeneratingLinks(true);
     setError(null);
     setCopied(null);
@@ -76,11 +75,11 @@ export default function EstateSettingsPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Failed to generate links");
 
-      const links = data.links as PwaLinks | undefined;
-      if (!links?.resident || !links?.security || !links?.expiresAt) {
+      const links = data.links as AccessLinks | undefined;
+      if (!links?.resident || !links?.security) {
         throw new Error("Unexpected response");
       }
-      setPwaLinks(links);
+      setAccessLinks(links);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to generate links");
     } finally {
@@ -151,7 +150,7 @@ export default function EstateSettingsPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="text-sm font-semibold text-slate-900">Estate status</div>
               <p className="mt-1 text-sm text-slate-600">
-                Suspended estates block all Resident/Security PWA access. Terminated is permanent.
+                Suspended estates block all resident and security portal access. Terminated is permanent.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -192,57 +191,59 @@ export default function EstateSettingsPage() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">PWA install links</div>
+              <div className="text-sm font-semibold text-slate-900">Dashboard Access Links</div>
               <p className="mt-1 text-sm text-slate-600">
-                Generate private install links for residents and security guards. Regenerating revokes previous links.
+                Generate access links for residents and security guards. Share these links via email to grant dashboard access. Regenerating will revoke previous links.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"
                   disabled={generatingLinks || saving}
-                  onClick={generateInstallLinks}
+                  onClick={generateAccessLinks}
                   className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-extrabold text-white hover:bg-slate-800 disabled:opacity-60"
                 >
-                  {generatingLinks ? "Generating…" : "Generate links"}
+                  {generatingLinks ? "Generating…" : "Generate access links"}
                 </button>
               </div>
 
-              {pwaLinks ? (
+              {accessLinks ? (
                 <div className="mt-4 grid gap-3">
-                  <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Resident</div>
+                  <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Resident Portal Link</div>
                   <div className="flex flex-col gap-2 md:flex-row">
                     <input
                       readOnly
-                      value={pwaLinks.resident}
+                      value={accessLinks.resident}
                       className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none"
                     />
                     <button
                       type="button"
-                      onClick={() => copyToClipboard("resident", pwaLinks.resident)}
+                      onClick={() => copyToClipboard("resident", accessLinks.resident)}
                       className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
                     >
                       {copied === "resident" ? "Copied" : "Copy"}
                     </button>
                   </div>
 
-                  <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Security</div>
+                  <div className="text-xs font-extrabold uppercase tracking-widest text-slate-600">Security Portal Link</div>
                   <div className="flex flex-col gap-2 md:flex-row">
                     <input
                       readOnly
-                      value={pwaLinks.security}
+                      value={accessLinks.security}
                       className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none"
                     />
                     <button
                       type="button"
-                      onClick={() => copyToClipboard("security", pwaLinks.security)}
+                      onClick={() => copyToClipboard("security", accessLinks.security)}
                       className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
                     >
                       {copied === "security" ? "Copied" : "Copy"}
                     </button>
                   </div>
 
-                  <div className="text-sm text-slate-600">Expires: {new Date(pwaLinks.expiresAt).toLocaleString()}</div>
+                  <div className="rounded-xl bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+                    These links are permanent and will remain active as long as the estate is active.
+                  </div>
                 </div>
               ) : null}
             </div>

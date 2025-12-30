@@ -72,7 +72,8 @@ export async function POST(req: Request) {
   }
 
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+  // Set expiry to 100 years - effectively permanent
+  const expiresAt = new Date(now.getTime() + 100 * 365 * 24 * 60 * 60 * 1000);
   const links = await createNewPwaLinks({
     estateId,
     createdByUserId: sessionRes.value.userId,
@@ -84,7 +85,6 @@ export async function POST(req: Request) {
     links: {
       resident: `${baseUrl}/resident-app/claim?token=${links.residentToken}`,
       security: `${baseUrl}/security-app/claim?token=${links.securityToken}`,
-      expiresAt,
     },
   });
 }
