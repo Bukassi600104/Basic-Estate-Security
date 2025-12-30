@@ -45,26 +45,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Please sign in again" }, { status: 401 });
   }
 
-  const { secretCode, session: enrollmentSession } = await cognitoStartTotpEnrollment({
-    accessToken,
-  });
+  try {
+    const { secretCode, session: enrollmentSession } = await cognitoStartTotpEnrollment({
+      accessToken,
+    });
 
-  setMfaSetupCookie(enrollmentSession);
+    setMfaSetupCookie(enrollmentSession);
 
-  const issuer = "BasicEstateSecurity";
-  const label = encodeURIComponent(`${issuer}:${session.name || session.userId}`);
-  const otpauthUrl = `otpauth://totp/${label}?secret=${encodeURIComponent(secretCode)}&issuer=${encodeURIComponent(issuer)}`;
+    const issuer = "BasicEstateSecurity";
+    const label = encodeURIComponent(`${issuer}:${session.name || session.userId}`);
+    const otpauthUrl = `otpauth://totp/${label}?secret=${encodeURIComponent(secretCode)}&issuer=${encodeURIComponent(issuer)}`;
 
-  return NextResponse.json(
-    {
-      ok: true,
-      secretCode,
-      otpauthUrl,
-    },
-    {
-      headers: {
-        "Cache-Control": "no-store, max-age=0",
+    return NextResponse.json(
+      {
+        ok: true,
+        secretCode,
+        otpauthUrl,
       },
-    },
-  );
+      {
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
+    );
+  } catch (err) {
+    const e = err as Error & { name?: string; code?: string; $metadata?: { httpStatusCode?: number } };
+    console.error("mfa_totp_start_failed", JSON.stringify({
+      errorName: e?.name ?? "Unknown",
+      errorMessage: e?.message ?? "Unknown error",
+      errorCode: (e as any)?.code ?? null,
+      httpStatusCode: e?.$metadata?.httpStatusCode ?? null,
+    }));
+    return NextResponse.json(
+      { error: `Unable to start MFA setup (${e?.name}: ${e?.message?.slice(0, 100)})` },
+      { status: 500 },
+    );
+  }
 }
