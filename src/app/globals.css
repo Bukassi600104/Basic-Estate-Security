@@ -4,6 +4,10 @@
 
 :root {
   color-scheme: light;
+  --brand-navy: #1e3a5f;
+  --brand-green: #4ade80;
+  --brand-navy-dark: #162a40;
+  --brand-green-dark: #10a648;
 }
 
 html,
@@ -165,6 +169,188 @@ html {
 }
 
 /* ========================================
+   FORM CONTAINMENT (Mobile Viewport Fix)
+   ======================================== */
+
+/* Form container that stays within viewport */
+.form-contained {
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Scroll container for forms */
+.scroll-container {
+  @apply overflow-y-auto overscroll-contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   HERO & HOMEPAGE ANIMATIONS
+   ======================================== */
+
+/* Typing text effect */
+.typing-text {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid var(--brand-green);
+  animation: typing 3.5s steps(40, end), blinkCaret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blinkCaret {
+  from, to { border-color: transparent }
+  50% { border-color: var(--brand-green) }
+}
+
+/* Floating elements */
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-delayed {
+  animation: float 6s ease-in-out infinite 2s;
+}
+
+.floating-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Animated counter */
+.stat-counter {
+  @apply tabular-nums font-bold;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-green) 100%);
+}
+
+.gradient-text-green {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #4ade80 0%, #10a648 100%);
+}
+
+/* Hero gradient background */
+.hero-gradient {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c4d6e 50%, #1e3a5f 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.4);
+}
+
+.glow-navy {
+  box-shadow: 0 0 30px rgba(30, 58, 95, 0.4);
+}
+
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(74, 222, 128, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(74, 222, 128, 0.6); }
+}
+
+/* ========================================
+   DASHBOARD STAT CARDS
+   ======================================== */
+
+.stat-card {
+  @apply relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6;
+  @apply transition-all duration-300;
+}
+
+.stat-card:hover {
+  @apply -translate-y-1 shadow-premium-lg border-brand-green/30;
+}
+
+.stat-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-1 h-full;
+  background: linear-gradient(180deg, var(--brand-green) 0%, var(--brand-navy) 100%);
+}
+
+/* Alert badges */
+.alert-badge {
+  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold;
+}
+
+.alert-badge-error {
+  @apply bg-rose-100 text-rose-700 border border-rose-200;
+}
+
+.alert-badge-warning {
+  @apply bg-amber-100 text-amber-700 border border-amber-200;
+}
+
+.alert-badge-success {
+  @apply bg-emerald-100 text-emerald-700 border border-emerald-200;
+}
+
+.alert-badge-info {
+  @apply bg-blue-100 text-blue-700 border border-blue-200;
+}
+
+/* ========================================
+   COUNTDOWN TIMER
+   ======================================== */
+
+.countdown-ring {
+  @apply relative inline-flex items-center justify-center;
+}
+
+.countdown-ring svg {
+  transform: rotate(-90deg);
+}
+
+.countdown-ring .progress {
+  stroke: var(--brand-green);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.countdown-ring .background {
+  stroke: #e2e8f0;
+}
+
+/* ========================================
+   CHARTS & ANALYTICS
+   ======================================== */
+
+.chart-container {
+  @apply rounded-2xl border border-slate-200 bg-white p-6;
+}
+
+.chart-legend {
+  @apply flex flex-wrap gap-4 mt-4 text-sm;
+}
+
+.chart-legend-item {
+  @apply flex items-center gap-2;
+}
+
+/* ========================================
    REDUCED MOTION SUPPORT
    ======================================== */
 
@@ -175,5 +361,15 @@ html {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .typing-text {
+    animation: none;
+    width: 100%;
+    border-right: none;
+  }
+
+  .floating, .floating-delayed, .floating-slow {
+    animation: none;
   }
 }

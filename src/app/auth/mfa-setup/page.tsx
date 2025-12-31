@@ -59,8 +59,8 @@ function MfaSetupContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10">
+    <div className="min-h-[100dvh] bg-white overflow-x-hidden">
+      <div className="mx-auto flex min-h-[100dvh] max-h-[100dvh] max-w-2xl flex-col px-6 py-10 overflow-y-auto">
         <div className="flex items-center justify-between">
           <Link
             href="/"

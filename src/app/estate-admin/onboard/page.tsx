@@ -69,7 +69,7 @@ export default function OnboardResidentPage() {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 max-h-[calc(100dvh-8rem)] overflow-y-auto">
       <div className="flex items-center justify-between">
         <Link
           href="/estate-admin"

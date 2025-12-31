@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Clock3, Copy, KeyRound, RefreshCcw, ShieldCheck, Users } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 type Code = {
   id: string;
@@ -88,41 +89,33 @@ export default function ResidentAppCodesPage() {
   function getStatusBadgeClass(status: Code["status"]) {
     switch (status) {
       case "ACTIVE":
-        return "status-badge-active";
+        return "bg-green-100 text-green-700";
       case "USED":
+        return "bg-blue-100 text-blue-700";
       case "REVOKED":
-        return "status-badge-used";
+        return "bg-slate-100 text-slate-700";
       case "EXPIRED":
-        return "status-badge-expired";
+        return "bg-rose-100 text-rose-700";
       default:
-        return "status-badge-used";
+        return "bg-slate-100 text-slate-700";
     }
   }
 
-  function formatExpiry(date: string) {
-    const d = new Date(date);
-    const now = new Date();
-    const diffMs = d.getTime() - now.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMs < 0) return "Expired";
-    if (diffHours < 24) return `${diffHours}h left`;
-    if (diffDays < 30) return `${diffDays}d left`;
-    return d.toLocaleDateString();
+  function isExpired(expiresAt: string) {
+    return new Date(expiresAt).getTime() <= new Date().getTime();
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-8">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white pb-8 overflow-x-hidden">
       {/* Background decoration */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-blue-100/40 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-100/30 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-brand-navy/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-brand-green/5 blur-3xl" />
       </div>
 
       <div className="mx-auto max-w-2xl px-5 py-6">
         {/* Header */}
-        <header className="flex items-start justify-between gap-4 page-enter">
+        <header className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
               Pass Codes
@@ -132,7 +125,7 @@ export default function ResidentAppCodesPage() {
             </p>
           </div>
           <button
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md touch-target"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
             onClick={() => load()}
             disabled={loading}
           >
@@ -142,11 +135,11 @@ export default function ResidentAppCodesPage() {
         </header>
 
         {/* Action Cards */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 stagger-children">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {/* Guest Pass Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm card-hover">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy text-white shadow-lg">
                 <Users className="h-6 w-6" />
               </div>
               <div>
@@ -155,7 +148,7 @@ export default function ResidentAppCodesPage() {
               </div>
             </div>
             <button
-              className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-base font-bold text-white shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl disabled:opacity-60 btn-interactive touch-target"
+              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-navy/90 disabled:opacity-60"
               onClick={() => create("GUEST")}
               disabled={creating !== null}
             >
@@ -166,7 +159,7 @@ export default function ResidentAppCodesPage() {
                 </>
               ) : (
                 <>
-                  <KeyRound className="h-5 w-5" />
+                  <KeyRound className="h-4 w-4" />
                   Generate Guest Code
                 </>
               )}
@@ -174,9 +167,9 @@ export default function ResidentAppCodesPage() {
           </div>
 
           {/* Staff Pass Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm card-hover">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green text-white shadow-lg">
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <div>
@@ -185,18 +178,18 @@ export default function ResidentAppCodesPage() {
               </div>
             </div>
             <button
-              className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white text-base font-bold text-slate-900 transition-all hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60 touch-target"
+              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-brand-green bg-white text-sm font-bold text-brand-green transition-all hover:bg-brand-green/5 disabled:opacity-60"
               onClick={() => create("STAFF")}
               disabled={creating !== null}
             >
               {creating === "STAFF" ? (
                 <>
-                  <Spinner className="text-slate-900" />
+                  <Spinner className="text-brand-green" />
                   Creating...
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="h-5 w-5" />
+                  <ShieldCheck className="h-4 w-4" />
                   Generate Staff Code
                 </>
               )}
@@ -205,26 +198,26 @@ export default function ResidentAppCodesPage() {
         </div>
 
         {/* Error Message */}
-        {error ? (
-          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800 error-state">
+        {error && (
+          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
             {error}
           </div>
-        ) : null}
+        )}
 
         {/* Active Guest Alert */}
-        {activeGuest.length > 0 ? (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+        {activeGuest.length > 0 && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
             <div className="flex items-start gap-3">
               <Clock3 className="mt-0.5 h-5 w-5 text-amber-600" />
               <div>
                 <p className="font-semibold text-amber-900">Active guest code</p>
                 <p className="mt-0.5 text-sm text-amber-700">
-                  Guest codes end immediately after validation
+                  Guest codes expire immediately after validation
                 </p>
               </div>
             </div>
           </div>
-        ) : null}
+        )}
 
         {/* Codes List */}
         <div className="mt-6">
@@ -239,61 +232,114 @@ export default function ResidentAppCodesPage() {
           {loading ? (
             <div className="mt-4 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 rounded-2xl skeleton" />
+                <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
               ))}
             </div>
           ) : codes.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-8 text-center">
-              <KeyRound className="mx-auto h-10 w-10 text-slate-300" />
-              <p className="mt-3 font-medium text-slate-600">No codes yet</p>
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-12 text-center">
+              <KeyRound className="mx-auto h-12 w-12 text-slate-300" />
+              <p className="mt-3 font-semibold text-slate-600">No codes yet</p>
               <p className="mt-1 text-sm text-slate-500">Generate your first code above</p>
             </div>
           ) : (
-            <div className="mt-4 space-y-3 stagger-children">
+            <div className="mt-4 space-y-3">
               {codes.map((c) => (
                 <div
                   key={c.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md"
+                  className={`rounded-2xl border bg-white p-4 shadow-sm transition-all ${
+                    c.status === "ACTIVE" && !isExpired(c.expiresAt)
+                      ? "border-brand-green/30"
+                      : "border-slate-200"
+                  }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-4">
+                    {/* Countdown Timer for Active Codes */}
+                    {c.status === "ACTIVE" && !isExpired(c.expiresAt) && (
+                      <div className="hidden sm:block">
+                        <CountdownTimer
+                          expiresAt={c.expiresAt}
+                          size={c.type === "GUEST" ? "md" : "sm"}
+                          showLabel={false}
+                        />
+                      </div>
+                    )}
+
                     <div className="flex-1 min-w-0">
                       {/* Code Display */}
                       <div className="flex items-center gap-3">
-                        <span className="code-display text-xl sm:text-2xl">{c.code}</span>
+                        <code className="rounded-lg bg-slate-100 px-3 py-2 font-mono text-xl font-bold tracking-wider text-slate-900 sm:text-2xl">
+                          {c.code}
+                        </code>
                         <button
                           onClick={() => copyCode(c.code, c.id)}
-                          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 touch-target"
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg border transition-all ${
+                            copiedId === c.id
+                              ? "border-green-300 bg-green-50 text-green-600"
+                              : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                          }`}
                           aria-label="Copy code"
                         >
                           {copiedId === c.id ? (
-                            <Check className="h-5 w-5 text-emerald-600" />
+                            <Check className="h-5 w-5" />
                           ) : (
                             <Copy className="h-5 w-5" />
                           )}
                         </button>
                       </div>
 
-                      {/* Meta Info */}
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className={`status-badge ${getStatusBadgeClass(c.status)}`}>
+                      {/* Status and Meta */}
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${getStatusBadgeClass(
+                            c.status
+                          )}`}
+                        >
                           {c.status}
                         </span>
-                        <span className="text-sm text-slate-500">
-                          {c.type === "GUEST" ? "Guest" : "Staff"} · {formatExpiry(c.expiresAt)}
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${
+                            c.type === "GUEST"
+                              ? "bg-brand-navy/10 text-brand-navy"
+                              : "bg-brand-green/10 text-brand-green"
+                          }`}
+                        >
+                          {c.type}
                         </span>
+
+                        {/* Mobile Countdown */}
+                        {c.status === "ACTIVE" && !isExpired(c.expiresAt) && (
+                          <span className="text-sm text-slate-500 sm:hidden">
+                            <CountdownTimer
+                              expiresAt={c.expiresAt}
+                              size="sm"
+                              showLabel={true}
+                            />
+                          </span>
+                        )}
+
+                        {/* Show expired text if expired */}
+                        {(c.status !== "ACTIVE" || isExpired(c.expiresAt)) && (
+                          <span className="text-sm text-slate-500">
+                            {c.status === "USED"
+                              ? "Used"
+                              : c.status === "EXPIRED" || isExpired(c.expiresAt)
+                              ? "Expired"
+                              : c.status}
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Renew Button for Staff */}
-                    {c.type === "STAFF" && c.status === "ACTIVE" ? (
+                    {c.type === "STAFF" && c.status === "ACTIVE" && (
                       <button
                         onClick={() => renew(c.id)}
-                        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 touch-target"
+                        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50"
                       >
                         <RefreshCcw className="h-4 w-4" />
                         <span className="hidden sm:inline">Renew</span>
                       </button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               ))}

@@ -4,10 +4,44 @@ import { headers } from "next/headers";
 import { enforceSameOriginOr403, requireEstateId, requireRoleSession } from "@/lib/auth/guards";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
-import { putUser } from "@/lib/repos/users";
+import { putUser, listGuardsForEstatePage } from "@/lib/repos/users";
 import { putActivityLog } from "@/lib/repos/activity-logs";
 import { getEstateById, deriveEstateInitials } from "@/lib/repos/estates";
 import { generateVerificationCode } from "@/lib/auth/verification-code";
+
+export async function GET() {
+  const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
+  if (!sessionRes.ok) return sessionRes.response;
+
+  const estateIdRes = requireEstateId(sessionRes.value);
+  if (!estateIdRes.ok) return estateIdRes.response;
+  const estateId = estateIdRes.value;
+
+  try {
+    const { items: guards } = await listGuardsForEstatePage({
+      estateId,
+      limit: 100,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      guards: guards.map((g) => ({
+        userId: g.userId,
+        name: g.name,
+        email: g.email,
+        phone: g.phone,
+        verificationCode: g.verificationCode,
+        createdAt: g.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error("Failed to list guards:", error);
+    return NextResponse.json(
+      { ok: false, error: "Failed to list guards" },
+      { status: 500 }
+    );
+  }
+}
 
 const bodySchema = z.object({
   name: z.string().min(2),

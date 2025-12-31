@@ -47,15 +47,15 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-[100dvh] bg-white overflow-x-hidden">
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-blue-200/40 blur-[128px]" />
-        <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-indigo-200/30 blur-[128px]" />
+        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-brand-navy/10 blur-[128px]" />
+        <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-brand-green/10 blur-[128px]" />
       </div>
 
-      <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2">
-        <div className="flex items-center px-6 py-10 lg:px-12">
-          <div className="w-full max-w-md">
+      <div className="mx-auto grid min-h-[100dvh] max-w-7xl grid-cols-1 lg:grid-cols-2">
+        <div className="flex items-center px-6 py-10 lg:px-12 overflow-y-auto max-h-[100dvh]">
+          <div className="w-full max-w-md mx-auto">
             <div className="flex items-center justify-between">
               <Link
                 href="/"

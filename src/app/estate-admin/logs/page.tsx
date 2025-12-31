@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft, Download, FileSpreadsheet, FileText } from "lucide-react";
 import { requireSession } from "@/lib/auth/require-session";
 import { listValidationLogsForEstate } from "@/lib/repos/validation-logs";
 import { listActivityLogsForEstate } from "@/lib/repos/activity-logs";
@@ -7,22 +9,28 @@ export default async function EstateLogsPage() {
   if (session.role !== "ESTATE_ADMIN" || !session.estateId) return null;
 
   const [validationsRaw, activityRaw] = await Promise.all([
-    listValidationLogsForEstate({ estateId: session.estateId, limit: 50 }),
+    listValidationLogsForEstate({ estateId: session.estateId, limit: 100 }),
     listActivityLogsForEstate({ estateId: session.estateId, limit: 50 }),
   ]);
 
-  const validations = validationsRaw.map((v) => ({
-    id: v.logId,
-    validatedAt: v.validatedAt,
-    gateName: v.gateName,
-    houseNumber: v.houseNumber,
-    residentName: v.residentName,
-    passType: v.passType,
-    outcome: v.outcome,
-    failureReason: v.failureReason,
-    guardUser: { name: v.guardName, phone: v.guardPhone },
-    codeValue: v.codeValue,
-  }));
+  const validations = validationsRaw.map((v) => {
+    const dt = new Date(v.validatedAt);
+    return {
+      id: v.logId,
+      validatedAt: v.validatedAt,
+      date: dt.toLocaleDateString(),
+      time: dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      gateName: v.gateName,
+      houseNumber: v.houseNumber,
+      residentName: v.residentName,
+      passType: v.passType,
+      outcome: v.outcome,
+      failureReason: v.failureReason,
+      guardName: v.guardName,
+      guardPhone: v.guardPhone,
+      codeValue: v.codeValue,
+    };
+  });
 
   const activity = activityRaw.map((a) => ({
     id: a.activityId,
@@ -32,105 +40,189 @@ export default async function EstateLogsPage() {
   }));
 
   return (
-    <div className="grid gap-6">
-      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-slate-900">Validations</h2>
-          <div className="flex items-center gap-3">
-            <a
-              href="/api/estate-admin/logs/export"
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-extrabold text-slate-900 hover:bg-slate-50"
-            >
-              Export CSV
-            </a>
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Latest 50</div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/estate-admin"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Validation Logs</h1>
+            <p className="text-sm text-slate-600">
+              {validations.length} records found
+            </p>
           </div>
         </div>
-        <div className="mt-2 text-sm text-slate-600">
-          Latest validations recorded by guards.
+        <div className="flex gap-3">
+          <a
+            href="/api/estate-admin/logs/export"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <FileText className="h-4 w-4" />
+            Export CSV
+          </a>
+          <a
+            href="/api/estate-admin/logs/export-excel"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-green/90"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Export Excel
+          </a>
         </div>
-        <div className="mt-4 overflow-x-auto">
+      </div>
+
+      {/* Validations Table */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-              <thead className="text-slate-600">
-                <tr className="border-b border-slate-200">
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Time</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Gate</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">House</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Resident</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Type</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Outcome</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Reason</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Guard</th>
-                  <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Code</th>
-                </tr>
-              </thead>
-              <tbody>
-                {validations.map((v) => (
-                  <tr key={v.id} className="border-b border-slate-100">
-                    <td className="py-2 pr-4 text-slate-700">
-                      {new Date(v.validatedAt).toLocaleString()}
-                    </td>
-                    <td className="py-2 pr-4 text-slate-700">{v.gateName ?? "—"}</td>
-                    <td className="py-2 pr-4 text-slate-700">{v.houseNumber ?? "—"}</td>
-                    <td className="py-2 pr-4 text-slate-700">{v.residentName ?? "—"}</td>
-                    <td className="py-2 pr-4 text-slate-700">{v.passType ?? "—"}</td>
-                    <td className="py-2 pr-4">
+            <thead className="border-b border-slate-100 bg-slate-50">
+              <tr>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Time
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Gate
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  House
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Resident
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Type
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Outcome
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Guard
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Guard Phone
+                </th>
+                <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Code
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {validations.map((v, idx) => (
+                <tr
+                  key={v.id}
+                  className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                >
+                  <td className="px-4 py-3 text-slate-700 whitespace-nowrap">
+                    {v.date}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700 whitespace-nowrap font-medium">
+                    {v.time}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">{v.gateName ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-900 font-semibold">
+                    {v.houseNumber ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">{v.residentName ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    {v.passType ? (
                       <span
-                        className={
-                          v.outcome === "SUCCESS"
-                            ? "rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-extrabold text-emerald-800"
-                            : "rounded-full bg-rose-50 px-2.5 py-1 text-xs font-extrabold text-rose-800"
-                        }
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
+                          v.passType === "GUEST"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-purple-100 text-purple-700"
+                        }`}
                       >
-                        {v.outcome}
+                        {v.passType}
                       </span>
-                    </td>
-                    <td className="py-2 pr-4 text-slate-700">{v.failureReason ?? "—"}</td>
-                    <td className="py-2 pr-4 text-slate-700">
-                      {v.guardUser?.name ?? "—"}
-                      {v.guardUser?.phone ? ` (${v.guardUser.phone})` : ""}
-                    </td>
-                    <td className="py-2 pr-4 font-mono text-xs text-slate-700">
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
+                        v.outcome === "SUCCESS"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-rose-100 text-rose-700"
+                      }`}
+                    >
+                      {v.outcome === "SUCCESS" ? "✓" : "✕"} {v.outcome}
+                    </span>
+                    {v.failureReason && (
+                      <p className="mt-1 text-xs text-rose-600">{v.failureReason}</p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">{v.guardName ?? "—"}</td>
+                  <td className="px-4 py-3 text-slate-600 text-xs">
+                    {v.guardPhone ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <code className="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700">
                       {v.codeValue}
-                    </td>
-                  </tr>
-                ))}
-                {validations.length === 0 ? (
-                  <tr>
-                    <td className="py-3 text-slate-600" colSpan={9}>
-                      No validations yet.
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
+                    </code>
+                  </td>
+                </tr>
+              ))}
+              {validations.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="px-4 py-12 text-center text-slate-500">
+                    <Download className="mx-auto h-8 w-8 text-slate-300" />
+                    <p className="mt-2 font-medium">No validations yet</p>
+                    <p className="text-sm">
+                      Validation logs will appear here when guards start validating codes
+                    </p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-slate-900">Activity</h2>
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Latest 50
-          </div>
+      {/* Activity Log */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900">Activity Log</h2>
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Latest {activity.length}
+          </span>
         </div>
-        <div className="mt-4 grid gap-2">
-          {activity.map((a) => (
-            <div
-              key={a.id}
-              className="flex flex-wrap items-baseline justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-            >
-              <div className="text-sm text-slate-800">
-                <span className="font-extrabold">{a.type}</span> — {a.message}
+        <div className="mt-4 space-y-2">
+          {activity.map((a) => {
+            const dt = new Date(a.createdAt);
+            return (
+              <div
+                key={a.id}
+                className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+              >
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-navy/10">
+                  <span className="text-xs font-bold text-brand-navy">
+                    {a.type.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-700">
+                    <span className="font-semibold text-slate-900">{a.type}</span>
+                    {" — "}
+                    {a.message}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {dt.toLocaleDateString()} at {dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
               </div>
-              <div className="text-xs text-slate-600">
-                {new Date(a.createdAt).toLocaleString()}
-              </div>
-            </div>
-          ))}
-          {activity.length === 0 ? (
-            <div className="text-sm text-slate-600">No activity yet.</div>
-          ) : null}
+            );
+          })}
+          {activity.length === 0 && (
+            <p className="text-center text-sm text-slate-500 py-8">No activity yet</p>
+          )}
         </div>
       </div>
     </div>

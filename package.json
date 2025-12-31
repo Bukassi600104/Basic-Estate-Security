@@ -14,16 +14,18 @@
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.956.0",
     "@aws-sdk/client-dynamodb": "^3.956.0",
+    "@aws-sdk/lib-dynamodb": "^3.956.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "jose": "^5.9.6",
     "lucide-react": "^0.469.0",
     "nanoid": "^5.0.7",
     "next": "^14.2.20",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "recharts": "^3.6.0",
     "tailwind-merge": "^2.5.4",
-    "@aws-sdk/lib-dynamodb": "^3.956.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

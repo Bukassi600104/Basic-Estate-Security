@@ -58,14 +58,14 @@ export default function ResidentVerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white overflow-x-hidden">
       {/* Background decoration */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-blue-100/60 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-100/40 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-brand-navy/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-brand-green/10 blur-3xl" />
       </div>
 
-      <div className="mx-auto flex min-h-screen max-w-lg flex-col px-5 py-6 lg:justify-center lg:py-12">
+      <div className="mx-auto flex min-h-[100dvh] max-h-[100dvh] max-w-lg flex-col px-5 py-6 lg:justify-center lg:py-12 overflow-y-auto">
         {/* Header */}
         <header className="flex items-center justify-between page-enter">
           <Link

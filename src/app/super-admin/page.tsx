@@ -1,5 +1,5 @@
 import { requireSession } from "@/lib/auth/require-session";
-import { SuperAdminEstatesTable } from "@/app/super-admin/estates-table";
+import { SuperAdminDashboardClient } from "@/app/super-admin/dashboard-client";
 import { listEstatesPage } from "@/lib/repos/estates";
 
 export default async function SuperAdminDashboard() {
@@ -9,15 +9,22 @@ export default async function SuperAdminDashboard() {
   const page = await listEstatesPage({ limit: 50 });
 
   return (
-    <SuperAdminEstatesTable
+    <SuperAdminDashboardClient
       initialEstates={page.items.map((e) => ({
         id: e.estateId,
         name: e.name,
-        // The UI only supports these statuses; treat legacy INACTIVE as SUSPENDED.
         status: (e.status === "INACTIVE" ? "SUSPENDED" : e.status) as "ACTIVE" | "SUSPENDED" | "TERMINATED",
         createdAt: e.createdAt,
       }))}
-      initialNextCursor={page.nextCursor ? Buffer.from(JSON.stringify(page.nextCursor), "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") : null}
+      initialNextCursor={
+        page.nextCursor
+          ? Buffer.from(JSON.stringify(page.nextCursor), "utf8")
+              .toString("base64")
+              .replace(/\+/g, "-")
+              .replace(/\//g, "_")
+              .replace(/=+$/g, "")
+          : null
+      }
     />
   );
 }
