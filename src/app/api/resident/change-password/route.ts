@@ -5,6 +5,7 @@ import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { getSession, getAccessToken } from "@/lib/auth/session";
 import { cognitoChangePassword } from "@/lib/aws/cognito";
+import { markPasswordChanged } from "@/lib/repos/users";
 
 export const runtime = "nodejs";
 
@@ -88,6 +89,17 @@ export async function POST(req: Request) {
       previousPassword: currentPassword,
       proposedPassword: newPassword,
     });
+
+    // Mark that user has changed their password (for first-login tracking)
+    try {
+      await markPasswordChanged(session.userId);
+    } catch (e) {
+      // Non-critical - log but don't fail the request
+      console.error("mark_password_changed_error", JSON.stringify({
+        userId: session.userId,
+        error: (e as Error)?.message ?? "",
+      }));
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

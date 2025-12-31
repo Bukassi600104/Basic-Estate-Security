@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, Eye, EyeOff, Key, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff, Key, Loader2, Lock, RefreshCcw, ShieldCheck, AlertTriangle } from "lucide-react";
 
 export default function ResidentSettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -14,6 +14,28 @@ export default function ResidentSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Reset request state
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
+
+  async function handleResetRequest() {
+    if (resetLoading || resetSuccess) return;
+    setResetError(null);
+    setResetLoading(true);
+
+    try {
+      const res = await fetch("/api/resident/request-reset", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Failed to submit request");
+      setResetSuccess(true);
+    } catch (err) {
+      setResetError(err instanceof Error ? err.message : "Failed to submit request");
+    } finally {
+      setResetLoading(false);
+    }
+  }
 
   // Password requirements
   const hasLength = newPassword.length >= 5 && newPassword.length <= 8;
@@ -225,6 +247,61 @@ export default function ResidentSettingsPage() {
               )}
             </button>
           </form>
+        </div>
+
+        {/* Forgot Password - Request Reset */}
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+              <RefreshCcw className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-900">Forgot Password?</h2>
+              <p className="text-sm text-slate-600">Request new credentials from your estate admin</p>
+            </div>
+          </div>
+
+          {resetSuccess ? (
+            <div className="mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="font-semibold text-green-800">Request submitted!</p>
+                <p className="text-sm text-green-700">Your estate admin will contact you with new credentials.</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="mt-4 text-sm text-slate-600">
+                If you&apos;ve forgotten your password and can&apos;t change it above, you can request
+                your estate admin to generate new login credentials for you.
+              </p>
+
+              {resetError && (
+                <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                  {resetError}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleResetRequest}
+                disabled={resetLoading}
+                className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-500 bg-white text-sm font-bold text-amber-700 transition-all hover:bg-amber-50 disabled:opacity-60"
+              >
+                {resetLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-4 w-4" />
+                    Request Credential Reset
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Back Link */}

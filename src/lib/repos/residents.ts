@@ -14,6 +14,8 @@ export type ResidentRecord = {
   phone?: string;
   email?: string;
   verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR}
+  credentialResetRequested?: boolean; // true when resident requests password reset
+  credentialResetRequestedAt?: string; // ISO timestamp of request
   createdAt: string;
   updatedAt: string;
 };
@@ -161,4 +163,50 @@ function normalizePhone(phone: string): string {
     return `+234${cleaned.replace(/^0/, "")}`;
   }
   return cleaned;
+}
+
+/**
+ * Request credential reset for a resident.
+ */
+export async function requestCredentialReset(residentId: string) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+  const now = new Date().toISOString();
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: env.DDB_TABLE_RESIDENTS,
+      Key: { residentId },
+      UpdateExpression: "SET credentialResetRequested = :r, credentialResetRequestedAt = :t, updatedAt = :u",
+      ExpressionAttributeValues: { ":r": true, ":t": now, ":u": now },
+      ConditionExpression: "attribute_exists(residentId)",
+    }),
+  );
+}
+
+/**
+ * Clear credential reset request after admin processes it.
+ */
+export async function clearCredentialResetRequest(residentId: string) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+  const now = new Date().toISOString();
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: env.DDB_TABLE_RESIDENTS,
+      Key: { residentId },
+      UpdateExpression: "REMOVE credentialResetRequested, credentialResetRequestedAt SET updatedAt = :u",
+      ExpressionAttributeValues: { ":u": now },
+      ConditionExpression: "attribute_exists(residentId)",
+    }),
+  );
+}
+
+/**
+ * List residents with pending credential reset requests.
+ */
+export async function listResidentsWithCredentialResetRequests(estateId: string): Promise<ResidentRecord[]> {
+  const residents = await listResidentsForEstate(estateId, 500);
+  return residents.filter((r) => r.credentialResetRequested === true);
 }

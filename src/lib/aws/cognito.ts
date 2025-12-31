@@ -279,3 +279,23 @@ export async function cognitoChangePassword(params: {
     }),
   );
 }
+
+/**
+ * Admin set password for a user (used for credential resets).
+ */
+export async function cognitoAdminSetPassword(params: {
+  username: string;
+  password: string;
+}) {
+  const env = getEnv();
+  const client = getCognitoClient();
+
+  await client.send(
+    new AdminSetUserPasswordCommand({
+      UserPoolId: env.COGNITO_USER_POOL_ID,
+      Username: params.username,
+      Password: params.password,
+      Permanent: true,
+    }),
+  );
+}

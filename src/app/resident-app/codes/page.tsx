@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Clock3, Copy, KeyRound, RefreshCcw, Settings, ShieldCheck, Users } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { FirstLoginPopup } from "@/components/first-login-popup";
 
 type Code = {
   id: string;
@@ -21,6 +22,8 @@ export default function ResidentAppCodesPage() {
   const [creating, setCreating] = useState<"GUEST" | "STAFF" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showPasswordPopup, setShowPasswordPopup] = useState(false);
+  const [passwordPopupDismissed, setPasswordPopupDismissed] = useState(false);
 
   const activeGuest = useMemo(
     () => codes.filter((c) => c.type === "GUEST" && c.status === "ACTIVE"),
@@ -44,6 +47,19 @@ export default function ResidentAppCodesPage() {
 
   useEffect(() => {
     void load();
+    // Check if first login (password not changed)
+    async function checkFirstLogin() {
+      try {
+        const res = await fetch("/api/resident/profile");
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.profile && !data.profile.passwordChanged) {
+          setShowPasswordPopup(true);
+        }
+      } catch {
+        // Ignore errors - non-critical
+      }
+    }
+    checkFirstLogin();
   }, []);
 
   async function create(type: "GUEST" | "STAFF") {
@@ -357,6 +373,17 @@ export default function ResidentAppCodesPage() {
           )}
         </div>
       </div>
+
+      {/* First Login Password Change Popup */}
+      {showPasswordPopup && !passwordPopupDismissed && (
+        <FirstLoginPopup
+          onClose={() => setPasswordPopupDismissed(true)}
+          onSuccess={() => {
+            setShowPasswordPopup(false);
+            setPasswordPopupDismissed(true);
+          }}
+        />
+      )}
     </div>
   );
 }

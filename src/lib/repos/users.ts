@@ -18,6 +18,7 @@ export type UserRecord = {
   phone?: string;
   residentId?: string;
   verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR} (for guards)
+  passwordChanged?: boolean; // true after user changes initial password
   createdAt: string;
   updatedAt: string;
 };
@@ -263,6 +264,25 @@ export async function deleteUser(userId: string) {
     new DeleteCommand({
       TableName: env.DDB_TABLE_USERS,
       Key: { userId },
+    }),
+  );
+}
+
+/**
+ * Mark user as having changed their password.
+ */
+export async function markPasswordChanged(userId: string) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+  const now = new Date().toISOString();
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: env.DDB_TABLE_USERS,
+      Key: { userId },
+      UpdateExpression: "SET passwordChanged = :p, updatedAt = :u",
+      ExpressionAttributeValues: { ":p": true, ":u": now },
+      ConditionExpression: "attribute_exists(userId)",
     }),
   );
 }
