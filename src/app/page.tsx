@@ -424,6 +424,14 @@ export default function HomePage() {
           <div className="mt-8 border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
             © {new Date().getFullYear()} Basic Security. All rights reserved.
           </div>
+          <div className="mt-4 text-center">
+            <Link
+              href="/auth/sign-in"
+              className="text-xs italic text-slate-400 hover:text-slate-500 transition-colors"
+            >
+              Super Admin
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, UpdateCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, UpdateCommand, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { getDdbDocClient } from "@/lib/aws/dynamo";
 import { getEnv } from "@/lib/env";
 
@@ -250,4 +250,19 @@ function normalizePhone(phone: string): string {
     return `+234${cleaned.replace(/^0/, "")}`;
   }
   return cleaned;
+}
+
+/**
+ * Delete a user from DynamoDB by userId.
+ */
+export async function deleteUser(userId: string) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+
+  await ddb.send(
+    new DeleteCommand({
+      TableName: env.DDB_TABLE_USERS,
+      Key: { userId },
+    }),
+  );
 }

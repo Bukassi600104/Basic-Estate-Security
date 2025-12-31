@@ -60,7 +60,7 @@ function MfaSetupContent() {
 
   return (
     <div className="min-h-[100dvh] bg-white overflow-x-hidden">
-      <div className="mx-auto flex min-h-[100dvh] max-h-[100dvh] max-w-2xl flex-col px-6 py-10 overflow-y-auto">
+      <div className="mx-auto flex min-h-[100dvh] max-w-2xl flex-col px-6 py-10">
         <div className="flex items-center justify-between">
           <Link
             href="/"
@@ -124,7 +124,7 @@ function MfaSetupContent() {
             </p>
 
             <input
-              className="mt-4 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 outline-none ring-blue-600/20 focus:ring-4"
+              className="mt-4 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               inputMode="numeric"
@@ -143,7 +143,7 @@ function MfaSetupContent() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
+            className="inline-flex h-12 items-center justify-center rounded-2xl bg-brand-navy px-5 text-sm font-extrabold text-white shadow-sm hover:bg-brand-navy/90 disabled:opacity-60"
           >
             {loading ? "Verifying…" : "Finish setup"}
           </button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, ClipboardCopy, Shield, UserRoundPlus, X } from "lucide-react";
+import { Check, ClipboardCopy, Shield, Trash2, UserRoundPlus, X } from "lucide-react";
 
 type Guard = {
   userId: string;
@@ -29,6 +29,8 @@ export function GuardCreator() {
   const [guards, setGuards] = useState<Guard[]>([]);
   const [loadingGuards, setLoadingGuards] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deleteGuard, setDeleteGuard] = useState<Guard | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function loadGuards() {
     try {
@@ -53,6 +55,26 @@ export function GuardCreator() {
     if (id) {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteGuard) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/estate-admin/guards/${deleteGuard.userId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to delete guard");
+      }
+      setDeleteGuard(null);
+      loadGuards();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete guard");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -84,6 +106,47 @@ export function GuardCreator() {
 
   return (
     <>
+      {/* Delete Confirmation Modal */}
+      {deleteGuard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100">
+                <Trash2 className="h-5 w-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Delete Guard</h3>
+                <p className="text-sm text-slate-600">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="font-semibold text-slate-900">{deleteGuard.name}</div>
+              <div className="text-sm text-slate-600">
+                {deleteGuard.email || deleteGuard.phone || "No contact info"}
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setDeleteGuard(null)}
+                disabled={deleting}
+                className="flex-1 rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 rounded-xl bg-rose-600 py-3 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-60"
+              >
+                {deleting ? "Deleting..." : "Delete Guard"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal for newly created guard */}
       {showModal && created && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -263,8 +326,11 @@ export function GuardCreator() {
                     <th className="py-3 pr-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Verification Code
                     </th>
-                    <th className="py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <th className="py-3 pr-4 text-xs font-bold uppercase tracking-wider text-slate-500">
                       Created
+                    </th>
+                    <th className="py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -304,8 +370,17 @@ export function GuardCreator() {
                           <span className="text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="py-3 text-slate-600">
+                      <td className="py-3 pr-4 text-slate-600">
                         {new Date(guard.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3">
+                        <button
+                          onClick={() => setDeleteGuard(guard)}
+                          className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                          title="Delete guard"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
