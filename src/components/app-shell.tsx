@@ -4,6 +4,23 @@ import { getSession, clearSessionCookie } from "@/lib/auth/session";
 import type { NavItem } from "@/components/sidebar-nav";
 import { SidebarNav } from "@/components/sidebar-nav";
 
+function formatRoleLabel(role: string): string {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return "Super Administrator";
+    case "ESTATE_ADMIN":
+      return "Estate Administrator";
+    case "GUARD":
+      return "Security Guard";
+    case "RESIDENT":
+      return "Resident";
+    case "RESIDENT_DELEGATE":
+      return "Resident Delegate";
+    default:
+      return role;
+  }
+}
+
 async function SignOutButton() {
   return (
     <form
@@ -44,13 +61,13 @@ export async function AppShell({
       <div className="mx-auto flex min-h-screen max-w-7xl">
         <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white/80 px-5 py-6 backdrop-blur-xl md:flex">
           <Link href="/dashboard" className="flex items-center gap-3 px-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-navy to-brand-navy-700 text-white shadow-sm">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div className="leading-tight">
               <div className="text-sm font-extrabold tracking-tight text-slate-900">Basic Security</div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {session?.role ?? "Portal"}
+              <div className="text-xs font-semibold tracking-wide text-slate-500">
+                {session?.role ? formatRoleLabel(session.role) : "Portal"}
               </div>
             </div>
           </Link>
@@ -65,8 +82,8 @@ export async function AppShell({
             {session ? (
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="text-sm font-semibold text-slate-900">{session.name}</div>
-                <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  {session.role}
+                <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500">
+                  {formatRoleLabel(session.role)}
                 </div>
                 <div className="mt-4">
                   <SignOutButton />

@@ -240,7 +240,7 @@ export function GuardCreator() {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Create Guard Account</h2>
               <p className="mt-1 text-sm text-slate-600">
-                Guards sign in with email or phone and receive a verification code.
+                Guards sign in with their phone number and verification code.
               </p>
             </div>
           </div>
@@ -257,12 +257,12 @@ export function GuardCreator() {
               />
             </label>
             <label className="grid gap-2 text-sm">
-              <span className="font-semibold text-slate-700">Email or Phone</span>
+              <span className="font-semibold text-slate-700">Phone Number</span>
               <input
                 className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="guard@example.com or +234..."
+                placeholder="+234XXXXXXXXXX"
                 required
               />
             </label>

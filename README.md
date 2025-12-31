@@ -29,11 +29,16 @@ Estate admins generate install/claim links from the dashboard.
 
 ## Roles
 
-- **SUPER_ADMIN**: oversees all estates.
-- **ESTATE_ADMIN**: onboards residents and views estate logs.
-- **RESIDENT**: generates guest/staff codes.
-- **RESIDENT_DELEGATE**: resident-approved number that can generate codes.
-- **GUARD**: validates codes and records allow/deny decisions.
+### Platform-Level (Internal)
+- **SUPER_ADMIN**: Platform owner/developer. Monitors all estates, views analytics, checks health/security. NOT for end users. Created via `scripts/create-super-admin.mjs`.
+
+### Estate-Level (End Users)
+- **ESTATE_ADMIN**: Estate administrator (customer). Self-registers via website, onboards residents and guards, views logs.
+- **RESIDENT**: Generates guest/staff access codes for their house.
+- **RESIDENT_DELEGATE**: Resident-approved phone number that can generate codes on behalf of resident.
+- **GUARD**: Security personnel who validates codes at gates and records allow/deny decisions.
+
+> **Note:** Super Admin monitors the platform. Estate Admins manage their own estates independently.
 
 ## DynamoDB scaling (GSIs)
 

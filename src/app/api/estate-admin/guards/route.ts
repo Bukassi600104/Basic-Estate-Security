@@ -121,8 +121,17 @@ export async function POST(req: Request) {
         "custom:estateId": estateId,
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Unable to create guard account" }, { status: 409 });
+  } catch (err) {
+    console.error("Failed to create guard in Cognito:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    // Check for common Cognito errors
+    if (message.includes("UsernameExistsException") || message.includes("already exists")) {
+      return NextResponse.json({ error: "A user with this email or phone already exists" }, { status: 409 });
+    }
+    if (message.includes("Invalid phone number")) {
+      return NextResponse.json({ error: "Invalid phone number format. Use +234XXXXXXXXXX" }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Unable to create guard account: " + message }, { status: 409 });
   }
 
   const sub = await cognitoAdminGetUserSub({ username: identifier });

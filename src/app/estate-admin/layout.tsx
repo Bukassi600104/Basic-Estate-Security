@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/auth/require-session";
-import { LayoutGrid, ListChecks, Settings, UserPlus, Users, DoorOpen } from "lucide-react";
+import { Settings } from "lucide-react";
 import { getEstateById } from "@/lib/repos/estates";
 
 export default async function EstateAdminLayout({
@@ -30,13 +30,8 @@ export default async function EstateAdminLayout({
 
   return (
     <AppShell
-      title="Estate Admin"
+      title="Estate Administrator"
       nav={[
-        { href: "/estate-admin", label: "Dashboard", icon: <LayoutGrid className="h-4 w-4" /> },
-        { href: "/estate-admin/onboard", label: "Onboard Resident", icon: <UserPlus className="h-4 w-4" /> },
-        { href: "/estate-admin/residents", label: "Residents", icon: <Users className="h-4 w-4" /> },
-        { href: "/estate-admin/gates", label: "Gates", icon: <DoorOpen className="h-4 w-4" /> },
-        { href: "/estate-admin/logs", label: "Logs", icon: <ListChecks className="h-4 w-4" /> },
         { href: "/estate-admin/settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
       ]}
     >

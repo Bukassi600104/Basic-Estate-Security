@@ -15,6 +15,7 @@ import {
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   AdminGetUserCommand,
+  AdminUpdateUserAttributesCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
@@ -50,8 +51,10 @@ function requireEnv(name) {
 }
 
 // Super Admin credentials
-const SUPER_ADMIN_USERNAME = "Basic";
+// Note: Cognito requires email as username
+const SUPER_ADMIN_USERNAME = "bukassi@gmail.com";
 const SUPER_ADMIN_PASSWORD = "$Arianna600104#";
+const SUPER_ADMIN_NAME = "Tony Orjiako";
 
 const awsRegion = process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
 if (!awsRegion) {
@@ -103,6 +106,9 @@ async function main() {
           Username: SUPER_ADMIN_USERNAME,
           TemporaryPassword: SUPER_ADMIN_PASSWORD,
           UserAttributes: [
+            { Name: "email", Value: SUPER_ADMIN_USERNAME },
+            { Name: "email_verified", Value: "true" },
+            { Name: "name", Value: SUPER_ADMIN_NAME },
             { Name: "custom:role", Value: "SUPER_ADMIN" },
           ],
           MessageAction: "SUPPRESS", // Don't send welcome email
@@ -124,6 +130,22 @@ async function main() {
         throw e;
       }
     }
+  }
+
+  // Update name attribute (for existing users or to ensure name is set)
+  try {
+    await cognito.send(
+      new AdminUpdateUserAttributesCommand({
+        UserPoolId: userPoolId,
+        Username: SUPER_ADMIN_USERNAME,
+        UserAttributes: [
+          { Name: "name", Value: SUPER_ADMIN_NAME },
+        ],
+      })
+    );
+    console.log("Name attribute updated.");
+  } catch (e) {
+    console.error("Failed to update name attribute:", e.message);
   }
 
   // Set permanent password
@@ -152,7 +174,7 @@ async function main() {
           Item: {
             userId: cognitoSub,
             role: "SUPER_ADMIN",
-            name: "Super Admin",
+            name: SUPER_ADMIN_NAME,
             email: SUPER_ADMIN_USERNAME,
             createdAt: now,
             updatedAt: now,

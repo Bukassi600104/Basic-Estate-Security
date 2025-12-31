@@ -53,11 +53,19 @@ src/
 All DynamoDB access goes through `src/lib/repos/*.ts`. Each module exposes typed read/write functions using AWS SDK Document Client. Available repos: `codes`, `users`, `residents`, `estates`, `gates`, `validation-logs`, `activity-logs`, `pwa-invites`.
 
 ### Role-Based Access Control (5 Roles)
-- `SUPER_ADMIN` - Oversees all estates (MFA required)
-- `ESTATE_ADMIN` - Manages one estate (MFA required)
-- `RESIDENT` - Generates guest/staff codes
-- `RESIDENT_DELEGATE` - Resident-approved, can generate codes
-- `GUARD` - Validates codes at gates
+
+**Platform-Level (Internal):**
+- `SUPER_ADMIN` - Platform owner/developer only. Monitors all estates, views analytics, receives alerts, checks app health and security. NOT visible to end users. Created via `scripts/create-super-admin.mjs`. MFA required.
+
+**Estate-Level (End Users):**
+- `ESTATE_ADMIN` - Estate administrator who self-registers via `/auth/sign-up`. Manages their estate: onboards residents, creates guards, views logs. MFA required.
+- `RESIDENT` - Generates guest/staff access codes for their house
+- `RESIDENT_DELEGATE` - Resident-approved phone number that can generate codes on behalf of resident
+- `GUARD` - Security personnel who validates codes at gates
+
+**Key Distinction:**
+- Super Admin = Platform owner (you, the developer) - monitors the entire webapp
+- Estate Admin = Customer - registers their estate and manages it independently
 
 Roles stored in Cognito custom attribute `custom:role`. Use guards from `src/lib/auth/guards.ts` in API routes.
 
