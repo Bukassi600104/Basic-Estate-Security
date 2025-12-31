@@ -1,42 +1,60 @@
 /**
  * Verification code utilities for resident and guard authentication.
- * Code format: BS-{ESTATE_INITIALS}-{YEAR}
- * Example: BS-BG-2025 (for "Blue Gardens" estate in 2025)
+ * Code format: BS-{ESTATE_INITIALS}-{UNIQUE_ID}
+ * Example: BS-GW-3453yHGT (for "Gowon" estate)
+ *
+ * Format breakdown:
+ * - BS: Constant prefix (Basic Security)
+ * - XX: 2-letter estate initials derived from estate name
+ * - 8-char unique ID: 4 digits + 4 uppercase letters (e.g., 3453YHGT)
  */
 
 /**
- * Generate verification code from estate initials.
- * @param estateInitials - 2-letter estate initials (e.g., "BG")
- * @returns Verification code (e.g., "BS-BG-2025")
+ * Generate a random unique ID: 4 digits followed by 4 uppercase letters.
+ * Example: "3453YHGT"
  */
-export function generateVerificationCode(estateInitials: string): string {
-  const year = new Date().getFullYear();
-  return `BS-${estateInitials.toUpperCase()}-${year}`;
+function generateUniqueId(): string {
+  const digits = Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join("");
+  const letters = Array.from({ length: 4 }, () =>
+    String.fromCharCode(65 + Math.floor(Math.random() * 26))
+  ).join("");
+  return digits + letters;
 }
 
 /**
- * Parse and validate a verification code.
- * @param code - Code to parse (e.g., "BS-BG-2025")
+ * Generate verification code from estate initials.
+ * @param estateInitials - 2-letter estate initials (e.g., "GW")
+ * @returns Verification code (e.g., "BS-GW-3453YHGT")
+ */
+export function generateVerificationCode(estateInitials: string): string {
+  const uniqueId = generateUniqueId();
+  return `BS-${estateInitials.toUpperCase()}-${uniqueId}`;
+}
+
+/**
+ * Parse and validate a verification code format.
+ * @param code - Code to parse (e.g., "BS-GW-3453YHGT")
  * @returns Parsed components or invalid result
  */
 export function parseVerificationCode(code: string): {
   valid: boolean;
   initials?: string;
-  year?: number;
+  uniqueId?: string;
 } {
   const normalized = code.toUpperCase().trim();
-  const match = normalized.match(/^BS-([A-Z]{2})-(\d{4})$/);
+  // Match: BS-XX-4digits4letters
+  const match = normalized.match(/^BS-([A-Z]{2})-(\d{4}[A-Z]{4})$/);
   if (!match) return { valid: false };
   return {
     valid: true,
     initials: match[1],
-    year: parseInt(match[2], 10),
+    uniqueId: match[2],
   };
 }
 
 /**
  * Validate verification code against estate initials.
- * Accepts current year and previous year codes for grace period during year rollover.
+ * The code must start with BS-{initials}- and have a valid unique ID format.
  * @param providedCode - Code provided by user
  * @param estateInitials - Expected estate initials
  * @returns true if code is valid for the estate
@@ -45,12 +63,9 @@ export function validateVerificationCode(
   providedCode: string,
   estateInitials: string
 ): boolean {
-  const currentYear = new Date().getFullYear();
-  const lastYear = currentYear - 1;
+  const parsed = parseVerificationCode(providedCode);
+  if (!parsed.valid) return false;
 
-  const expectedCurrent = `BS-${estateInitials.toUpperCase()}-${currentYear}`;
-  const expectedPrevious = `BS-${estateInitials.toUpperCase()}-${lastYear}`;
-
-  const normalized = providedCode.toUpperCase().trim();
-  return normalized === expectedCurrent || normalized === expectedPrevious;
+  // Check that the initials match the estate
+  return parsed.initials === estateInitials.toUpperCase();
 }

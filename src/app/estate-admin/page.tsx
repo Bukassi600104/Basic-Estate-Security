@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 import { requireSession } from "@/lib/auth/require-session";
+import { getEstateById } from "@/lib/repos/estates";
 import { GuardCreator } from "@/app/estate-admin/guard-creator";
 import { EstateAdminStats } from "@/app/estate-admin/estate-stats";
 import { ArrowRight, ListChecks, Settings, UserPlus, Users } from "lucide-react";
@@ -8,18 +10,28 @@ export default async function EstateAdminDashboard() {
   const session = await requireSession();
   if (session.role !== "ESTATE_ADMIN") return null;
 
+  // Fetch estate details
+  const estate = session.estateId ? await getEstateById(session.estateId) : null;
+
   return (
     <div className="grid gap-6">
-      {/* Header */}
+      {/* Header with Estate Name */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Estate Dashboard
-            </h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Manage residents, guards, and monitor activity
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy text-white">
+                <Building2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  {estate?.name || "Estate Dashboard"}
+                </h1>
+                <p className="mt-1 text-sm text-slate-600">
+                  Manage residents, guards, and monitor activity
+                </p>
+              </div>
+            </div>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link

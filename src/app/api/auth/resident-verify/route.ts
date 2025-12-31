@@ -4,10 +4,9 @@ import { headers } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
-import { findEstateByName, deriveEstateInitials } from "@/lib/repos/estates";
+import { findEstateByName } from "@/lib/repos/estates";
 import { findResidentByPhoneInEstate } from "@/lib/repos/residents";
 import { listUsersForResident } from "@/lib/repos/users";
-import { validateVerificationCode } from "@/lib/auth/verification-code";
 import { cognitoPasswordSignIn } from "@/lib/aws/cognito";
 import {
   setAccessCookie,
@@ -106,13 +105,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Estate is not active" }, { status: 403 });
   }
 
-  // 2. Validate verification code
-  const estateInitials = estate.initials || deriveEstateInitials(estate.name);
-  if (!validateVerificationCode(verificationCode, estateInitials)) {
-    return NextResponse.json({ error: "Invalid verification code" }, { status: 401 });
-  }
-
-  // 3. Find resident by phone in estate
+  // 2. Find resident by phone in estate
   const resident = await findResidentByPhoneInEstate({
     estateId: estate.estateId,
     phone,
@@ -124,6 +117,13 @@ export async function POST(req: Request) {
   // Check resident status
   if (resident.status !== "APPROVED") {
     return NextResponse.json({ error: "Your account is not active. Please contact your estate admin." }, { status: 403 });
+  }
+
+  // 3. Validate verification code against resident's stored code
+  const providedCode = verificationCode.toUpperCase().trim();
+  const storedCode = (resident.verificationCode || "").toUpperCase().trim();
+  if (!storedCode || providedCode !== storedCode) {
+    return NextResponse.json({ error: "Invalid verification code" }, { status: 401 });
   }
 
   // 4. Verify name matches (fuzzy)

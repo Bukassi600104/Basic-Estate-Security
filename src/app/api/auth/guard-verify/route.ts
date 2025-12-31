@@ -4,9 +4,8 @@ import { headers } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
-import { findEstateByName, deriveEstateInitials } from "@/lib/repos/estates";
+import { findEstateByName } from "@/lib/repos/estates";
 import { findGuardByPhoneInEstate, getUserById } from "@/lib/repos/users";
-import { validateVerificationCode } from "@/lib/auth/verification-code";
 import { cognitoPasswordSignIn } from "@/lib/aws/cognito";
 import {
   setAccessCookie,
@@ -99,19 +98,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Estate is not active" }, { status: 403 });
   }
 
-  // 2. Validate verification code
-  const estateInitials = estate.initials || deriveEstateInitials(estate.name);
-  if (!validateVerificationCode(verificationCode, estateInitials)) {
-    return NextResponse.json({ error: "Invalid verification code" }, { status: 401 });
-  }
-
-  // 3. Find guard by phone in estate
+  // 2. Find guard by phone in estate
   const guard = await findGuardByPhoneInEstate({
     estateId: estate.estateId,
     phone,
   });
   if (!guard) {
     return NextResponse.json({ error: "Guard not found" }, { status: 404 });
+  }
+
+  // 3. Validate verification code against guard's stored code
+  const providedCode = verificationCode.toUpperCase().trim();
+  const storedCode = (guard.verificationCode || "").toUpperCase().trim();
+  if (!storedCode || providedCode !== storedCode) {
+    return NextResponse.json({ error: "Invalid verification code" }, { status: 401 });
   }
 
   // 4. Verify name matches (fuzzy)
