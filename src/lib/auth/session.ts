@@ -160,6 +160,10 @@ export function clearAccessCookie() {
   });
 }
 
+export function getAccessToken() {
+  return cookies().get(ACCESS_COOKIE_NAME)?.value ?? null;
+}
+
 export function setMfaChallengeCookie(session: string) {
   cookies().set(MFA_CHALLENGE_COOKIE_NAME, session, {
     httpOnly: true,

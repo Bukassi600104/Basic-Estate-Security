@@ -24,17 +24,68 @@ const bodySchema = z.object({
   approvedPhone2: z.string().min(6).optional().or(z.literal("")),
 });
 
-function generatePassword() {
+/**
+ * Generate a secure password (5-8 characters)
+ * Format: Mix of uppercase, lowercase, digits, and special char
+ */
+function generatePassword(): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const lower = "abcdefghijkmnpqrstuvwxyz";
   const digits = "23456789";
+  const special = "!@#$";
   const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
-  const rest = Array.from({ length: 10 }, () => pick(upper + lower + digits)).join("");
-  return `${pick(upper)}${pick(lower)}${pick(digits)}!${rest}`;
+
+  // Generate 5-8 character password
+  const length = 5 + Math.floor(Math.random() * 4); // 5, 6, 7, or 8
+
+  // Ensure at least one of each type for security
+  const required = [pick(upper), pick(lower), pick(digits), pick(special)];
+  const remaining = length - required.length;
+  const all = upper + lower + digits;
+  const rest = Array.from({ length: remaining }, () => pick(all));
+
+  // Shuffle the characters
+  const chars = [...required, ...rest];
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join("");
+}
+
+/**
+ * Generate a username from name and estate (5-8 characters)
+ * Format: Initials + estateName + random chars
+ * Example: "IKbasicL" for "Ikenna Okoro" in "Basic Estate"
+ */
+function generateUsername(name: string, estateName: string): string {
+  // Get initials from name (first letter of first and last name)
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.substring(0, 2).toUpperCase();
+
+  // Get abbreviated estate name (first word, lowercase)
+  const estateWord = estateName.trim().split(/\s+/)[0].toLowerCase().substring(0, 5);
+
+  // Calculate how many random chars we need (target 5-8 total)
+  const currentLen = initials.length + estateWord.length;
+  const targetLen = Math.max(5, Math.min(8, currentLen + 1));
+  const randomLen = Math.max(1, targetLen - currentLen);
+
+  // Generate random suffix
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const suffix = Array.from({ length: randomLen }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+
+  return initials + estateWord + suffix;
 }
 
 async function createCognitoAndProfile(params: {
   estateId: string;
+  estateName: string;
   role: "RESIDENT" | "RESIDENT_DELEGATE";
   name: string;
   email?: string;
@@ -43,15 +94,17 @@ async function createCognitoAndProfile(params: {
 }) {
   const password = generatePassword();
 
+  // Generate friendly username from name + estate
+  const friendlyUsername = generateUsername(params.name, params.estateName);
+
   // Cognito is configured with username_attributes = ["email"], so we need an email-like username
-  // Use provided email, or generate a unique one from phone number
-  const cleanPhone = params.phone.replace(/[^0-9]/g, "");
-  const cognitoUsername = params.email || `resident-${cleanPhone}@estate.local`;
+  // Use provided email, or generate a friendly username-based email
+  const cognitoUsername = params.email || `${friendlyUsername}@estate.local`;
 
   await cognitoAdminCreateUser({
     username: cognitoUsername,
     password,
-    email: params.email || `resident-${cleanPhone}@estate.local`,
+    email: cognitoUsername,
     phoneNumber: params.phone.startsWith("+") ? params.phone : undefined,
     name: params.name,
     userAttributes: {
@@ -157,6 +210,7 @@ export async function POST(req: Request) {
   try {
     const createdResident = await createCognitoAndProfile({
       estateId,
+      estateName: estate.name,
       role: "RESIDENT",
       name: resident.name,
       email: resident.email,
@@ -169,6 +223,7 @@ export async function POST(req: Request) {
     for (const phone of uniqueApprovedPhones) {
       const createdDelegate = await createCognitoAndProfile({
         estateId,
+        estateName: estate.name,
         role: "RESIDENT_DELEGATE",
         name: `${resident.name} (Delegate)`,
         phone,

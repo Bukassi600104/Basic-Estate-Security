@@ -266,7 +266,7 @@ export default function OnboardResidentPage() {
                   <label className="grid gap-2 text-sm">
                     <span className="font-semibold text-slate-700">Phone number</span>
                     <input
-                      className={`h-12 rounded-xl border bg-white px-4 text-sm font-medium text-slate-900 outline-none focus:ring-4 ${
+                      className={`h-12 rounded-xl border bg-white px-4 text-base font-medium text-slate-900 outline-none focus:ring-4 ${
                         residentPhoneValidation && !residentPhoneValidation.valid
                           ? "border-rose-300 ring-rose-100 focus:border-rose-500"
                           : "border-slate-200 ring-brand-navy/20 focus:border-brand-navy"
@@ -274,6 +274,7 @@ export default function OnboardResidentPage() {
                       value={residentPhone}
                       onChange={(e) => setResidentPhone(e.target.value)}
                       placeholder="08031234567"
+                      inputMode="tel"
                       required
                     />
                     {residentPhoneValidation && !residentPhoneValidation.valid && (
@@ -351,25 +352,26 @@ export default function OnboardResidentPage() {
                   {/* Add new number - only show if less than 2 approved */}
                   {approvedNumbers.length < 2 && (
                     <div className="mt-4">
-                      <div className="flex gap-3">
+                      <div className="grid gap-3 sm:flex">
                         <div className="relative flex-1">
                           <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                           <input
                             placeholder="08031234567"
-                            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-base font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
                             value={newApprovalPhone}
                             onChange={(e) => {
                               setNewApprovalPhone(e.target.value);
                               setApprovalError(null);
                             }}
                             disabled={approvalState !== "idle"}
+                            inputMode="tel"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={handleApproveNumber}
                           disabled={approvalState !== "idle" || !newApprovalPhone.trim()}
-                          className="flex h-12 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 text-sm font-bold text-white shadow-sm hover:bg-rose-700 disabled:opacity-60"
+                          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 text-sm font-bold text-white shadow-sm hover:bg-rose-700 disabled:opacity-60 sm:w-auto"
                         >
                           <ShieldCheck className="h-4 w-4" />
                           Approve Number

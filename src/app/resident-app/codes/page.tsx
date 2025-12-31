@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Clock3, Copy, KeyRound, RefreshCcw, ShieldCheck, Users } from "lucide-react";
+import Link from "next/link";
+import { Check, Clock3, Copy, KeyRound, RefreshCcw, Settings, ShieldCheck, Users } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -124,14 +125,23 @@ export default function ResidentAppCodesPage() {
               Generate access codes for guests and staff
             </p>
           </div>
-          <button
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
-            onClick={() => load()}
-            disabled={loading}
-          >
-            <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/resident-app/settings"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </Link>
+            <button
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
+              onClick={() => load()}
+              disabled={loading}
+            >
+              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
         </header>
 
         {/* Action Cards */}

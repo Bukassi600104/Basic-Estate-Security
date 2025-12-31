@@ -13,6 +13,7 @@ import {
   AdminSetUserPasswordCommand,
   AdminGetUserCommand,
   AdminDeleteUserCommand,
+  ChangePasswordCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { getEnv } from "@/lib/env";
 import { getSsrCredentials } from "./ssr-credentials";
@@ -255,6 +256,26 @@ export async function cognitoAdminDeleteUser(params: { username: string }) {
     new AdminDeleteUserCommand({
       UserPoolId: env.COGNITO_USER_POOL_ID,
       Username: params.username,
+    }),
+  );
+}
+
+/**
+ * Change password for an authenticated user.
+ * Requires the user's access token (from current session).
+ */
+export async function cognitoChangePassword(params: {
+  accessToken: string;
+  previousPassword: string;
+  proposedPassword: string;
+}) {
+  const client = getCognitoClient();
+
+  await client.send(
+    new ChangePasswordCommand({
+      AccessToken: params.accessToken,
+      PreviousPassword: params.previousPassword,
+      ProposedPassword: params.proposedPassword,
     }),
   );
 }

@@ -73,8 +73,8 @@ export default function EstateResidentsPage() {
     }
   }
 
-  async function removeResident(residentId: string) {
-    if (!confirm("Remove resident permanently? This cannot be undone.")) return;
+  async function removeResident(residentId: string, residentName: string) {
+    if (!confirm(`PERMANENTLY DELETE "${residentName}"?\n\nThis will:\n• Remove the resident from the system\n• Unlink all associated accounts\n• Expire all access codes\n\nThis action CANNOT be undone.`)) return;
     setError(null);
     try {
       const res = await fetch(`/api/estate-admin/residents/${residentId}`, { method: "DELETE" });
@@ -160,7 +160,7 @@ export default function EstateResidentsPage() {
                               : "rounded-full bg-slate-100 px-2.5 py-1 text-xs font-extrabold text-slate-700"
                         }
                       >
-                        {r.status === "APPROVED" ? "ACTIVE" : r.status === "SUSPENDED" ? "DISABLED" : r.status}
+                        {r.status === "APPROVED" ? "Active" : r.status === "SUSPENDED" ? "Deactivated" : r.status}
                       </span>
                     </td>
                     <td className="py-3 pr-4 text-slate-700">
@@ -181,25 +181,28 @@ export default function EstateResidentsPage() {
                           <button
                             type="button"
                             onClick={() => setStatus(r.id, "SUSPENDED")}
-                            className="inline-flex h-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 text-xs font-extrabold text-rose-800 hover:bg-rose-100"
+                            className="inline-flex h-9 items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 text-xs font-extrabold text-amber-800 hover:bg-amber-100"
+                            title="Temporarily suspend this resident (can be reactivated)"
                           >
-                            Disable
+                            Deactivate
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => setStatus(r.id, "APPROVED")}
                             className="inline-flex h-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 text-xs font-extrabold text-emerald-800 hover:bg-emerald-100"
+                            title="Reactivate this resident"
                           >
-                            Activate
+                            Reactivate
                           </button>
                         )}
                         <button
                           type="button"
-                          onClick={() => removeResident(r.id)}
-                          className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50"
+                          onClick={() => removeResident(r.id, r.name)}
+                          className="inline-flex h-9 items-center justify-center rounded-full border border-rose-300 bg-rose-100 px-4 text-xs font-extrabold text-rose-700 hover:bg-rose-200"
+                          title="Permanently delete this resident (cannot be undone)"
                         >
-                          Remove
+                          Delete
                         </button>
                       </div>
                     </td>

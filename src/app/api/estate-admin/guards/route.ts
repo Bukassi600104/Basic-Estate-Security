@@ -48,13 +48,63 @@ const bodySchema = z.object({
   identifier: z.string().min(3),
 });
 
-function generatePassword() {
+/**
+ * Generate a secure password (5-8 characters)
+ * Format: Mix of uppercase, lowercase, digits, and special char
+ */
+function generatePassword(): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const lower = "abcdefghijkmnpqrstuvwxyz";
   const digits = "23456789";
+  const special = "!@#$";
   const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
-  const rest = Array.from({ length: 10 }, () => pick(upper + lower + digits)).join("");
-  return `${pick(upper)}${pick(lower)}${pick(digits)}!${rest}`;
+
+  // Generate 5-8 character password
+  const length = 5 + Math.floor(Math.random() * 4); // 5, 6, 7, or 8
+
+  // Ensure at least one of each type for security
+  const required = [pick(upper), pick(lower), pick(digits), pick(special)];
+  const remaining = length - required.length;
+  const all = upper + lower + digits;
+  const rest = Array.from({ length: remaining }, () => pick(all));
+
+  // Shuffle the characters
+  const chars = [...required, ...rest];
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join("");
+}
+
+/**
+ * Generate a username from name and estate (5-8 characters)
+ * Format: Initials + estateName + random chars
+ * Example: "ABbasic3" for "Abubakar Bello" in "Basic Estate"
+ */
+function generateUsername(name: string, estateName: string): string {
+  // Get initials from name (first letter of first and last name)
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.substring(0, 2).toUpperCase();
+
+  // Get abbreviated estate name (first word, lowercase)
+  const estateWord = estateName.trim().split(/\s+/)[0].toLowerCase().substring(0, 5);
+
+  // Calculate how many random chars we need (target 5-8 total)
+  const currentLen = initials.length + estateWord.length;
+  const targetLen = Math.max(5, Math.min(8, currentLen + 1));
+  const randomLen = Math.max(1, targetLen - currentLen);
+
+  // Generate random suffix
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const suffix = Array.from({ length: randomLen }, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+
+  return initials + estateWord + suffix;
 }
 
 export async function POST(req: Request) {
@@ -109,11 +159,16 @@ export async function POST(req: Request) {
   const estateInitials = estate.initials || deriveEstateInitials(estate.name);
   const verificationCode = generateVerificationCode(estateInitials);
 
+  // For phone-based guards, generate a friendly username
+  // For email-based guards, use the email as username
+  const friendlyUsername = generateUsername(name, estate.name);
+  const cognitoUsername = isEmail ? identifier : `${friendlyUsername}@estate.local`;
+
   try {
     await cognitoAdminCreateUser({
-      username: identifier,
+      username: cognitoUsername,
       password,
-      email: isEmail ? identifier : undefined,
+      email: isEmail ? identifier : `${friendlyUsername}@estate.local`,
       phoneNumber: !isEmail && identifier.startsWith("+") ? identifier : undefined,
       name,
       userAttributes: {
@@ -134,14 +189,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unable to create guard account: " + message }, { status: 409 });
   }
 
-  const sub = await cognitoAdminGetUserSub({ username: identifier });
+  const sub = await cognitoAdminGetUserSub({ username: cognitoUsername });
   const now = new Date().toISOString();
   await putUser({
     userId: sub,
     estateId,
     role: "GUARD",
     name,
-    email: isEmail ? identifier : undefined,
+    email: isEmail ? identifier : cognitoUsername,
     phone: !isEmail ? identifier : undefined,
     verificationCode,
     createdAt: now,
@@ -151,11 +206,17 @@ export async function POST(req: Request) {
   await putActivityLog({
     estateId,
     type: "GUARD_CREATED",
-    message: `${name} (${identifier})`,
+    message: `${name} (${cognitoUsername})`,
   });
 
   return NextResponse.json({
     ok: true,
-    credentials: { name, identifier, password, verificationCode },
+    credentials: {
+      name,
+      identifier: cognitoUsername,
+      phone: !isEmail ? identifier : undefined,
+      password,
+      verificationCode,
+    },
   });
 }

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { LogOut, Settings, ShieldCheck } from "lucide-react";
+import { LogOut, Menu, Settings, ShieldCheck, X } from "lucide-react";
 import { getSession, clearSessionCookie } from "@/lib/auth/session";
 import { getUserById } from "@/lib/repos/users";
 import type { NavItem } from "@/components/sidebar-nav";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { MobileNav } from "@/components/mobile-nav";
 
 function formatRoleLabel(role: string): string {
   switch (role) {
@@ -22,7 +23,7 @@ function formatRoleLabel(role: string): string {
   }
 }
 
-async function SignOutButton() {
+async function SignOutButton({ className }: { className?: string }) {
   return (
     <form
       action={async () => {
@@ -31,7 +32,7 @@ async function SignOutButton() {
       }}
     >
       <button
-        className="inline-flex w-full items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+        className={className || "inline-flex w-full items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"}
         type="submit"
       >
         <LogOut className="h-4 w-4" />
@@ -58,15 +59,18 @@ export async function AppShell({
   const dbUser = session?.userId ? await getUserById(session.userId) : null;
   const displayName = dbUser?.name || session?.name || "User";
 
+  // Combine nav items for mobile
+  const allNavItems = [...(nav || []), ...(bottomNav || [])];
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 pb-20 md:pb-0">
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-blue-200/40 blur-3xl" />
         <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-indigo-200/30 blur-3xl" />
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-7xl">
-        {/* Fixed sidebar - does not scroll with content */}
+        {/* Fixed sidebar - desktop only */}
         <aside className="hidden w-72 flex-shrink-0 md:block">
           <div className="fixed top-0 h-screen w-72 flex-col border-r border-slate-200 bg-white/80 px-5 py-6 backdrop-blur-xl flex">
             <Link href="/dashboard" className="flex items-center gap-3 px-2">
@@ -114,12 +118,21 @@ export async function AppShell({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-slate-500 md:hidden">
-                  Basic Security
+          {/* Mobile header */}
+          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+            <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
+              <div className="flex items-center gap-3 md:hidden">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-navy to-brand-navy-700 text-white shadow-sm">
+                  <ShieldCheck className="h-4 w-4" />
                 </div>
+                <div className="leading-tight">
+                  <div className="text-xs font-bold text-slate-900">Basic Security</div>
+                  {title && (
+                    <div className="text-xs font-semibold text-slate-500">{title}</div>
+                  )}
+                </div>
+              </div>
+              <div className="hidden min-w-0 md:block">
                 {title ? (
                   <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-900">
                     {title}
@@ -127,26 +140,30 @@ export async function AppShell({
                 ) : null}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 {session ? (
                   <div className="hidden text-sm font-medium text-slate-700 lg:block">
                     {displayName}
                   </div>
                 ) : null}
+                {/* Mobile sign out */}
                 {session ? (
                   <div className="md:hidden">
-                    <SignOutButton />
+                    <SignOutButton className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" />
                   </div>
                 ) : null}
               </div>
             </div>
           </header>
 
-          <main className="px-6 py-8">
+          <main className="px-4 py-4 md:px-6 md:py-8">
             <div className="mx-auto w-full max-w-6xl">{children}</div>
           </main>
         </div>
       </div>
+
+      {/* Mobile bottom navigation */}
+      <MobileNav items={allNavItems} />
     </div>
   );
 }
