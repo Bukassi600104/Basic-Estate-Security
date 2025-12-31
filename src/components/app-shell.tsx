@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut, Settings, ShieldCheck } from "lucide-react";
 import { getSession, clearSessionCookie } from "@/lib/auth/session";
+import { getUserById } from "@/lib/repos/users";
 import type { NavItem } from "@/components/sidebar-nav";
 import { SidebarNav } from "@/components/sidebar-nav";
 
@@ -30,7 +31,7 @@ async function SignOutButton() {
       }}
     >
       <button
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+        className="inline-flex w-full items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
         type="submit"
       >
         <LogOut className="h-4 w-4" />
@@ -43,13 +44,19 @@ async function SignOutButton() {
 export async function AppShell({
   title,
   nav,
+  bottomNav,
   children,
 }: {
   title?: string;
   nav?: NavItem[];
+  bottomNav?: NavItem[];
   children: React.ReactNode;
 }) {
   const session = await getSession();
+
+  // Fetch user from DynamoDB to get accurate name (token may have stale data)
+  const dbUser = session?.userId ? await getUserById(session.userId) : null;
+  const displayName = dbUser?.name || session?.name || "User";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -59,37 +66,50 @@ export async function AppShell({
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-7xl">
-        <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white/80 px-5 py-6 backdrop-blur-xl md:flex">
-          <Link href="/dashboard" className="flex items-center gap-3 px-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-navy to-brand-navy-700 text-white shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-sm font-extrabold tracking-tight text-slate-900">Basic Security</div>
-              <div className="text-xs font-semibold tracking-wide text-slate-500">
-                {session?.role ? formatRoleLabel(session.role) : "Portal"}
+        {/* Fixed sidebar - does not scroll with content */}
+        <aside className="hidden w-72 flex-shrink-0 md:block">
+          <div className="fixed top-0 h-screen w-72 flex-col border-r border-slate-200 bg-white/80 px-5 py-6 backdrop-blur-xl flex">
+            <Link href="/dashboard" className="flex items-center gap-3 px-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-navy to-brand-navy-700 text-white shadow-sm">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-            </div>
-          </Link>
-
-          {nav?.length ? (
-            <div className="mt-8">
-              <SidebarNav items={nav} />
-            </div>
-          ) : null}
-
-          <div className="mt-auto pt-6">
-            {session ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="text-sm font-semibold text-slate-900">{session.name}</div>
-                <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500">
-                  {formatRoleLabel(session.role)}
+              <div className="leading-tight">
+                <div className="text-sm font-extrabold tracking-tight text-slate-900">Basic Security</div>
+                <div className="text-xs font-semibold tracking-wide text-slate-500">
+                  {session?.role ? formatRoleLabel(session.role) : "Portal"}
                 </div>
-                <div className="mt-4">
-                  <SignOutButton />
-                </div>
+              </div>
+            </Link>
+
+            {/* Main navigation at top */}
+            {nav?.length ? (
+              <div className="mt-8">
+                <SidebarNav items={nav} />
               </div>
             ) : null}
+
+            {/* Bottom section: user info, settings, sign out */}
+            <div className="mt-auto pt-6">
+              {session ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="text-sm font-semibold text-slate-900">{displayName}</div>
+                  <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500">
+                    {formatRoleLabel(session.role)}
+                  </div>
+
+                  {/* Settings and other bottom nav items */}
+                  {bottomNav?.length ? (
+                    <div className="mt-4 border-t border-slate-100 pt-4">
+                      <SidebarNav items={bottomNav} />
+                    </div>
+                  ) : null}
+
+                  <div className="mt-4">
+                    <SignOutButton />
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </aside>
 
@@ -109,8 +129,8 @@ export async function AppShell({
 
               <div className="flex items-center gap-3">
                 {session ? (
-                  <div className="hidden text-sm text-slate-600 lg:block">
-                    {session.name}
+                  <div className="hidden text-sm font-medium text-slate-700 lg:block">
+                    {displayName}
                   </div>
                 ) : null}
                 {session ? (

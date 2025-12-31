@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/auth/require-session";
-import { Settings } from "lucide-react";
+import { Building2, Settings } from "lucide-react";
 
 export default async function SuperAdminLayout({
   children,
@@ -15,6 +15,9 @@ export default async function SuperAdminLayout({
     <AppShell
       title="Super Administrator"
       nav={[
+        { href: "/super-admin", label: "Estates", icon: <Building2 className="h-4 w-4" /> },
+      ]}
+      bottomNav={[
         { href: "/super-admin/settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
       ]}
     >
