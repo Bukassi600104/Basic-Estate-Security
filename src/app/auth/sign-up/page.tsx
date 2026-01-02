@@ -1,13 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Building2, Eye, EyeOff, Lock, Mail, MapPin, User, UserPlus } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  MapPin,
+  User,
+  UserPlus,
+  Check,
+  Clock,
+  Shield,
+} from "lucide-react";
 import { Spinner } from "@/components/Spinner";
+import {
+  TIER_CONFIG,
+  type SubscriptionTier,
+  type BillingCycle,
+  formatNaira,
+  TRIAL_DURATION_DAYS,
+} from "@/lib/subscription/tiers";
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get tier and billing from URL params
+  const tierParam = searchParams.get("tier") as SubscriptionTier | null;
+  const billingParam = searchParams.get("billing") as BillingCycle | null;
+
+  // Validate tier param
+  const validTiers: SubscriptionTier[] = ["BASIC", "STANDARD", "PREMIUM"];
+  const tier: SubscriptionTier = validTiers.includes(tierParam as SubscriptionTier)
+    ? (tierParam as SubscriptionTier)
+    : "BASIC";
+  const billingCycle: BillingCycle = billingParam === "YEARLY" ? "YEARLY" : "MONTHLY";
+
+  const tierConfig = TIER_CONFIG[tier];
+
   const [step, setStep] = useState<1 | 2>(1);
   const [estateName, setEstateName] = useState("");
   const [estateAddress, setEstateAddress] = useState("");
@@ -18,6 +54,13 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Redirect to pricing if no valid tier is specified
+  useEffect(() => {
+    if (!tierParam || !validTiers.includes(tierParam as SubscriptionTier)) {
+      router.replace("/pricing");
+    }
+  }, [tierParam, router]);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -26,7 +69,15 @@ export default function SignUpPage() {
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ estateName, estateAddress, adminName, email, password }),
+        body: JSON.stringify({
+          estateName,
+          estateAddress,
+          adminName,
+          email,
+          password,
+          tier,
+          billingCycle,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -46,6 +97,21 @@ export default function SignUpPage() {
     }
   }
 
+  // Don't render if redirecting
+  if (!tierParam || !validTiers.includes(tierParam as SubscriptionTier)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner className="h-8 w-8 text-brand-navy" />
+      </div>
+    );
+  }
+
+  const price = tierConfig.price
+    ? billingCycle === "MONTHLY"
+      ? tierConfig.price.monthly
+      : Math.round(tierConfig.price.yearly / 12)
+    : 0;
+
   return (
     <div className="min-h-[100dvh] bg-white overflow-x-hidden">
       <div className="pointer-events-none fixed inset-0 -z-10">
@@ -58,10 +124,13 @@ export default function SignUpPage() {
           <div className="w-full max-w-md mx-auto">
             <div className="flex items-center justify-between">
               <Link
-                href="/"
+                href="/pricing"
                 className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
               >
-                Back to home
+                <span className="flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Change plan
+                </span>
               </Link>
               <div className="hidden items-center gap-2 text-sm font-semibold text-slate-500 sm:flex">
                 <UserPlus className="h-4 w-4" />
@@ -69,7 +138,20 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <h1 className="mt-10 text-3xl font-extrabold tracking-tight text-slate-900">
+            {/* Selected plan badge */}
+            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-brand-green/30 bg-brand-green/10 p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/20">
+                <Shield className="h-5 w-5 text-brand-green" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-slate-900">{tierConfig.name} Plan</p>
+                <p className="text-xs text-slate-600">
+                  {formatNaira(price)}/month • {billingCycle === "YEARLY" ? "Billed yearly" : "Billed monthly"}
+                </p>
+              </div>
+            </div>
+
+            <h1 className="mt-8 text-3xl font-extrabold tracking-tight text-slate-900">
               Create your estate
             </h1>
             <p className="mt-2 text-sm text-slate-600">
@@ -217,7 +299,7 @@ export default function SignUpPage() {
                         </>
                       ) : (
                         <>
-                          Create estate
+                          Start free trial
                           <ArrowRight className="h-4 w-4" />
                         </>
                       )}
@@ -243,6 +325,7 @@ export default function SignUpPage() {
           </div>
         </div>
 
+        {/* Right sidebar - Plan summary */}
         <div className="relative hidden overflow-hidden border-l border-slate-200 bg-slate-900 lg:block">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/25 via-slate-900 to-indigo-600/15" />
           <div
@@ -252,21 +335,100 @@ export default function SignUpPage() {
               backgroundSize: "48px 48px",
             }}
           />
-          <div className="relative flex h-full items-end p-12">
-            <div className="max-w-md">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-widest text-white/90">
-                Fast onboarding
+          <div className="relative flex h-full flex-col justify-between p-12">
+            {/* Plan info */}
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-brand-green/20 px-4 py-2 text-xs font-extrabold uppercase tracking-widest text-brand-green">
+                <Clock className="h-4 w-4" />
+                {TRIAL_DURATION_DAYS}-day free trial
               </div>
-              <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-white">
-                Onboard residents, issue codes, validate entries.
+
+              <h2 className="mt-6 text-2xl font-extrabold tracking-tight text-white">
+                {tierConfig.name} Plan
               </h2>
-              <p className="mt-3 text-sm text-white/80">
-                A simple workflow for admins, residents, and guards—fully logged.
-              </p>
+
+              <div className="mt-4">
+                <span className="text-4xl font-extrabold text-white">
+                  {formatNaira(price)}
+                </span>
+                <span className="text-white/70">/month</span>
+              </div>
+
+              {billingCycle === "YEARLY" && tierConfig.price && (
+                <p className="mt-2 text-sm text-white/60">
+                  Billed {formatNaira(tierConfig.price.yearly)} yearly (save 5%)
+                </p>
+              )}
+
+              <div className="mt-8 space-y-3">
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <Check className="h-5 w-5 text-brand-green" />
+                  Up to {tierConfig.maxHouses} houses
+                </div>
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <Check className="h-5 w-5 text-brand-green" />
+                  {tierConfig.maxAdmins} admin account{tierConfig.maxAdmins > 1 ? "s" : ""}
+                </div>
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <Check className="h-5 w-5 text-brand-green" />
+                  Unlimited guards & gates
+                </div>
+                <div className="flex items-center gap-3 text-sm text-white/80">
+                  <Check className="h-5 w-5 text-brand-green" />
+                  Unlimited access codes
+                </div>
+                {tierConfig.features.exportEnabled && (
+                  <div className="flex items-center gap-3 text-sm text-white/80">
+                    <Check className="h-5 w-5 text-brand-green" />
+                    Export to Excel
+                  </div>
+                )}
+                {tierConfig.features.advancedAnalytics && (
+                  <div className="flex items-center gap-3 text-sm text-white/80">
+                    <Check className="h-5 w-5 text-brand-green" />
+                    Advanced analytics
+                  </div>
+                )}
+                {tierConfig.features.subAdminEnabled && (
+                  <div className="flex items-center gap-3 text-sm text-white/80">
+                    <Check className="h-5 w-5 text-brand-green" />
+                    Sub-admin accounts
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom info */}
+            <div className="mt-auto pt-8">
+              <div className="rounded-2xl bg-white/10 p-6">
+                <p className="text-sm font-semibold text-white">
+                  No payment required today
+                </p>
+                <p className="mt-2 text-xs text-white/70">
+                  Your {TRIAL_DURATION_DAYS}-day free trial starts when you create your estate.
+                  After the trial, you&apos;ll need to subscribe to continue using all features.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function SignUpPageLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <Spinner className="h-8 w-8 text-brand-navy" />
+    </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<SignUpPageLoading />}>
+      <SignUpPageContent />
+    </Suspense>
   );
 }

@@ -5,9 +5,27 @@ import { getEnv } from "@/lib/env";
 export type UserRole =
   | "SUPER_ADMIN"
   | "ESTATE_ADMIN"
+  | "SUB_ADMIN"
   | "GUARD"
   | "RESIDENT"
   | "RESIDENT_DELEGATE";
+
+export type SubAdminPermission =
+  | "MANAGE_RESIDENTS"
+  | "MANAGE_GUARDS"
+  | "VIEW_LOGS"
+  | "EXPORT_DATA"
+  | "MANAGE_GATES"
+  | "VIEW_ANALYTICS";
+
+export const ALL_SUB_ADMIN_PERMISSIONS: SubAdminPermission[] = [
+  "MANAGE_RESIDENTS",
+  "MANAGE_GUARDS",
+  "VIEW_LOGS",
+  "EXPORT_DATA",
+  "MANAGE_GATES",
+  "VIEW_ANALYTICS",
+];
 
 export type UserRecord = {
   userId: string; // Cognito sub
@@ -19,6 +37,9 @@ export type UserRecord = {
   residentId?: string;
   verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR} (for guards)
   passwordChanged?: boolean; // true after user changes initial password
+  // Sub-admin specific fields
+  permissions?: SubAdminPermission[]; // Only for SUB_ADMIN role
+  createdBy?: string; // userId of the admin who created this sub-admin
   createdAt: string;
   updatedAt: string;
 };
@@ -285,4 +306,101 @@ export async function markPasswordChanged(userId: string) {
       ConditionExpression: "attribute_exists(userId)",
     }),
   );
+}
+
+// ============================================
+// SUB-ADMIN MANAGEMENT FUNCTIONS
+// ============================================
+
+/**
+ * List all sub-admins for an estate.
+ */
+export async function listSubAdminsForEstate(params: {
+  estateId: string;
+  limit?: number;
+}): Promise<UserRecord[]> {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+
+  const limit = params.limit ?? 50;
+  const items: UserRecord[] = [];
+  let cursor: DdbCursor | undefined = undefined;
+  let loops = 0;
+
+  while (items.length < limit && loops < 10) {
+    loops += 1;
+
+    const res: any = await ddb.send(
+      new QueryCommand({
+        TableName: env.DDB_TABLE_USERS,
+        IndexName: "GSI1",
+        KeyConditionExpression: "estateId = :e",
+        FilterExpression: "#role = :r",
+        ExpressionAttributeNames: { "#role": "role" },
+        ExpressionAttributeValues: { ":e": params.estateId, ":r": "SUB_ADMIN" },
+        ScanIndexForward: true,
+        Limit: limit,
+        ExclusiveStartKey: (cursor as any) ?? undefined,
+      }),
+    );
+
+    const pageItems = (res.Items as UserRecord[] | undefined) ?? [];
+    for (const u of pageItems) {
+      if (items.length >= limit) break;
+      items.push(u);
+    }
+
+    cursor = (res.LastEvaluatedKey as DdbCursor | undefined) ?? undefined;
+    if (!cursor) break;
+  }
+
+  return items;
+}
+
+/**
+ * Count admins (ESTATE_ADMIN + SUB_ADMIN) for an estate.
+ */
+export async function countAdminsForEstate(estateId: string): Promise<number> {
+  const { items } = await listUsersForEstatePage({ estateId, limit: 500 });
+  return items.filter((u) => u.role === "ESTATE_ADMIN" || u.role === "SUB_ADMIN").length;
+}
+
+/**
+ * Update sub-admin permissions.
+ */
+export async function updateSubAdminPermissions(params: {
+  userId: string;
+  permissions: SubAdminPermission[];
+}) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+  const now = new Date().toISOString();
+
+  await ddb.send(
+    new UpdateCommand({
+      TableName: env.DDB_TABLE_USERS,
+      Key: { userId: params.userId },
+      UpdateExpression: "SET #perms = :p, updatedAt = :u",
+      ExpressionAttributeNames: { "#perms": "permissions" },
+      ExpressionAttributeValues: { ":p": params.permissions, ":u": now },
+      ConditionExpression: "attribute_exists(userId)",
+    }),
+  );
+}
+
+/**
+ * Check if a sub-admin has a specific permission.
+ */
+export function hasPermission(user: UserRecord, permission: SubAdminPermission): boolean {
+  // Estate admins have all permissions
+  if (user.role === "ESTATE_ADMIN" || user.role === "SUPER_ADMIN") {
+    return true;
+  }
+
+  // Sub-admins check their permissions array
+  if (user.role === "SUB_ADMIN") {
+    return user.permissions?.includes(permission) ?? false;
+  }
+
+  return false;
 }

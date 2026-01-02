@@ -123,7 +123,7 @@ export default function HomePage() {
             </Link>
             <Link
               className="ml-2 inline-flex items-center gap-2 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-navy-700 hover:shadow-xl btn-interactive"
-              href="/auth/sign-up"
+              href="/pricing"
             >
               Create Estate
               <ArrowRight className="h-4 w-4" />
@@ -166,7 +166,7 @@ export default function HomePage() {
               </Link>
               <Link
                 className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white"
-                href="/auth/sign-up"
+                href="/pricing"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Create Estate
@@ -213,7 +213,7 @@ export default function HomePage() {
 
                 <div className="mt-10 flex flex-wrap gap-4">
                   <Link
-                    href="/auth/sign-up"
+                    href="/pricing"
                     className="group inline-flex items-center gap-3 rounded-full bg-brand-navy px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-brand-navy-700 hover:shadow-xl btn-interactive"
                   >
                     Get Started Free
@@ -385,7 +385,7 @@ export default function HomePage() {
                 </p>
                 <div className="mt-10 flex flex-wrap justify-center gap-4">
                   <Link
-                    href="/auth/sign-up"
+                    href="/pricing"
                     className="group inline-flex items-center gap-3 rounded-full bg-brand-green px-8 py-4 text-base font-bold text-brand-navy shadow-lg transition-all hover:bg-brand-green-400 hover:shadow-xl"
                   >
                     Create Your Estate

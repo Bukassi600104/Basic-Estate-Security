@@ -18,6 +18,8 @@ const bodySchema = z.object({
   adminName: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(8),
+  tier: z.enum(["BASIC", "STANDARD", "PREMIUM"]).default("BASIC"),
+  billingCycle: z.enum(["MONTHLY", "YEARLY"]).default("MONTHLY"),
 });
 
 export async function POST(req: Request) {
@@ -62,11 +64,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const { estateName, estateAddress, adminName, email, password } = parsed.data;
+    const { estateName, estateAddress, adminName, email, password, tier, billingCycle } = parsed.data;
 
-    // 1) Create estate record.
+    // 1) Create estate record with subscription.
     stage = "create_estate";
-    const estate = await createEstate({ name: estateName, address: estateAddress });
+    const estate = await createEstate({
+      name: estateName,
+      address: estateAddress,
+      tier,
+      billingCycle,
+    });
     createdEstateId = estate.estateId;
 
     // 2) Create Cognito user (no email flow; immediate password set).

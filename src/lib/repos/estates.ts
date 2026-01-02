@@ -2,6 +2,14 @@ import { PutCommand, GetCommand, UpdateCommand, QueryCommand, DeleteCommand } fr
 import { nanoid } from "nanoid";
 import { getDdbDocClient } from "@/lib/aws/dynamo";
 import { getEnv } from "@/lib/env";
+import {
+  type SubscriptionTier,
+  type SubscriptionStatus,
+  type BillingCycle,
+  type TierFeatures,
+  TIER_CONFIG,
+  calculateTrialEndDate,
+} from "@/lib/subscription/tiers";
 
 export type EstateStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "TERMINATED";
 
@@ -15,7 +23,21 @@ export type EstateRecord = {
   gsi1pk?: "ESTATES";
   createdAt: string;
   updatedAt: string;
+
+  // Subscription fields
+  subscriptionTier: SubscriptionTier;
+  subscriptionStatus: SubscriptionStatus;
+  billingCycle: BillingCycle;
+  trialStartedAt: string;
+  trialEndsAt: string;
+  subscriptionStartedAt?: string; // When paid subscription starts (after trial)
+  maxHouses: number;
+  maxAdmins: number;
+  features: TierFeatures;
 };
+
+// Re-export subscription types for convenience
+export type { SubscriptionTier, SubscriptionStatus, BillingCycle, TierFeatures };
 
 /**
  * Derive 2-letter initials from estate name.
@@ -30,8 +52,18 @@ export function deriveEstateInitials(name: string): string {
   return (words[0][0] + words[1][0]).toUpperCase();
 }
 
-export async function createEstate(params: { name: string; address?: string }) {
-  const now = new Date().toISOString();
+export async function createEstate(params: {
+  name: string;
+  address?: string;
+  tier?: SubscriptionTier;
+  billingCycle?: BillingCycle;
+}) {
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const tier = params.tier ?? "BASIC";
+  const tierConfig = TIER_CONFIG[tier];
+  const trialEndDate = calculateTrialEndDate(now);
+
   const estate: EstateRecord = {
     estateId: `est_${nanoid(12)}`,
     name: params.name,
@@ -39,8 +71,18 @@ export async function createEstate(params: { name: string; address?: string }) {
     status: "ACTIVE",
     address: params.address?.trim() ? params.address.trim() : undefined,
     gsi1pk: "ESTATES",
-    createdAt: now,
-    updatedAt: now,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+
+    // Subscription fields
+    subscriptionTier: tier,
+    subscriptionStatus: "TRIALING",
+    billingCycle: params.billingCycle ?? "MONTHLY",
+    trialStartedAt: nowIso,
+    trialEndsAt: trialEndDate.toISOString(),
+    maxHouses: tierConfig.maxHouses,
+    maxAdmins: tierConfig.maxAdmins,
+    features: tierConfig.features,
   };
 
   const env = getEnv();
@@ -110,6 +152,60 @@ export async function updateEstate(params: {
       UpdateExpression: `SET ${sets.join(", ")}`,
       ExpressionAttributeNames: { "#status": "status" },
       ExpressionAttributeValues: values,
+      ConditionExpression: "attribute_exists(estateId)",
+      ReturnValues: "ALL_NEW",
+    }),
+  );
+
+  return (res.Attributes as EstateRecord | undefined) ?? null;
+}
+
+/**
+ * Update subscription status for an estate
+ */
+export async function updateEstateSubscription(params: {
+  estateId: string;
+  subscriptionStatus?: SubscriptionStatus;
+  subscriptionTier?: SubscriptionTier;
+  billingCycle?: BillingCycle;
+}) {
+  const env = getEnv();
+  const ddb = getDdbDocClient();
+  const now = new Date().toISOString();
+
+  const sets: string[] = ["updatedAt = :u"];
+  const values: Record<string, unknown> = { ":u": now };
+  const names: Record<string, string> = {};
+
+  if (params.subscriptionStatus) {
+    sets.push("subscriptionStatus = :ss");
+    values[":ss"] = params.subscriptionStatus;
+  }
+
+  if (params.subscriptionTier) {
+    const tierConfig = TIER_CONFIG[params.subscriptionTier];
+    sets.push("subscriptionTier = :st");
+    sets.push("maxHouses = :mh");
+    sets.push("maxAdmins = :ma");
+    sets.push("features = :f");
+    values[":st"] = params.subscriptionTier;
+    values[":mh"] = tierConfig.maxHouses;
+    values[":ma"] = tierConfig.maxAdmins;
+    values[":f"] = tierConfig.features;
+  }
+
+  if (params.billingCycle) {
+    sets.push("billingCycle = :bc");
+    values[":bc"] = params.billingCycle;
+  }
+
+  const res = await ddb.send(
+    new UpdateCommand({
+      TableName: env.DDB_TABLE_ESTATES,
+      Key: { estateId: params.estateId },
+      UpdateExpression: `SET ${sets.join(", ")}`,
+      ExpressionAttributeValues: values,
+      ...(Object.keys(names).length > 0 ? { ExpressionAttributeNames: names } : {}),
       ConditionExpression: "attribute_exists(estateId)",
       ReturnValues: "ALL_NEW",
     }),
