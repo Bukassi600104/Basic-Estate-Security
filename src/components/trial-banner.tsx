@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { Clock, AlertTriangle, XCircle, ArrowRight } from "lucide-react";
 import type { EstateRecord } from "@/lib/repos/estates";
 import {
@@ -8,12 +8,14 @@ import {
   formatTrialStatus,
   getTrialUrgency,
 } from "@/lib/subscription/trial-check";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 interface TrialBannerProps {
   estate: EstateRecord;
 }
 
 export function TrialBanner({ estate }: TrialBannerProps) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const trialStatus = getTrialStatus(estate);
   const urgency = getTrialUrgency(estate);
   const statusText = formatTrialStatus(estate);
@@ -43,31 +45,40 @@ export function TrialBanner({ estate }: TrialBannerProps) {
   }[urgency];
 
   return (
-    <div className={`border-b px-4 py-3 ${styles.container}`}>
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm font-semibold">
-          {styles.icon}
-          <span>{statusText}</span>
-          {trialStatus.isTrialing && !trialStatus.isExpired && (
-            <span className="hidden text-xs opacity-75 sm:inline">
-              • Trial ends{" "}
-              {trialStatus.trialEndsAt?.toLocaleDateString("en-NG", {
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-          )}
-        </div>
+    <>
+      <div className={`border-b px-4 py-3 ${styles.container}`}>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            {styles.icon}
+            <span>{statusText}</span>
+            {trialStatus.isTrialing && !trialStatus.isExpired && (
+              <span className="hidden text-xs opacity-75 sm:inline">
+                • Trial ends{" "}
+                {trialStatus.trialEndsAt?.toLocaleDateString("en-NG", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            )}
+          </div>
 
-        <Link
-          href="/pricing"
-          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${styles.button}`}
-        >
-          {trialStatus.isExpired ? "Choose a Plan" : "Upgrade Now"}
-          <ArrowRight className="h-3 w-3" />
-        </Link>
+          <button
+            onClick={() => setShowUpgradeModal(true)}
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${styles.button}`}
+          >
+            {trialStatus.isExpired ? "Choose a Plan" : "Upgrade Now"}
+            <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
       </div>
-    </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={estate.subscriptionTier}
+        currentBilling={estate.billingCycle}
+      />
+    </>
   );
 }
 
@@ -75,6 +86,7 @@ export function TrialBanner({ estate }: TrialBannerProps) {
  * Compact version of trial banner for use in sidebars
  */
 export function TrialBannerCompact({ estate }: TrialBannerProps) {
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const trialStatus = getTrialStatus(estate);
   const urgency = getTrialUrgency(estate);
 
@@ -90,24 +102,33 @@ export function TrialBannerCompact({ estate }: TrialBannerProps) {
   }[urgency];
 
   return (
-    <Link
-      href="/pricing"
-      className={`block rounded-xl border p-3 transition-opacity hover:opacity-80 ${styles}`}
-    >
-      <div className="flex items-center gap-2">
-        <Clock className="h-4 w-4" />
-        <div className="flex-1">
-          <p className="text-xs font-bold">
-            {trialStatus.isTrialing
-              ? `${trialStatus.daysRemaining} days left`
-              : "Trial expired"}
-          </p>
-          <p className="text-xs opacity-75">
-            {trialStatus.isExpired ? "Choose a plan" : "Upgrade to continue"}
-          </p>
+    <>
+      <button
+        onClick={() => setShowUpgradeModal(true)}
+        className={`block w-full rounded-xl border p-3 text-left transition-opacity hover:opacity-80 ${styles}`}
+      >
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4" />
+          <div className="flex-1">
+            <p className="text-xs font-bold">
+              {trialStatus.isTrialing
+                ? `${trialStatus.daysRemaining} days left`
+                : "Trial expired"}
+            </p>
+            <p className="text-xs opacity-75">
+              {trialStatus.isExpired ? "Choose a plan" : "Upgrade to continue"}
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4" />
         </div>
-        <ArrowRight className="h-4 w-4" />
-      </div>
-    </Link>
+      </button>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={estate.subscriptionTier}
+        currentBilling={estate.billingCycle}
+      />
+    </>
   );
 }

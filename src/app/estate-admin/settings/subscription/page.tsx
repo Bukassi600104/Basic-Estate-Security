@@ -13,11 +13,11 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import type { EstateRecord } from "@/lib/repos/estates";
 import {
   TIER_CONFIG,
   formatNaira,
-  type SubscriptionTier,
 } from "@/lib/subscription/tiers";
 import {
   getTrialStatus,
@@ -29,6 +29,7 @@ export default function SubscriptionPage() {
   const [estate, setEstate] = useState<EstateRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<{ houses: number; admins: number } | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     fetchSubscription();
@@ -173,13 +174,13 @@ export default function SubscriptionPage() {
 
         {/* Upgrade button */}
         <div className="mt-6">
-          <Link
-            href="/pricing"
+          <button
+            onClick={() => setShowUpgradeModal(true)}
             className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-bold text-white hover:bg-brand-navy-700"
           >
             {estate.subscriptionTier === "PREMIUM" ? "View Plans" : "Upgrade Plan"}
             <ArrowRight className="h-4 w-4" />
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -319,6 +320,14 @@ export default function SubscriptionPage() {
           </a>
         </p>
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTier={estate.subscriptionTier}
+        currentBilling={estate.billingCycle}
+      />
     </div>
   );
 }
