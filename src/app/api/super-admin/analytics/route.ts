@@ -42,16 +42,23 @@ export async function GET() {
     // Process each estate (limit to first 50 for performance)
     const estatesToProcess = estates.slice(0, 50);
 
-    for (const estate of estatesToProcess) {
-      // Get users for this estate
-      const users = await listUsersForEstate({ estateId: estate.estateId, limit: 500 });
+    // Fetch data for all estates in parallel to avoid N+1 query pattern
+    const estateResults = await Promise.all(
+      estatesToProcess.map(async (estate) => {
+        const [users, validationLogs] = await Promise.all([
+          listUsersForEstate({ estateId: estate.estateId, limit: 500 }),
+          listValidationLogsForEstate({ estateId: estate.estateId, limit: 500 }),
+        ]);
+        return { users, validationLogs };
+      }),
+    );
+
+    for (const { users, validationLogs } of estateResults) {
       totalUsers += users.length;
       totalResidents += users.filter((u) => u.role === "RESIDENT" || u.role === "RESIDENT_DELEGATE").length;
       totalGuards += users.filter((u) => u.role === "GUARD").length;
       totalAdmins += users.filter((u) => u.role === "ESTATE_ADMIN").length;
 
-      // Get validation logs for this estate
-      const validationLogs = await listValidationLogsForEstate({ estateId: estate.estateId, limit: 500 });
       totalValidations += validationLogs.length;
 
       for (const log of validationLogs) {
