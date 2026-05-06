@@ -36,8 +36,7 @@ function SignUpPageContent() {
   const billingParam = searchParams.get("billing") as BillingCycle | null;
 
   // Validate tier param
-  const validTiers: SubscriptionTier[] = ["BASIC", "STANDARD", "PREMIUM"];
-  const tier: SubscriptionTier = validTiers.includes(tierParam as SubscriptionTier)
+  const tier: SubscriptionTier = ["BASIC", "STANDARD", "PREMIUM"].includes(tierParam as SubscriptionTier)
     ? (tierParam as SubscriptionTier)
     : "BASIC";
   const billingCycle: BillingCycle = billingParam === "YEARLY" ? "YEARLY" : "MONTHLY";
@@ -56,7 +55,8 @@ function SignUpPageContent() {
 
   // Redirect to pricing if no valid tier is specified
   useEffect(() => {
-    if (!tierParam || !validTiers.includes(tierParam as SubscriptionTier)) {
+    const validTiers = ["BASIC", "STANDARD", "PREMIUM"];
+    if (!tierParam || !validTiers.includes(tierParam)) {
       router.replace("/pricing");
     }
   }, [tierParam, router]);
@@ -98,7 +98,7 @@ function SignUpPageContent() {
   }
 
   // Don't render if redirecting
-  if (!tierParam || !validTiers.includes(tierParam as SubscriptionTier)) {
+  if (!tierParam || !["BASIC", "STANDARD", "PREMIUM"].includes(tierParam as SubscriptionTier)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Spinner className="h-8 w-8 text-brand-navy" />

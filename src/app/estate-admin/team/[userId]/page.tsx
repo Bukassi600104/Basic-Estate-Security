@@ -53,26 +53,26 @@ export default function EditSubAdminPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    async function fetchSubAdmin() {
+      try {
+        const res = await fetch(`/api/estate-admin/sub-admins/${userId}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error ?? "Failed to load sub-admin");
+        }
+
+        setSubAdmin(data.subAdmin);
+        setPermissions(data.subAdmin?.permissions ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load sub-admin");
+      } finally {
+        setLoading(false);
+      }
+    }
+
     fetchSubAdmin();
   }, [userId]);
-
-  async function fetchSubAdmin() {
-    try {
-      const res = await fetch(`/api/estate-admin/sub-admins/${userId}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error ?? "Failed to load sub-admin");
-      }
-
-      setSubAdmin(data.subAdmin);
-      setPermissions(data.subAdmin?.permissions ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load sub-admin");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function togglePermission(perm: SubAdminPermission) {
     setPermissions((prev) =>
