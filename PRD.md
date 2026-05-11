@@ -169,7 +169,7 @@ A role-based security pass system for gated residential estates. Enables residen
 
 ### Super Admin Creation (Developer Only)
 1. Developer runs: `node scripts/create-super-admin.mjs`
-2. Script creates user in Cognito with SUPER_ADMIN role
+2. Script creates a Supabase Auth user and `users` profile with SUPER_ADMIN role
 3. Developer logs in via footer link
 4. Sets up MFA (TOTP)
 5. Lands on Super Admin dashboard
@@ -178,7 +178,7 @@ A role-based security pass system for gated residential estates. Enables residen
 
 ## Technical Implementation
 
-- **Authentication:** AWS Cognito with custom `role` attribute
-- **Database:** DynamoDB with multi-tenant isolation via `estateId`
+- **Authentication:** Supabase Auth with role metadata and `users` profile rows
+- **Database:** Supabase Postgres with multi-tenant isolation via `estateId`
 - **MFA:** Required for SUPER_ADMIN and ESTATE_ADMIN roles
 - **Session:** JWT tokens stored in HTTP-only cookies

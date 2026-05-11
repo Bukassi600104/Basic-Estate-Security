@@ -3,21 +3,16 @@
     "allow": [
       "mcp__ide__getDiagnostics",
       "WebFetch(domain:github.com)",
-      "Bash(aws dynamodb list-tables:*)",
-      "Bash(aws sso login:*)",
-      "Bash(aws iam get-policy-version:*)",
-      "Bash(aws iam create-policy-version:*)",
+      "Bash(supabase projects list:*)",
+      "Bash(supabase link:*)",
+      "Bash(supabase db push:*)",
+      "Bash(supabase migration list:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(aws amplify get-job:*)",
-      "Bash(aws logs describe-log-groups:*)",
-      "Bash(aws logs filter-log-events:*)",
-      "Bash(aws lambda list-functions:*)",
-      "Bash(aws iam list-role-policies:*)",
-      "Bash(aws logs describe-log-streams:*)",
-      "Bash(curl:*)",
-      "Bash(aws amplify:*)"
+      "Bash(curl:*)"
     ]
   }
 }

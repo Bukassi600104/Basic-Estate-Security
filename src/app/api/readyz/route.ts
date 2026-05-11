@@ -1,7 +1,5 @@
-import { DescribeTableCommand } from "@aws-sdk/client-dynamodb";
-import { getEnv } from "@/lib/env";
 import { NextResponse } from "next/server";
-import { getDdbDocClient } from "@/lib/aws/dynamo";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,44 +7,19 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const env = getEnv();
-    const client = getDdbDocClient();
-
-    const tables = [
-      env.DDB_TABLE_ESTATES,
-      env.DDB_TABLE_USERS,
-      env.DDB_TABLE_RESIDENTS,
-      env.DDB_TABLE_CODES,
-      env.DDB_TABLE_GATES,
-      env.DDB_TABLE_VALIDATION_LOGS,
-      env.DDB_TABLE_ACTIVITY_LOGS,
-      env.DDB_TABLE_PWA_INVITES,
-      env.DDB_TABLE_UNIQ,
-      env.DDB_TABLE_RATE_LIMITS,
-    ];
-
-    await Promise.all(
-      tables.map((tableName) => client.send(new DescribeTableCommand({ TableName: tableName }))),
-    );
+    const sb = getSupabaseAdmin();
+    const { error } = await sb.from("estates").select("estate_id").limit(1);
+    if (error) throw error;
 
     return NextResponse.json(
       { ok: true },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   } catch (error) {
     console.error("/api/readyz failed", error);
     return NextResponse.json(
       { error: "Not ready" },
-      {
-        status: 503,
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      },
+      { status: 503, headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   }
 }

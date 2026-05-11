@@ -1,14 +1,8 @@
 import { NextResponse } from "next/server";
-import {
-  clearAccessCookie,
-  clearMfaChallengeCookie,
-  clearMfaSetupCookie,
-  clearRefreshCookie,
-  clearSessionCookie,
-} from "@/lib/auth/session";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { headers } from "next/headers";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
+import { createSupabaseServerClient } from "@/lib/supabase/client";
 
 export async function POST(req: Request) {
   try {
@@ -38,10 +32,8 @@ export async function POST(req: Request) {
     );
   }
 
-  clearSessionCookie();
-  clearAccessCookie();
-  clearRefreshCookie();
-  clearMfaChallengeCookie();
-  clearMfaSetupCookie();
+  const supabase = createSupabaseServerClient();
+  await supabase.auth.signOut();
+
   return NextResponse.json({ ok: true });
 }

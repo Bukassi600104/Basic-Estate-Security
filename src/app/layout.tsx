@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Basic Security",
   description: "Estate security passes for residents, guests, and guards.",
   applicationName: "Basic Security",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://main.d18ktaplzyr50v.amplifyapp.com"),
+  metadataBase: new URL(process.env.APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
 };
 
 export default function RootLayout({

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogOut, Menu, Settings, ShieldCheck, X } from "lucide-react";
-import { getSession, clearSessionCookie } from "@/lib/auth/session";
+import { getSession } from "@/lib/auth/session";
+import { createSupabaseServerClient } from "@/lib/supabase/client";
 import { getUserById } from "@/lib/repos/users";
 import type { NavItem } from "@/components/sidebar-nav";
 import { SidebarNav } from "@/components/sidebar-nav";
@@ -28,7 +29,8 @@ async function SignOutButton({ className }: { className?: string }) {
     <form
       action={async () => {
         "use server";
-        clearSessionCookie();
+        const supabase = createSupabaseServerClient();
+        await supabase.auth.signOut();
       }}
     >
       <button
@@ -55,7 +57,7 @@ export async function AppShell({
 }) {
   const session = await getSession();
 
-  // Fetch user from DynamoDB to get accurate name (token may have stale data)
+  // Fetch the profile row to get accurate name; auth metadata may be stale.
   const dbUser = session?.userId ? await getUserById(session.userId) : null;
   const displayName = dbUser?.name || session?.name || "User";
 

@@ -1,26 +1,9 @@
 import { z } from "zod";
 
-const emptyToUndefined = (value: unknown) => (value === "" ? undefined : value);
-
 const envSchema = z.object({
-  AWS_REGION: z.string().min(1),
-
-  COGNITO_USER_POOL_ID: z.string().min(1),
-  COGNITO_CLIENT_ID: z.string().min(1),
-
-  DDB_TABLE_ESTATES: z.string().min(1),
-  DDB_TABLE_USERS: z.string().min(1),
-  DDB_TABLE_RESIDENTS: z.string().min(1),
-  DDB_TABLE_CODES: z.string().min(1),
-  DDB_TABLE_GATES: z.string().min(1),
-  DDB_TABLE_VALIDATION_LOGS: z.string().min(1),
-  DDB_TABLE_ACTIVITY_LOGS: z.string().min(1),
-  DDB_TABLE_PWA_INVITES: z.string().min(1),
-  DDB_TABLE_UNIQ: z.string().min(1),
-  DDB_TABLE_RATE_LIMITS: z.string().min(1),
-
-  // Optional for local/dev; if set, will be used for Cognito admin APIs.
-  COGNITO_USER_POOL_REGION: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_ANON_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
@@ -31,25 +14,9 @@ export function getEnv(): AppEnv {
   if (cachedEnv) return cachedEnv;
 
   const candidate = {
-    // Prefer an explicit app-level region override (useful in hosting environments
-    // where AWS_REGION may reflect the compute region, not the data plane region).
-    AWS_REGION: process.env.APP_AWS_REGION ?? process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION,
-
-    COGNITO_USER_POOL_ID: process.env.COGNITO_USER_POOL_ID,
-    COGNITO_CLIENT_ID: process.env.COGNITO_CLIENT_ID,
-
-    DDB_TABLE_ESTATES: process.env.DDB_TABLE_ESTATES,
-    DDB_TABLE_USERS: process.env.DDB_TABLE_USERS,
-    DDB_TABLE_RESIDENTS: process.env.DDB_TABLE_RESIDENTS,
-    DDB_TABLE_CODES: process.env.DDB_TABLE_CODES,
-    DDB_TABLE_GATES: process.env.DDB_TABLE_GATES,
-    DDB_TABLE_VALIDATION_LOGS: process.env.DDB_TABLE_VALIDATION_LOGS,
-    DDB_TABLE_ACTIVITY_LOGS: process.env.DDB_TABLE_ACTIVITY_LOGS,
-    DDB_TABLE_PWA_INVITES: process.env.DDB_TABLE_PWA_INVITES,
-    DDB_TABLE_UNIQ: process.env.DDB_TABLE_UNIQ,
-    DDB_TABLE_RATE_LIMITS: process.env.DDB_TABLE_RATE_LIMITS,
-
-    COGNITO_USER_POOL_REGION: process.env.COGNITO_USER_POOL_REGION,
+    SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   };
 
   const parsed = envSchema.safeParse(candidate);

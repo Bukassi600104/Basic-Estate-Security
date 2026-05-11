@@ -14,7 +14,7 @@ export default function ResidentSignInRedirectPage() {
       <div className="mx-auto max-w-xl px-6 py-16">
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Sign-in updated</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Resident sign-in now uses Cognito. Redirecting to the main sign-in page…
+          Resident sign-in now uses Supabase. Redirecting to the main sign-in page...
         </p>
       </div>
     </div>

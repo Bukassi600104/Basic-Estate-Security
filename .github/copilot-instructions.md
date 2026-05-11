@@ -1,43 +1,38 @@
+# Copilot Instructions - Estate Security
 
-# Copilot Instructions — Basic Estate Security
+## Project Shape
 
-## What this repo is
-- Next.js 14 App Router: UI + API live under `src/app/*`.
-- Product split: admin dashboard vs PWA-first Resident/Security apps:
-	- `src/app/resident-app/*`, `src/app/security-app/*` (install/claim flows)
-	- PWA assets in `public/resident-app/*`, `public/security-app/*`
-- Persistence: DynamoDB multi-table via thin repos in `src/lib/repos/*` (prefer extending repos over ad-hoc DDB calls).
-- Auth: AWS Cognito User Pool; IdToken is stored as `bs_session` cookie (`src/lib/auth/session.ts`). No NextAuth.
+- Next.js 14 App Router: UI and API routes live under `src/app/*`.
+- Shared server/data code lives under `src/lib/*`.
+- All Postgres access should go through `src/lib/repos/*` or explicit Supabase RPCs.
+- Auth uses Supabase SSR cookies via `@supabase/ssr`; no NextAuth.
 
-## Roles + request context
-- Roles are string literals: `SUPER_ADMIN | ESTATE_ADMIN | RESIDENT | RESIDENT_DELEGATE | GUARD`.
-- Middleware only checks “signed-in” for protected prefixes (`src/middleware.ts`). Role gating happens in pages/layouts and API routes.
-- Current user lookup is: session → user profile (DDB) → estate (DDB) via `requireCurrentUser()` (`src/lib/auth/current-user.ts`). It returns `null` (don’t assume throw).
+## Backend
 
-## API route conventions (match existing patterns)
-- Validate inputs with `zod` inside the route (e.g. `src/app/api/auth/sign-in/route.ts`).
-- Responses are JSON: success `{ ok: true, ... }`, failure `{ error: string }` with user-safe messages.
-- Cookie-authenticated mutations must call `enforceSameOriginForMutations(req)` (`src/lib/security/same-origin.ts`).
-- Add per-route rate limiting via `rateLimit({ key, limit, windowMs })` keyed by IP/user when relevant (`src/lib/security/rate-limit.ts`).
-- Always enforce tenant boundaries: require user `estateId`, and verify loaded entities match it.
-- Routes that use Node-only APIs (Cognito admin, `node:crypto`) set `export const runtime = "nodejs"` (see `src/app/api/auth/sign-in/route.ts`).
+- Persistence is Supabase Postgres.
+- Server-side privileged access uses `src/lib/supabase/admin.ts`.
+- Browser/session access uses `src/lib/supabase/client.ts`.
+- RLS is enabled in the schema, but v1 database access is intentionally through server-side API routes with service-role access.
 
-## Domain rules (codes + validation)
-- Estate must be `ACTIVE` for guard/resident code flows (checked in routes).
-- Residents must be `APPROVED` to generate/renew; `SUSPENDED` blocks actions.
-- Guest codes: single-use 6h TTL; on successful validation, atomically mark `USED` and write a `ValidationLog` (`src/app/api/guard/validate/route.ts`).
-- Staff codes: 183-day TTL; guard validation does not expire them; renewal extends expiry (`src/app/api/resident/codes/[codeId]/renew/route.ts`).
-- Every guard validate attempt writes a `ValidationLog` (success/failure + `failureReason`).
+## API Conventions
 
-## DynamoDB modeling assumptions
-- GSI names are fixed in code: typically `GSI1`, sometimes `GSI2` (e.g. code lookup by `codeId`).
-- Key shapes are intentional: `CodeRecord.codeKey = ESTATE#{estateId}#CODE#{codeValue}` and `residentKey = ESTATE#{estateId}#RESIDENT#{residentId}` (`src/lib/repos/codes.ts`).
-- Some list/read paths may fall back to `Scan` if a GSI isn’t provisioned yet or older items lack indexed attributes (migration safety net; see `README.md`). Avoid relying on this in production.
-- Infra + recommended GSIs are documented in `README.md` and `infra/README.md`.
+- Validate request bodies with `zod`.
+- Cookie-authenticated mutations must call `enforceSameOriginForMutations(req)` or `enforceSameOriginOr403(req)`.
+- Use `rateLimitHybrid` for login and operational endpoints.
+- Always enforce tenant boundaries with `estateId`.
+- Routes using Node-only APIs should export `runtime = "nodejs"`.
 
-## Developer workflow (Windows)
-- Install/run/lint: `npm.cmd install`, `npm.cmd run dev`, `npm.cmd run lint`.
-- Local env: copy `.env.example` → `.env`; env is validated strictly via `zod` (`src/lib/env.ts`).
-- Useful scripts: `npm.cmd run db:clear`, `npm.cmd run dev:delete-user`, and `scripts/probe-prod-signup.ps1`.
+## Domain Rules
 
-If anything about the DynamoDB indexes/keys is unclear for your change, tell me which entity/route you’re touching and I’ll tighten the guidance.
+- Estate must be `ACTIVE` for resident and guard flows.
+- Residents must be `APPROVED` to generate or renew codes.
+- Guest codes are single-use, 6-hour TTL, 8-digit Luhn codes.
+- Staff codes are renewable, 183-day TTL, 8-digit Luhn codes.
+- Guard validation attempts should write validation logs.
+
+## Workflow
+
+- Install/run/check: `npm.cmd install`, `npm.cmd run dev`, `npm.cmd run lint`, `npm.cmd run build`.
+- Supabase setup: `npm.cmd run db:link`, `npm.cmd run db:migrate`.
+- Admin/demo setup: `npm.cmd run admin:create`, `npm.cmd run seed:demo`.
+- Production deploys to Vercel from `main`; ask before pushing.

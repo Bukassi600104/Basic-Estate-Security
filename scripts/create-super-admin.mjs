@@ -1,24 +1,14 @@
 /**
- * Creates the Super Admin user in AWS Cognito.
+ * Creates the Super Admin user in Supabase.
  *
  * Usage:
- *   node scripts/create-super-admin.mjs
+ *   node --env-file=.env scripts/create-super-admin.mjs
  *
- * This script creates a Super Admin user with:
- *   - Username: Basic
- *   - Password: $Arianna600104#
- *   - Role: SUPER_ADMIN
+ * Or:
+ *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/create-super-admin.mjs
  */
 
-import {
-  CognitoIdentityProviderClient,
-  AdminCreateUserCommand,
-  AdminSetUserPasswordCommand,
-  AdminGetUserCommand,
-  AdminUpdateUserAttributesCommand,
-} from "@aws-sdk/client-cognito-identity-provider";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { createClient } from "@supabase/supabase-js";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -39,154 +29,83 @@ function loadDotEnvFile(filePath) {
   }
 }
 
-// Load env files
 const repoRoot = process.cwd();
 loadDotEnvFile(path.join(repoRoot, ".env"));
 loadDotEnvFile(path.join(repoRoot, ".env.local"));
 
-function requireEnv(name) {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  process.exit(1);
 }
 
-// Super Admin credentials
-// Note: Cognito requires email as username
-const SUPER_ADMIN_USERNAME = "bukassi@gmail.com";
-const SUPER_ADMIN_PASSWORD = "$Arianna600104#";
-const SUPER_ADMIN_NAME = "Tony Orjiako";
-
-const awsRegion = process.env.AWS_REGION ?? process.env.AWS_DEFAULT_REGION;
-if (!awsRegion) {
-  console.error("Missing AWS_REGION (or AWS_DEFAULT_REGION) in env.");
-  process.exit(2);
-}
-
-const cognitoRegion = process.env.COGNITO_USER_POOL_REGION ?? awsRegion;
-const userPoolId = requireEnv("COGNITO_USER_POOL_ID");
-const usersTable = requireEnv("DDB_TABLE_USERS");
-
-const cognito = new CognitoIdentityProviderClient({ region: cognitoRegion });
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: awsRegion }), {
-  marshallOptions: { removeUndefinedValues: true },
+const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
 });
+
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL;
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD;
+const SUPER_ADMIN_NAME = process.env.SUPER_ADMIN_NAME || "Super Admin";
+
+if (!SUPER_ADMIN_EMAIL || !SUPER_ADMIN_PASSWORD) {
+  console.error("Missing SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD");
+  console.error("Example: SUPER_ADMIN_EMAIL=admin@example.com SUPER_ADMIN_PASSWORD='StrongPass123!' node scripts/create-super-admin.mjs");
+  process.exit(1);
+}
 
 async function main() {
   console.log("Creating Super Admin user...");
-  console.log(`Username: ${SUPER_ADMIN_USERNAME}`);
-  console.log(`User Pool: ${userPoolId}`);
+  console.log(`Email: ${SUPER_ADMIN_EMAIL}`);
   console.log("");
 
-  let cognitoSub;
-  let userExists = false;
+  // Try to create user in Supabase Auth
+  const { data: authData, error: authError } = await sb.auth.admin.createUser({
+    email: SUPER_ADMIN_EMAIL,
+    password: SUPER_ADMIN_PASSWORD,
+    email_confirm: true,
+    user_metadata: { name: SUPER_ADMIN_NAME, role: "SUPER_ADMIN" },
+  });
 
-  // Check if user already exists
-  try {
-    const existingUser = await cognito.send(
-      new AdminGetUserCommand({
-        UserPoolId: userPoolId,
-        Username: SUPER_ADMIN_USERNAME,
-      })
-    );
-    console.log("User already exists in Cognito.");
-    cognitoSub = existingUser.UserAttributes?.find(a => a.Name === "sub")?.Value;
-    userExists = true;
-  } catch (e) {
-    if (e.name !== "UserNotFoundException") {
-      throw e;
+  let userId;
+
+  if (authError) {
+    if (authError.message?.includes("already been registered")) {
+      console.log("Auth user already exists. Fetching...");
+      const { data: { users }, error: listErr } = await sb.auth.admin.listUsers();
+      if (listErr) throw listErr;
+      const existing = users.find(u => u.email === SUPER_ADMIN_EMAIL);
+      if (!existing) throw new Error("User exists in auth but could not be found");
+      userId = existing.id;
+
+      // Update password
+      await sb.auth.admin.updateUserById(userId, { password: SUPER_ADMIN_PASSWORD });
+      console.log("Password updated.");
+    } else {
+      throw authError;
     }
+  } else {
+    userId = authData.user.id;
+    console.log("Auth user created.");
   }
 
-  if (!userExists) {
-    // Create user in Cognito
-    try {
-      const createResult = await cognito.send(
-        new AdminCreateUserCommand({
-          UserPoolId: userPoolId,
-          Username: SUPER_ADMIN_USERNAME,
-          TemporaryPassword: SUPER_ADMIN_PASSWORD,
-          UserAttributes: [
-            { Name: "email", Value: SUPER_ADMIN_USERNAME },
-            { Name: "email_verified", Value: "true" },
-            { Name: "name", Value: SUPER_ADMIN_NAME },
-            { Name: "custom:role", Value: "SUPER_ADMIN" },
-          ],
-          MessageAction: "SUPPRESS", // Don't send welcome email
-        })
-      );
-      console.log("User created in Cognito.");
-      cognitoSub = createResult.User?.Attributes?.find(a => a.Name === "sub")?.Value;
-    } catch (e) {
-      if (e.name === "UsernameExistsException") {
-        console.log("User already exists (caught on create).");
-        const existingUser = await cognito.send(
-          new AdminGetUserCommand({
-            UserPoolId: userPoolId,
-            Username: SUPER_ADMIN_USERNAME,
-          })
-        );
-        cognitoSub = existingUser.UserAttributes?.find(a => a.Name === "sub")?.Value;
-      } else {
-        throw e;
-      }
-    }
-  }
+  // Upsert users table record
+  const now = new Date().toISOString();
+  const { error: dbError } = await sb.from("users").upsert({
+    user_id: userId,
+    role: "SUPER_ADMIN",
+    name: SUPER_ADMIN_NAME,
+    email: SUPER_ADMIN_EMAIL,
+    created_at: now,
+    updated_at: now,
+  }, { onConflict: "user_id" });
 
-  // Update name attribute (for existing users or to ensure name is set)
-  try {
-    await cognito.send(
-      new AdminUpdateUserAttributesCommand({
-        UserPoolId: userPoolId,
-        Username: SUPER_ADMIN_USERNAME,
-        UserAttributes: [
-          { Name: "name", Value: SUPER_ADMIN_NAME },
-        ],
-      })
-    );
-    console.log("Name attribute updated.");
-  } catch (e) {
-    console.error("Failed to update name attribute:", e.message);
+  if (dbError) {
+    console.error("Failed to upsert user record:", dbError.message);
+    throw dbError;
   }
-
-  // Set permanent password
-  try {
-    await cognito.send(
-      new AdminSetUserPasswordCommand({
-        UserPoolId: userPoolId,
-        Username: SUPER_ADMIN_USERNAME,
-        Password: SUPER_ADMIN_PASSWORD,
-        Permanent: true,
-      })
-    );
-    console.log("Password set to permanent.");
-  } catch (e) {
-    console.error("Failed to set password:", e.message);
-    throw e;
-  }
-
-  // Create DynamoDB record
-  if (cognitoSub) {
-    const now = new Date().toISOString();
-    try {
-      await ddb.send(
-        new PutCommand({
-          TableName: usersTable,
-          Item: {
-            userId: cognitoSub,
-            role: "SUPER_ADMIN",
-            name: SUPER_ADMIN_NAME,
-            email: SUPER_ADMIN_USERNAME,
-            createdAt: now,
-            updatedAt: now,
-          },
-        })
-      );
-      console.log("DynamoDB user record created/updated.");
-    } catch (e) {
-      console.error("Failed to create DynamoDB record:", e.message);
-      throw e;
-    }
-  }
+  console.log("User record created/updated.");
 
   console.log("");
   console.log("=".repeat(50));
@@ -194,10 +113,10 @@ async function main() {
   console.log("=".repeat(50));
   console.log("");
   console.log("Login credentials:");
-  console.log(`  Username: ${SUPER_ADMIN_USERNAME}`);
-  console.log(`  Password: ${SUPER_ADMIN_PASSWORD}`);
+  console.log(`  Email:    ${SUPER_ADMIN_EMAIL}`);
+  console.log("  Password: [set from SUPER_ADMIN_PASSWORD]");
   console.log("");
-  console.log("You can now sign in at /auth/sign-in");
+  console.log("Sign in at /auth/sign-in");
 }
 
 main().catch((err) => {

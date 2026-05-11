@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import {
   enforceSameOriginOr403,
@@ -8,17 +8,17 @@ import {
   requireCurrentUserEstateId,
   requireCurrentUserWithRoles,
 } from "@/lib/auth/guards";
-import { getDdbDocClient } from "@/lib/aws/dynamo";
-import { getEnv } from "@/lib/env";
-import { getCodeByValue, makeCodeKey } from "@/lib/repos/codes";
+import { getCodeByValue, isValidLuhnCode } from "@/lib/repos/codes";
 import { getGateById } from "@/lib/repos/gates";
 import { getResidentById } from "@/lib/repos/residents";
-import { newValidationLogId } from "@/lib/repos/validation-logs";
-import { TransactWriteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { newValidationLogId, putValidationLog } from "@/lib/repos/validation-logs";
+import { getShiftById } from "@/lib/repos/guard-shifts";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+const SHIFT_COOKIE = "guard_shift_id";
 
 const bodySchema = z.object({
   code: z.string().min(3),
-  gateId: z.string().min(1),
 });
 
 function denyReason(reason: string) {
@@ -36,19 +36,58 @@ function codeExpired(params: { status: string; expiresAt: string; now: string })
 
 function mapFailureToUserMessage(failureReason: string) {
   switch (failureReason) {
-    case "INVALID_CODE":
-      return denyReason("Invalid code");
-    case "CODE_EXPIRED":
-      return denyReason("Code expired");
-    case "CODE_NOT_ACTIVE":
-      return denyReason("Code not active");
-    case "RESIDENT_SUSPENDED":
-      return denyReason("Resident suspended");
-    case "GATE_NOT_FOUND":
-      return denyReason("Invalid gate");
-    default:
-      return denyReason("Invalid or expired code");
+    case "INVALID_CODE": return denyReason("Invalid code");
+    case "CODE_EXPIRED": return denyReason("Code expired");
+    case "CODE_NOT_ACTIVE": return denyReason("Code not active");
+    case "RESIDENT_SUSPENDED": return denyReason("Resident suspended");
+    case "GATE_NOT_FOUND": return denyReason("Invalid gate");
+    case "NO_ACTIVE_SHIFT": return denyReason("No active shift. Please log in again.");
+    case "INVALID_LUHN": return denyReason("Invalid code format");
+    default: return denyReason("Invalid or expired code");
   }
+}
+
+async function writeFailureLog(params: {
+  estateId: string;
+  timestamp: string;
+  gateId: string;
+  gateName: string;
+  shiftType?: string;
+  shiftId?: string;
+  failureReason: string;
+  codeValue: string;
+  guardUserId: string;
+  guardName: string;
+  guardPhone?: string;
+  passType?: string;
+  eventType?: string;
+  visitId?: string;
+  guestCount?: number;
+  residentName?: string;
+  houseNumber?: string;
+}) {
+  await putValidationLog({
+    logId: newValidationLogId(),
+    estateId: params.estateId,
+    validatedAt: params.timestamp,
+    gateId: params.gateId,
+    gateName: params.gateName,
+    shiftType: params.shiftType as "DAY" | "NIGHT" | undefined,
+    shiftId: params.shiftId,
+    outcome: "FAILURE",
+    decision: "DENY",
+    failureReason: params.failureReason,
+    passType: params.passType as "GUEST" | "STAFF" | undefined,
+    eventType: params.eventType as "ENTRY" | "EXIT" | undefined,
+    visitId: params.visitId,
+    guestCount: params.guestCount,
+    residentName: params.residentName,
+    houseNumber: params.houseNumber,
+    codeValue: params.codeValue,
+    guardUserId: params.guardUserId,
+    guardName: params.guardName,
+    guardPhone: params.guardPhone,
+  });
 }
 
 export async function POST(req: Request) {
@@ -77,13 +116,7 @@ export async function POST(req: Request) {
   if (!rl.ok) {
     return NextResponse.json(
       { error: rl.error },
-      {
-        status: rl.status,
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-          ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
-        },
-      },
+      { status: rl.status, headers: { "Cache-Control": "no-store, max-age=0", ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}) } },
     );
   }
 
@@ -93,216 +126,146 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const env = getEnv();
-  const ddb = getDdbDocClient();
   const timestamp = nowIso();
-
   const codeValue = parsed.data.code.trim();
-  const gateId = parsed.data.gateId;
 
-  const gate = await getGateById(gateId);
-  if (!gate || gate.estateId !== estateId) {
-    const log = {
-      logId: newValidationLogId(),
-      estateId,
-      validatedAt: timestamp,
-      gateId,
-      gateName: gate?.name ?? "Unknown",
-      outcome: "FAILURE" as const,
-      decision: "DENY" as const,
-      failureReason: "GATE_NOT_FOUND",
-      codeValue,
-      guardUserId: guard.id,
-      guardName: guard.name,
-      guardPhone: guard.phone ?? undefined,
-    };
-    await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: log }));
-    return NextResponse.json({ error: mapFailureToUserMessage("GATE_NOT_FOUND") }, { status: 400 });
+  if (codeValue.length > 6 && !isValidLuhnCode(codeValue)) {
+    return NextResponse.json({ error: mapFailureToUserMessage("INVALID_LUHN") }, { status: 400 });
   }
 
-  const code = await getCodeByValue({ estateId, codeValue });
-  if (!code || code.estateId !== estateId) {
-    const log = {
-      logId: newValidationLogId(),
-      estateId,
-      validatedAt: timestamp,
-      gateId: gate.gateId,
-      gateName: gate.name,
-      outcome: "FAILURE" as const,
-      decision: "DENY" as const,
-      failureReason: "INVALID_CODE",
-      codeValue,
-      guardUserId: guard.id,
-      guardName: guard.name,
-      guardPhone: guard.phone ?? undefined,
-    };
-    await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: log }));
-    return NextResponse.json({ error: mapFailureToUserMessage("INVALID_CODE") }, { status: 403 });
+  const cookieStore = cookies();
+  const shiftId = cookieStore.get(SHIFT_COOKIE)?.value;
+  if (!shiftId) {
+    return NextResponse.json({ error: mapFailureToUserMessage("NO_ACTIVE_SHIFT") }, { status: 403 });
   }
 
-  const resident = await getResidentById(code.residentId);
-  if (!resident || resident.estateId !== estateId) {
-    const log = {
-      logId: newValidationLogId(),
-      estateId,
-      validatedAt: timestamp,
-      gateId: gate.gateId,
-      gateName: gate.name,
-      outcome: "FAILURE" as const,
-      decision: "DENY" as const,
-      failureReason: "INVALID_CODE",
-      passType: code.passType,
-      residentName: resident?.name,
-      houseNumber: resident?.houseNumber,
-      codeValue,
-      guardUserId: guard.id,
-      guardName: guard.name,
-      guardPhone: guard.phone ?? undefined,
-    };
-    await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: log }));
-    return NextResponse.json({ error: mapFailureToUserMessage("INVALID_CODE") }, { status: 403 });
+  const shift = await getShiftById(shiftId);
+  if (!shift || shift.guardUserId !== guard.id || shift.status !== "ACTIVE") {
+    return NextResponse.json({ error: mapFailureToUserMessage("NO_ACTIVE_SHIFT") }, { status: 403 });
   }
 
-  if (resident.status === "SUSPENDED") {
-    const log = {
-      logId: newValidationLogId(),
-      estateId,
-      validatedAt: timestamp,
-      gateId: gate.gateId,
-      gateName: gate.name,
-      outcome: "FAILURE" as const,
-      decision: "DENY" as const,
-      failureReason: "RESIDENT_SUSPENDED",
-      passType: code.passType,
-      residentName: resident.name,
-      houseNumber: resident.houseNumber,
-      codeValue,
-      guardUserId: guard.id,
-      guardName: guard.name,
-      guardPhone: guard.phone ?? undefined,
-    };
-    await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: log }));
-    return NextResponse.json({ error: mapFailureToUserMessage("RESIDENT_SUSPENDED") }, { status: 403 });
-  }
-
-  if (code.status !== "ACTIVE") {
-    const log = {
-      logId: newValidationLogId(),
-      estateId,
-      validatedAt: timestamp,
-      gateId: gate.gateId,
-      gateName: gate.name,
-      outcome: "FAILURE" as const,
-      decision: "DENY" as const,
-      failureReason: "CODE_NOT_ACTIVE",
-      passType: code.passType,
-      residentName: resident.name,
-      houseNumber: resident.houseNumber,
-      codeValue,
-      guardUserId: guard.id,
-      guardName: guard.name,
-      guardPhone: guard.phone ?? undefined,
-    };
-    await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: log }));
-    return NextResponse.json({ error: mapFailureToUserMessage("CODE_NOT_ACTIVE") }, { status: 403 });
-  }
-
-  if (codeExpired({ status: code.status, expiresAt: code.expiresAt, now: timestamp })) {
-    const log = {
-      logId: newValidationLogId(),
-      estateId,
-      validatedAt: timestamp,
-      gateId: gate.gateId,
-      gateName: gate.name,
-      outcome: "FAILURE" as const,
-      decision: "DENY" as const,
-      failureReason: "CODE_EXPIRED",
-      passType: code.passType,
-      residentName: resident.name,
-      houseNumber: resident.houseNumber,
-      codeValue,
-      guardUserId: guard.id,
-      guardName: guard.name,
-      guardPhone: guard.phone ?? undefined,
-    };
-    await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: log }));
-    return NextResponse.json({ error: mapFailureToUserMessage("CODE_EXPIRED") }, { status: 403 });
-  }
-
-  const successLog = {
-    logId: newValidationLogId(),
+  const logBase = {
     estateId,
-    validatedAt: timestamp,
-    gateId: gate.gateId,
-    gateName: gate.name,
-    outcome: "SUCCESS" as const,
-    decision: "ALLOW" as const,
-    passType: code.passType,
-    residentName: resident.name,
-    houseNumber: resident.houseNumber,
+    timestamp,
+    gateId: shift.gateId,
+    gateName: shift.gateName,
+    shiftType: shift.shiftType,
+    shiftId: shift.shiftId,
     codeValue,
     guardUserId: guard.id,
     guardName: guard.name,
     guardPhone: guard.phone ?? undefined,
   };
 
-  if (code.passType === "GUEST") {
-    // Guest codes are single-use: mark USED + expire immediately on successful validation.
-    // Do this atomically alongside writing the log.
-    const codeKey = makeCodeKey({ estateId, codeValue: code.codeValue });
-    const now = timestamp;
+  const gate = await getGateById(shift.gateId);
+  if (!gate || gate.estateId !== estateId) {
+    await writeFailureLog({ ...logBase, failureReason: "GATE_NOT_FOUND" });
+    return NextResponse.json({ error: mapFailureToUserMessage("GATE_NOT_FOUND") }, { status: 400 });
+  }
 
-    try {
-      await ddb.send(
-        new TransactWriteCommand({
-          TransactItems: [
-            {
-              Update: {
-                TableName: env.DDB_TABLE_CODES,
-                Key: { codeKey },
-                UpdateExpression: "SET #status = :used, expiresAt = :now, usedAt = :now, updatedAt = :now",
-                ConditionExpression: "attribute_exists(codeKey) AND #status = :active AND expiresAt > :now",
-                ExpressionAttributeNames: { "#status": "status" },
-                ExpressionAttributeValues: {
-                  ":active": "ACTIVE",
-                  ":used": "USED",
-                  ":now": now,
-                },
-              },
-            },
-            {
-              Put: {
-                TableName: env.DDB_TABLE_VALIDATION_LOGS,
-                Item: successLog,
-                ConditionExpression: "attribute_not_exists(logId)",
-              },
-            },
-          ],
-        }),
-      );
-    } catch {
-      // If the conditional update failed, treat as invalid/expired and log a deny attempt.
-      const failureLog = {
-        ...successLog,
-        outcome: "FAILURE" as const,
-        decision: "DENY" as const,
-        failureReason: "CODE_NOT_ACTIVE",
-      };
-      await ddb.send(new PutCommand({ TableName: env.DDB_TABLE_VALIDATION_LOGS, Item: failureLog }));
+  const code = await getCodeByValue({ estateId, codeValue });
+  if (!code || code.estateId !== estateId) {
+    await writeFailureLog({ ...logBase, failureReason: "INVALID_CODE" });
+    return NextResponse.json({ error: mapFailureToUserMessage("INVALID_CODE") }, { status: 403 });
+  }
+
+  const resident = await getResidentById(code.residentId);
+  if (!resident || resident.estateId !== estateId) {
+    await writeFailureLog({ ...logBase, failureReason: "INVALID_CODE", passType: code.passType, eventType: code.eventType, visitId: code.visitId, guestCount: code.guestCount });
+    return NextResponse.json({ error: mapFailureToUserMessage("INVALID_CODE") }, { status: 403 });
+  }
+
+  const codeLogBase = { ...logBase, passType: code.passType, eventType: code.eventType, visitId: code.visitId, guestCount: code.guestCount, residentName: resident.name, houseNumber: resident.houseNumber };
+
+  if (resident.status === "SUSPENDED") {
+    await writeFailureLog({ ...codeLogBase, failureReason: "RESIDENT_SUSPENDED" });
+    return NextResponse.json({ error: mapFailureToUserMessage("RESIDENT_SUSPENDED") }, { status: 403 });
+  }
+
+  if (code.status !== "ACTIVE") {
+    await writeFailureLog({ ...codeLogBase, failureReason: "CODE_NOT_ACTIVE" });
+    return NextResponse.json({ error: mapFailureToUserMessage("CODE_NOT_ACTIVE") }, { status: 403 });
+  }
+
+  if (codeExpired({ status: code.status, expiresAt: code.expiresAt, now: timestamp })) {
+    await writeFailureLog({ ...codeLogBase, failureReason: "CODE_EXPIRED" });
+    return NextResponse.json({ error: mapFailureToUserMessage("CODE_EXPIRED") }, { status: 403 });
+  }
+
+  const eventType = code.eventType ?? "ENTRY";
+
+  if (code.passType === "GUEST") {
+    const sb = getSupabaseAdmin();
+    const { data: consumed, error: consumeError } = await sb.rpc("consume_guest_code", {
+      p_code_id: code.codeId,
+      p_estate_id: estateId,
+      p_used_at: timestamp,
+    });
+
+    if (consumeError || consumed !== true) {
+      await writeFailureLog({ ...codeLogBase, failureReason: "CODE_NOT_ACTIVE" });
       return NextResponse.json({ error: mapFailureToUserMessage("CODE_NOT_ACTIVE") }, { status: 403 });
     }
 
-    return NextResponse.json({ ok: true });
+    await putValidationLog({
+      logId: newValidationLogId(),
+      estateId,
+      validatedAt: timestamp,
+      gateId: gate.gateId,
+      gateName: gate.name,
+      shiftType: shift.shiftType,
+      shiftId: shift.shiftId,
+      outcome: "SUCCESS",
+      decision: "ALLOW",
+      passType: code.passType,
+      eventType,
+      visitId: code.visitId,
+      guestCount: code.guestCount ?? 1,
+      residentName: resident.name,
+      houseNumber: resident.houseNumber,
+      codeValue,
+      guardUserId: guard.id,
+      guardName: guard.name,
+      guardPhone: guard.phone ?? undefined,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      eventType,
+      guestCount: code.guestCount ?? 1,
+      residentName: resident.name,
+      houseNumber: resident.houseNumber,
+    });
   }
 
-  // Staff codes: do not expire on validation.
-  await ddb.send(
-    new PutCommand({
-      TableName: env.DDB_TABLE_VALIDATION_LOGS,
-      Item: successLog,
-      ConditionExpression: "attribute_not_exists(logId)",
-    }),
-  );
+  // Staff codes: do not expire on validation
+  await putValidationLog({
+    logId: newValidationLogId(),
+    estateId,
+    validatedAt: timestamp,
+    gateId: gate.gateId,
+    gateName: gate.name,
+    shiftType: shift.shiftType,
+    shiftId: shift.shiftId,
+    outcome: "SUCCESS",
+    decision: "ALLOW",
+    passType: code.passType,
+    eventType,
+    visitId: code.visitId,
+    guestCount: code.guestCount ?? 1,
+    residentName: resident.name,
+    houseNumber: resident.houseNumber,
+    codeValue,
+    guardUserId: guard.id,
+    guardName: guard.name,
+    guardPhone: guard.phone ?? undefined,
+  });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    eventType,
+    guestCount: code.guestCount ?? 1,
+    residentName: resident.name,
+    houseNumber: resident.houseNumber,
+  });
 }

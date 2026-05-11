@@ -65,7 +65,7 @@ function toInternationalFormat(phone: string): string {
 }
 
 export default function OnboardResidentPage() {
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [residentName, setResidentName] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
   const [residentPhone, setResidentPhone] = useState("");
@@ -219,7 +219,9 @@ export default function OnboardResidentPage() {
               <p className="mt-1 text-sm text-slate-600">
                 {step === 1
                   ? "Enter resident details"
-                  : "Approve phone numbers for code generation"}
+                  : step === 2
+                  ? "Approve phone numbers for code generation"
+                  : "Review and confirm"}
               </p>
             </div>
           </div>
@@ -227,14 +229,19 @@ export default function OnboardResidentPage() {
           {/* Step Indicator */}
           <div className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
             <div
-              className={`h-2 w-2 rounded-full ${step === 1 ? "bg-brand-navy" : "bg-slate-300"}`}
+              className={`h-2 w-2 rounded-full ${step === 1 ? "bg-brand-navy" : step > 1 ? "bg-brand-green" : "bg-slate-300"}`}
             />
-            <span className={step === 1 ? "text-brand-navy" : ""}>Details</span>
-            <div className="mx-2 h-px w-8 bg-slate-200" />
+            <span className={step === 1 ? "text-brand-navy" : step > 1 ? "text-brand-green" : ""}>Details</span>
+            <div className="mx-2 h-px w-6 bg-slate-200" />
             <div
-              className={`h-2 w-2 rounded-full ${step === 2 ? "bg-brand-navy" : "bg-slate-300"}`}
+              className={`h-2 w-2 rounded-full ${step === 2 ? "bg-brand-navy" : step > 2 ? "bg-brand-green" : "bg-slate-300"}`}
             />
-            <span className={step === 2 ? "text-brand-navy" : ""}>Approve Numbers</span>
+            <span className={step === 2 ? "text-brand-navy" : step > 2 ? "text-brand-green" : ""}>Numbers</span>
+            <div className="mx-2 h-px w-6 bg-slate-200" />
+            <div
+              className={`h-2 w-2 rounded-full ${step === 3 ? "bg-brand-navy" : "bg-slate-300"}`}
+            />
+            <span className={step === 3 ? "text-brand-navy" : ""}>Review</span>
           </div>
 
           <form className="mt-6" onSubmit={onSubmit}>
@@ -305,7 +312,7 @@ export default function OnboardResidentPage() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
-            ) : (
+            ) : step === 2 ? (
               <div className="grid gap-4">
                 {/* Approved Numbers Section */}
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -480,19 +487,89 @@ export default function OnboardResidentPage() {
                   </button>
 
                   <button
-                    type="submit"
-                    disabled={loading || !canOnboard()}
+                    type="button"
+                    disabled={!canOnboard()}
+                    onClick={() => canOnboard() && setStep(3)}
                     className={`flex flex-1 h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold shadow-sm transition-all ${
                       canOnboard()
                         ? "bg-brand-navy text-white hover:bg-brand-navy/90"
                         : "bg-slate-200 text-slate-400 cursor-not-allowed"
                     } disabled:opacity-60`}
                   >
-                    {loading ? "Creating..." : "Onboard Resident"}
+                    Review & Confirm
+                    <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-            )}
+            ) : step === 3 ? (
+              <div className="grid gap-4">
+                {/* Review Summary */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-sm font-bold text-slate-900">Resident Details</h3>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Name</span>
+                      <span className="font-semibold text-slate-900">{residentName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">House Number</span>
+                      <span className="font-semibold text-slate-900">{houseNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Phone</span>
+                      <span className="font-semibold text-slate-900">{residentPhone}</span>
+                    </div>
+                    {residentEmail && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Email</span>
+                        <span className="font-semibold text-slate-900">{residentEmail}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-sm font-bold text-slate-900">Approved Numbers ({approvedNumbers.length})</h3>
+                  <div className="mt-3 grid gap-2">
+                    {approvedNumbers.map((num) => (
+                      <div key={num.phone} className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="font-semibold text-slate-900">{num.phone}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800">
+                  Please verify all details are correct. Phone numbers cannot be changed by the resident after onboarding — they must contact you (the admin) to make changes.
+                </div>
+
+                {error ? (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                    {error}
+                  </div>
+                ) : null}
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-900 hover:bg-slate-50"
+                    onClick={() => setStep(2)}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex flex-1 h-12 items-center justify-center gap-2 rounded-xl bg-brand-green px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-green/90 disabled:opacity-60"
+                  >
+                    {loading ? "Creating..." : "Confirm & Onboard Resident"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </form>
         </div>
 

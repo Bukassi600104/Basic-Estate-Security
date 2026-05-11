@@ -1,6 +1,4 @@
-import { GetCommand, PutCommand, UpdateCommand, QueryCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
-import { getDdbDocClient } from "@/lib/aws/dynamo";
-import { getEnv } from "@/lib/env";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export type UserRole =
   | "SUPER_ADMIN"
@@ -28,379 +26,209 @@ export const ALL_SUB_ADMIN_PERMISSIONS: SubAdminPermission[] = [
 ];
 
 export type UserRecord = {
-  userId: string; // Cognito sub
+  userId: string;
   estateId?: string;
   role: UserRole;
   name: string;
   email?: string;
   phone?: string;
   residentId?: string;
-  verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR} (for guards)
-  passwordChanged?: boolean; // true after user changes initial password
-  // Sub-admin specific fields
-  permissions?: SubAdminPermission[]; // Only for SUB_ADMIN role
-  createdBy?: string; // userId of the admin who created this sub-admin
+  verificationCode?: string;
+  passwordChanged?: boolean;
+  permissions?: SubAdminPermission[];
+  createdBy?: string;
   createdAt: string;
   updatedAt: string;
 };
 
-export type DdbCursor = Record<string, unknown>;
+function rowToUser(row: Record<string, unknown>): UserRecord {
+  return {
+    userId: row.user_id as string,
+    estateId: (row.estate_id as string) ?? undefined,
+    role: row.role as UserRole,
+    name: row.name as string,
+    email: (row.email as string) ?? undefined,
+    phone: (row.phone as string) ?? undefined,
+    residentId: (row.resident_id as string) ?? undefined,
+    verificationCode: (row.verification_code as string) ?? undefined,
+    passwordChanged: (row.password_changed as boolean) ?? undefined,
+    permissions: (row.permissions as SubAdminPermission[]) ?? undefined,
+    createdBy: (row.created_by as string) ?? undefined,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
+
+function userToRow(user: UserRecord): Record<string, unknown> {
+  return {
+    user_id: user.userId,
+    estate_id: user.estateId ?? null,
+    role: user.role,
+    name: user.name,
+    email: user.email ?? null,
+    phone: user.phone ?? null,
+    resident_id: user.residentId ?? null,
+    verification_code: user.verificationCode ?? null,
+    password_changed: user.passwordChanged ?? false,
+    permissions: user.permissions ?? null,
+    created_by: user.createdBy ?? null,
+    created_at: user.createdAt,
+    updated_at: user.updatedAt,
+  };
+}
 
 export async function putUser(user: UserRecord) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  await ddb.send(
-    new PutCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Item: user,
-      ConditionExpression: "attribute_not_exists(userId)",
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from("users").insert(userToRow(user));
+  if (error) throw error;
 }
 
 export async function upsertUser(user: UserRecord) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  await ddb.send(
-    new PutCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Item: user,
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from("users").upsert(userToRow(user), { onConflict: "user_id" });
+  if (error) throw error;
 }
 
-export async function getUserById(userId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const res = await ddb.send(
-    new GetCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Key: { userId },
-    }),
-  );
+export async function getUserById(userId: string): Promise<UserRecord | null> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("users")
+    .select()
+    .eq("user_id", userId)
+    .single();
 
-  return (res.Item as UserRecord | undefined) ?? null;
+  if (error || !data) return null;
+  return rowToUser(data);
 }
 
-export async function listUsersForEstate(params: { estateId: string; limit?: number }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
+export async function listUsersForEstate(params: { estateId: string; limit?: number }): Promise<UserRecord[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("users")
+    .select()
+    .eq("estate_id", params.estateId)
+    .order("created_at", { ascending: true })
+    .limit(params.limit ?? 250);
 
-  const limit = params.limit ?? 250;
-
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: env.DDB_TABLE_USERS,
-      IndexName: "GSI1",
-      KeyConditionExpression: "estateId = :e",
-      ExpressionAttributeValues: { ":e": params.estateId },
-      ScanIndexForward: true,
-      Limit: limit,
-    }),
-  );
-
-  return ((res.Items as UserRecord[] | undefined) ?? []).slice(0, limit);
-}
-
-export async function listUsersForEstatePage(params: {
-  estateId: string;
-  limit?: number;
-  cursor?: DdbCursor;
-}) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  const limit = params.limit ?? 250;
-
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: env.DDB_TABLE_USERS,
-      IndexName: "GSI1",
-      KeyConditionExpression: "estateId = :e",
-      ExpressionAttributeValues: { ":e": params.estateId },
-      ScanIndexForward: true,
-      Limit: limit,
-      ExclusiveStartKey: (params.cursor as any) ?? undefined,
-    }),
-  );
-
-  return {
-    items: ((res.Items as UserRecord[] | undefined) ?? []).slice(0, limit),
-    nextCursor: (res.LastEvaluatedKey as DdbCursor | undefined) ?? undefined,
-  };
+  if (error || !data) return [];
+  return data.map(rowToUser);
 }
 
 export async function listGuardsForEstatePage(params: {
   estateId: string;
   limit?: number;
-  cursor?: DdbCursor;
-}) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
+  cursor?: unknown;
+}): Promise<{ items: UserRecord[]; nextCursor: undefined }> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("users")
+    .select()
+    .eq("estate_id", params.estateId)
+    .eq("role", "GUARD")
+    .order("created_at", { ascending: true })
+    .limit(params.limit ?? 50);
 
-  const limit = params.limit ?? 50;
-
-  const items: UserRecord[] = [];
-  let cursor: DdbCursor | undefined = params.cursor;
-  let loops = 0;
-
-  // We may need to loop because FilterExpression can return fewer than Limit.
-  while (items.length < limit && loops < 10) {
-    loops += 1;
-
-    const res: any = await ddb.send(
-      new QueryCommand({
-        TableName: env.DDB_TABLE_USERS,
-        IndexName: "GSI1",
-        KeyConditionExpression: "estateId = :e",
-        FilterExpression: "#role = :r",
-        ExpressionAttributeNames: { "#role": "role" },
-        ExpressionAttributeValues: { ":e": params.estateId, ":r": "GUARD" },
-        ScanIndexForward: true,
-        Limit: limit,
-        ExclusiveStartKey: (cursor as any) ?? undefined,
-      }),
-    );
-
-    const pageItems = (res.Items as UserRecord[] | undefined) ?? [];
-    for (const u of pageItems) {
-      if (items.length >= limit) break;
-      items.push(u);
-    }
-
-    cursor = (res.LastEvaluatedKey as DdbCursor | undefined) ?? undefined;
-    if (!cursor) break;
-  }
-
-  return {
-    items,
-    nextCursor: cursor,
-  };
+  return { items: error || !data ? [] : data.map(rowToUser), nextCursor: undefined };
 }
 
-export async function listUsersForResident(params: { estateId: string; residentId: string; limit?: number }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
+export async function listUsersForResident(params: {
+  estateId: string;
+  residentId: string;
+  limit?: number;
+}): Promise<UserRecord[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("users")
+    .select()
+    .eq("estate_id", params.estateId)
+    .eq("resident_id", params.residentId)
+    .order("created_at", { ascending: true })
+    .limit(params.limit ?? 50);
 
-  const limit = params.limit ?? 50;
-  const items: UserRecord[] = [];
-  let cursor: DdbCursor | undefined = undefined;
-  let loops = 0;
-
-  // We may need to loop because FilterExpression can return fewer than Limit.
-  while (items.length < limit && loops < 10) {
-    loops += 1;
-
-    const queryRes = (await ddb.send(
-      new QueryCommand({
-        TableName: env.DDB_TABLE_USERS,
-        IndexName: "GSI1",
-        KeyConditionExpression: "estateId = :e",
-        FilterExpression: "residentId = :r",
-        ExpressionAttributeValues: { ":e": params.estateId, ":r": params.residentId },
-        ScanIndexForward: true,
-        Limit: limit,
-        ExclusiveStartKey: (cursor as any) ?? undefined,
-      }),
-    )) as { Items?: unknown[]; LastEvaluatedKey?: DdbCursor };
-
-    const pageItems = (queryRes.Items as UserRecord[] | undefined) ?? [];
-    for (const u of pageItems) {
-      if (items.length >= limit) break;
-      items.push(u);
-    }
-
-    cursor = (queryRes.LastEvaluatedKey as DdbCursor | undefined) ?? undefined;
-    if (!cursor) break;
-  }
-
-  return items;
+  if (error || !data) return [];
+  return data.map(rowToUser);
 }
 
 export async function updateUserResidentId(params: { userId: string; residentId: string | null }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
-
-  const sets: string[] = ["updatedAt = :u"];
-  const values: Record<string, unknown> = { ":u": now };
-
-  if (params.residentId) {
-    sets.push("residentId = :r");
-    values[":r"] = params.residentId;
-  } else {
-    sets.push("residentId = :r");
-    values[":r"] = null;
-  }
-
-  await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Key: { userId: params.userId },
-      UpdateExpression: `SET ${sets.join(", ")}`,
-      ExpressionAttributeValues: values,
-      ConditionExpression: "attribute_exists(userId)",
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb
+    .from("users")
+    .update({ resident_id: params.residentId, updated_at: new Date().toISOString() })
+    .eq("user_id", params.userId);
 }
 
-/**
- * Find guard by phone number within an estate.
- * Normalizes phone numbers for comparison.
- */
 export async function findGuardByPhoneInEstate(params: {
   estateId: string;
   phone: string;
 }): Promise<UserRecord | null> {
   const normalizedPhone = normalizePhone(params.phone);
   const { items: guards } = await listGuardsForEstatePage({ estateId: params.estateId, limit: 500 });
-  return (
-    guards.find((g) => g.phone && normalizePhone(g.phone) === normalizedPhone) ?? null
-  );
+  return guards.find((g) => g.phone && normalizePhone(g.phone) === normalizedPhone) ?? null;
 }
 
-/**
- * Normalize phone number for comparison.
- * Removes all non-digit chars except leading +.
- */
 function normalizePhone(phone: string): string {
   const cleaned = phone.replace(/[^\d+]/g, "");
-  // If doesn't start with +, assume Nigerian number
   if (!cleaned.startsWith("+")) {
     return `+234${cleaned.replace(/^0/, "")}`;
   }
   return cleaned;
 }
 
-/**
- * Delete a user from DynamoDB by userId.
- */
 export async function deleteUser(userId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  await ddb.send(
-    new DeleteCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Key: { userId },
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb.from("users").delete().eq("user_id", userId);
 }
 
-/**
- * Mark user as having changed their password.
- */
 export async function markPasswordChanged(userId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
-
-  await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Key: { userId },
-      UpdateExpression: "SET passwordChanged = :p, updatedAt = :u",
-      ExpressionAttributeValues: { ":p": true, ":u": now },
-      ConditionExpression: "attribute_exists(userId)",
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb
+    .from("users")
+    .update({ password_changed: true, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
 }
 
-// ============================================
-// SUB-ADMIN MANAGEMENT FUNCTIONS
-// ============================================
-
-/**
- * List all sub-admins for an estate.
- */
 export async function listSubAdminsForEstate(params: {
   estateId: string;
   limit?: number;
 }): Promise<UserRecord[]> {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("users")
+    .select()
+    .eq("estate_id", params.estateId)
+    .eq("role", "SUB_ADMIN")
+    .order("created_at", { ascending: true })
+    .limit(params.limit ?? 50);
 
-  const limit = params.limit ?? 50;
-  const items: UserRecord[] = [];
-  let cursor: DdbCursor | undefined = undefined;
-  let loops = 0;
-
-  while (items.length < limit && loops < 10) {
-    loops += 1;
-
-    const res: any = await ddb.send(
-      new QueryCommand({
-        TableName: env.DDB_TABLE_USERS,
-        IndexName: "GSI1",
-        KeyConditionExpression: "estateId = :e",
-        FilterExpression: "#role = :r",
-        ExpressionAttributeNames: { "#role": "role" },
-        ExpressionAttributeValues: { ":e": params.estateId, ":r": "SUB_ADMIN" },
-        ScanIndexForward: true,
-        Limit: limit,
-        ExclusiveStartKey: (cursor as any) ?? undefined,
-      }),
-    );
-
-    const pageItems = (res.Items as UserRecord[] | undefined) ?? [];
-    for (const u of pageItems) {
-      if (items.length >= limit) break;
-      items.push(u);
-    }
-
-    cursor = (res.LastEvaluatedKey as DdbCursor | undefined) ?? undefined;
-    if (!cursor) break;
-  }
-
-  return items;
+  if (error || !data) return [];
+  return data.map(rowToUser);
 }
 
-/**
- * Count admins (ESTATE_ADMIN + SUB_ADMIN) for an estate.
- */
 export async function countAdminsForEstate(estateId: string): Promise<number> {
-  const { items } = await listUsersForEstatePage({ estateId, limit: 500 });
-  return items.filter((u) => u.role === "ESTATE_ADMIN" || u.role === "SUB_ADMIN").length;
+  const sb = getSupabaseAdmin();
+  const { count, error } = await sb
+    .from("users")
+    .select("*", { count: "exact", head: true })
+    .eq("estate_id", estateId)
+    .in("role", ["ESTATE_ADMIN", "SUB_ADMIN"]);
+
+  if (error) return 0;
+  return count ?? 0;
 }
 
-/**
- * Update sub-admin permissions.
- */
 export async function updateSubAdminPermissions(params: {
   userId: string;
   permissions: SubAdminPermission[];
 }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
-
-  await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_USERS,
-      Key: { userId: params.userId },
-      UpdateExpression: "SET #perms = :p, updatedAt = :u",
-      ExpressionAttributeNames: { "#perms": "permissions" },
-      ExpressionAttributeValues: { ":p": params.permissions, ":u": now },
-      ConditionExpression: "attribute_exists(userId)",
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb
+    .from("users")
+    .update({ permissions: params.permissions, updated_at: new Date().toISOString() })
+    .eq("user_id", params.userId);
 }
 
-/**
- * Check if a sub-admin has a specific permission.
- */
 export function hasPermission(user: UserRecord, permission: SubAdminPermission): boolean {
-  // Estate admins have all permissions
-  if (user.role === "ESTATE_ADMIN" || user.role === "SUPER_ADMIN") {
-    return true;
-  }
-
-  // Sub-admins check their permissions array
-  if (user.role === "SUB_ADMIN") {
-    return user.permissions?.includes(permission) ?? false;
-  }
-
+  if (user.role === "ESTATE_ADMIN" || user.role === "SUPER_ADMIN") return true;
+  if (user.role === "SUB_ADMIN") return user.permissions?.includes(permission) ?? false;
   return false;
 }

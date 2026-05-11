@@ -3,7 +3,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { enforceSameOriginOr403, requireEstateId, requireRoleSession } from "@/lib/auth/guards";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
-import { cognitoAdminCreateUser, cognitoAdminGetUserSub } from "@/lib/aws/cognito";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   putUser,
   listSubAdminsForEstate,
@@ -14,10 +14,6 @@ import {
 import { putActivityLog } from "@/lib/repos/activity-logs";
 import { getEstateById } from "@/lib/repos/estates";
 
-/**
- * GET /api/estate-admin/sub-admins
- * List all sub-admins for the estate
- */
 export async function GET() {
   const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
   if (!sessionRes.ok) return sessionRes.response;
@@ -27,13 +23,11 @@ export async function GET() {
   const estateId = estateIdRes.value;
 
   try {
-    // Get estate to check if sub-admin feature is enabled
     const estate = await getEstateById(estateId);
     if (!estate) {
       return NextResponse.json({ error: "Estate not found" }, { status: 404 });
     }
 
-    // Check if sub-admin feature is enabled for this tier
     if (!estate.features?.subAdminEnabled) {
       return NextResponse.json(
         {
@@ -75,9 +69,6 @@ const bodySchema = z.object({
   permissions: z.array(z.enum(ALL_SUB_ADMIN_PERMISSIONS as [SubAdminPermission, ...SubAdminPermission[]])).default([]),
 });
 
-/**
- * Generate a secure temporary password
- */
 function generateTempPassword(): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const lower = "abcdefghijkmnpqrstuvwxyz";
@@ -100,10 +91,6 @@ function generateTempPassword(): string {
   return chars.join("");
 }
 
-/**
- * POST /api/estate-admin/sub-admins
- * Create a new sub-admin
- */
 export async function POST(req: Request) {
   const origin = enforceSameOriginOr403(req);
   if (!origin.ok) return origin.response;
@@ -144,13 +131,11 @@ export async function POST(req: Request) {
 
   const { name, email, permissions } = parsed.data;
 
-  // Get estate to check limits and features
   const estate = await getEstateById(estateId);
   if (!estate) {
     return NextResponse.json({ error: "Estate not found" }, { status: 404 });
   }
 
-  // Check if sub-admin feature is enabled
   if (!estate.features?.subAdminEnabled) {
     return NextResponse.json(
       { error: "Sub-admin accounts are available on Standard and Premium plans." },
@@ -158,7 +143,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Check if we've reached the admin limit
   const currentAdminCount = await countAdminsForEstate(estateId);
   if (currentAdminCount >= estate.maxAdmins) {
     return NextResponse.json(
@@ -170,59 +154,58 @@ export async function POST(req: Request) {
   const tempPassword = generateTempPassword();
 
   try {
-    await cognitoAdminCreateUser({
-      username: email,
-      password: tempPassword,
+    const sbAdmin = getSupabaseAdmin();
+    const { data: authData, error: authError } = await sbAdmin.auth.admin.createUser({
       email,
-      name,
-      userAttributes: {
-        "custom:role": "SUB_ADMIN",
-        "custom:estateId": estateId,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: { name, role: "SUB_ADMIN", estate_id: estateId },
+    });
+
+    if (authError) {
+      if (authError.message?.includes("already been registered")) {
+        return NextResponse.json(
+          { error: "A user with this email already exists" },
+          { status: 409 }
+        );
+      }
+      throw authError;
+    }
+
+    const now = new Date().toISOString();
+    await putUser({
+      userId: authData.user.id,
+      estateId,
+      role: "SUB_ADMIN",
+      name: name.trim(),
+      email,
+      permissions,
+      createdBy: sessionRes.value.userId,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await putActivityLog({
+      estateId,
+      type: "SUB_ADMIN_CREATED",
+      message: `${name} (${email})`,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      tempPassword,
+      subAdmin: {
+        userId: authData.user.id,
+        name,
+        email,
+        permissions,
       },
     });
   } catch (err) {
-    console.error("Failed to create sub-admin in Cognito:", err);
-    const message = err instanceof Error ? err.message : "Unknown error";
-    if (message.includes("UsernameExistsException") || message.includes("already exists")) {
-      return NextResponse.json(
-        { error: "A user with this email already exists" },
-        { status: 409 }
-      );
-    }
+    console.error("Failed to create sub-admin:", err);
     return NextResponse.json(
       { error: "Unable to create sub-admin account" },
       { status: 500 }
     );
   }
-
-  const sub = await cognitoAdminGetUserSub({ username: email });
-  const now = new Date().toISOString();
-  await putUser({
-    userId: sub,
-    estateId,
-    role: "SUB_ADMIN",
-    name: name.trim(),
-    email,
-    permissions,
-    createdBy: sessionRes.value.userId,
-    createdAt: now,
-    updatedAt: now,
-  });
-
-  await putActivityLog({
-    estateId,
-    type: "SUB_ADMIN_CREATED",
-    message: `${name} (${email})`,
-  });
-
-  return NextResponse.json({
-    ok: true,
-    tempPassword,
-    subAdmin: {
-      userId: sub,
-      name,
-      email,
-      permissions,
-    },
-  });
 }

@@ -46,3 +46,7 @@ yarn-error.log*
 
 # local tools/logs
 /tools/
+.codex/
+tsconfig.tsbuildinfo
+supabase/.temp/
+.vercel/

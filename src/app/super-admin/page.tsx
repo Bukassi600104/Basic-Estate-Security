@@ -16,15 +16,7 @@ export default async function SuperAdminDashboard() {
         status: (e.status === "INACTIVE" ? "SUSPENDED" : e.status) as "ACTIVE" | "SUSPENDED" | "TERMINATED",
         createdAt: e.createdAt,
       }))}
-      initialNextCursor={
-        page.nextCursor
-          ? Buffer.from(JSON.stringify(page.nextCursor), "utf8")
-              .toString("base64")
-              .replace(/\+/g, "-")
-              .replace(/\//g, "_")
-              .replace(/=+$/g, "")
-          : null
-      }
+      initialNextCursor={page.nextCursor ?? null}
     />
   );
 }

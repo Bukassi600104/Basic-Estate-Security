@@ -1,20 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { headers } from "next/headers";
-import { randomUUID } from "node:crypto";
+import { headers, cookies } from "next/headers";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { findEstateByName } from "@/lib/repos/estates";
 import { findGuardByPhoneInEstate, getUserById } from "@/lib/repos/users";
-import { cognitoPasswordSignIn } from "@/lib/aws/cognito";
-import {
-  setAccessCookie,
-  setRefreshCookie,
-  setSessionCookieWithOptions,
-  verifySession,
-} from "@/lib/auth/session";
+import { getGateById } from "@/lib/repos/gates";
+import { createShift, endAllActiveShiftsForGuard } from "@/lib/repos/guard-shifts";
+import { createSupabaseServerClient } from "@/lib/supabase/client";
 
 export const runtime = "nodejs";
+
+const SHIFT_COOKIE = "guard_shift_id";
 
 const bodySchema = z.object({
   estateName: z.string().min(2),
@@ -22,35 +19,24 @@ const bodySchema = z.object({
   phone: z.string().min(6),
   verificationCode: z.string().min(8),
   password: z.string().min(1),
+  gateId: z.string().min(1),
 });
 
-/**
- * Fuzzy name matching - checks if names are similar enough.
- */
 function fuzzyNameMatch(a: string, b: string): boolean {
   const normalize = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[^a-z\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
+    s.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
 
   const na = normalize(a);
   const nb = normalize(b);
-
   if (na === nb) return true;
   if (na.includes(nb) || nb.includes(na)) return true;
-
   const partsA = na.split(" ");
   const partsB = nb.split(" ");
   if (partsA[0] === partsB[0]) return true;
-
   return false;
 }
 
 export async function POST(req: Request) {
-  const debugId = randomUUID();
-
   try {
     enforceSameOriginForMutations(req);
   } catch {
@@ -63,9 +49,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { estateName, guardName, phone, verificationCode, password } = parsed.data;
+  const { estateName, guardName, phone, verificationCode, password, gateId: selectedGateId } = parsed.data;
 
-  // Rate limit
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
   const rl = await rateLimitHybrid({
@@ -83,111 +68,83 @@ export async function POST(req: Request) {
           "Cache-Control": "no-store, max-age=0",
           ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
         },
-      }
+      },
     );
   }
 
-  // 1. Find estate by name
+  // 1. Find estate
   const estate = await findEstateByName(estateName);
-  if (!estate) {
-    return NextResponse.json({ error: "Estate not found" }, { status: 404 });
-  }
+  if (!estate) return NextResponse.json({ error: "Estate not found" }, { status: 404 });
+  if (estate.status !== "ACTIVE") return NextResponse.json({ error: "Estate is not active" }, { status: 403 });
 
-  // Check estate is active
-  if (estate.status !== "ACTIVE") {
-    return NextResponse.json({ error: "Estate is not active" }, { status: 403 });
-  }
+  // 2. Find guard by phone
+  const guard = await findGuardByPhoneInEstate({ estateId: estate.estateId, phone });
+  if (!guard) return NextResponse.json({ error: "Guard not found" }, { status: 404 });
 
-  // 2. Find guard by phone in estate
-  const guard = await findGuardByPhoneInEstate({
-    estateId: estate.estateId,
-    phone,
-  });
-  if (!guard) {
-    return NextResponse.json({ error: "Guard not found" }, { status: 404 });
-  }
-
-  // 3. Validate verification code against guard's stored code
+  // 3. Validate verification code
   const providedCode = verificationCode.toUpperCase().trim();
   const storedCode = (guard.verificationCode || "").toUpperCase().trim();
   if (!storedCode || providedCode !== storedCode) {
     return NextResponse.json({ error: "Invalid verification code" }, { status: 401 });
   }
 
-  // 4. Verify name matches (fuzzy)
+  // 4. Verify name
   if (!fuzzyNameMatch(guard.name, guardName)) {
     return NextResponse.json({ error: "Name does not match" }, { status: 401 });
   }
 
-  // 5. Authenticate via Cognito
-  // Guards can have email or phone as identifier
-  const cognitoUsername = guard.email || guard.phone || "";
-  if (!cognitoUsername) {
-    return NextResponse.json({ error: "Account configuration error" }, { status: 500 });
-  }
+  // 5. Authenticate via Supabase
+  const guardEmail = guard.email || `guard-${phone.replace(/[^0-9]/g, "")}@estate.local`;
 
-  let tokens: { idToken: string; accessToken: string; refreshToken: string };
   try {
-    const auth = await cognitoPasswordSignIn({
-      username: cognitoUsername,
+    const supabase = createSupabaseServerClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: guardEmail,
       password,
     });
 
-    if (auth.kind === "CHALLENGE") {
-      console.error("guard_verify_unexpected_challenge", JSON.stringify({
-        debugId,
-        challenge: auth.challengeName,
-        guardId: guard.userId,
-      }));
-      return NextResponse.json({ error: "Additional verification required. Please use the main sign-in page." }, { status: 401 });
+    if (error) {
+      return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
-
-    tokens = {
-      idToken: auth.idToken,
-      accessToken: auth.accessToken,
-      refreshToken: auth.refreshToken,
-    };
-  } catch (error) {
-    const e = error as any;
-    const name = typeof e?.name === "string" ? e.name : "UnknownError";
-
-    if (name === "CredentialsProviderError") {
-      console.error("guard_verify_aws_error", JSON.stringify({
-        debugId,
-        name,
-        message: e?.message ?? "",
-      }));
-      return NextResponse.json(
-        { error: "Service temporarily unavailable. Please try again later." },
-        { status: 503 }
-      );
-    }
-
+  } catch {
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
 
-  // 6. Set session cookies
-  setSessionCookieWithOptions(tokens.idToken, { rememberMe: false });
-  setAccessCookie(tokens.accessToken);
-  setRefreshCookie(tokens.refreshToken, { rememberMe: false });
-
-  // Verify profile exists
-  try {
-    const session = await verifySession(tokens.idToken);
-    const profile = await getUserById(session.userId);
-    if (!profile) {
-      return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
-    }
-  } catch (error) {
-    console.error("guard_verify_profile_check_failed", JSON.stringify({
-      debugId,
-      error: (error as Error)?.message ?? "",
-    }));
-    return NextResponse.json(
-      { error: "Service temporarily unavailable. Please try again." },
-      { status: 503 }
-    );
+  // 6. Validate gate
+  const gate = await getGateById(selectedGateId);
+  if (!gate || gate.estateId !== estate.estateId) {
+    return NextResponse.json({ error: "Invalid gate selection" }, { status: 400 });
   }
 
-  return NextResponse.json({ ok: true });
+  // 7. Verify profile
+  const profile = await getUserById(guard.userId);
+  if (!profile) {
+    return NextResponse.json({ error: "Account not provisioned" }, { status: 403 });
+  }
+
+  // 8. Start shift
+  await endAllActiveShiftsForGuard(profile.userId);
+  const shiftType = gate.shiftType ?? "DAY";
+  const shift = await createShift({
+    estateId: estate.estateId,
+    guardUserId: profile.userId,
+    guardName: guard.name,
+    gateId: gate.gateId,
+    gateName: gate.name,
+    shiftType,
+  });
+
+  const cookieStore = cookies();
+  cookieStore.set(SHIFT_COOKIE, shift.shiftId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 12 * 60 * 60,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    shift: { shiftId: shift.shiftId, gateName: gate.name, shiftType },
+  });
 }

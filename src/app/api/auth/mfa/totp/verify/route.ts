@@ -1,24 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import {
-  ACCESS_COOKIE_NAME,
-  MFA_SETUP_COOKIE_NAME,
-  REFRESH_COOKIE_NAME,
-  clearMfaSetupCookie,
-  getSession,
-  setAccessCookie,
-  setSessionCookie,
-} from "@/lib/auth/session";
-import { cookies, headers } from "next/headers";
+import { getSession } from "@/lib/auth/session";
+import { headers } from "next/headers";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
-import { cognitoRefreshSession, cognitoVerifyTotpEnrollment } from "@/lib/aws/cognito";
-import { verifySession } from "@/lib/auth/session";
+import { createSupabaseServerClient } from "@/lib/supabase/client";
 
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
   code: z.string().min(4).max(12),
+  factorId: z.string().min(1),
 });
 
 export async function POST(req: Request) {
@@ -60,48 +52,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const accessToken = cookies().get(ACCESS_COOKIE_NAME)?.value;
-  if (!accessToken) {
-    return NextResponse.json({ error: "Please sign in again" }, { status: 401 });
-  }
-
-  const setupSession = cookies().get(MFA_SETUP_COOKIE_NAME)?.value;
-  if (!setupSession) {
-    return NextResponse.json({ error: "No pending setup" }, { status: 409 });
-  }
-
-  const refreshToken = cookies().get(REFRESH_COOKIE_NAME)?.value;
-  if (!refreshToken) {
-    return NextResponse.json({ error: "Please sign in again" }, { status: 401 });
-  }
-
   try {
-    await cognitoVerifyTotpEnrollment({
-      accessToken,
-      session: setupSession,
+    const supabase = createSupabaseServerClient();
+    const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
+      factorId: parsed.data.factorId,
+    });
+    if (challengeError) throw challengeError;
+
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      factorId: parsed.data.factorId,
+      challengeId: challenge.id,
       code: parsed.data.code,
     });
-
-    clearMfaSetupCookie();
-
-    // Refresh tokens so the new custom:mfaEnabled claim is reflected
-    // in the IdToken used by middleware.
-    const refreshed = await cognitoRefreshSession({ refreshToken });
-    setSessionCookie(refreshed.idToken);
-    setAccessCookie(refreshed.accessToken);
-
-    const refreshedSession = await verifySession(refreshed.idToken);
-    if (!refreshedSession.mfaEnabled) {
-      return NextResponse.json({ error: "MFA setup incomplete" }, { status: 409 });
-    }
+    if (verifyError) throw verifyError;
 
     return NextResponse.json(
       { ok: true },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   } catch {
     return NextResponse.json({ error: "Invalid code" }, { status: 400 });

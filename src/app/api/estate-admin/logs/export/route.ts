@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { listValidationLogsForEstate } from "@/lib/repos/validation-logs";
 import { headers } from "next/headers";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { requireEstateId, requireRoleSession } from "@/lib/auth/guards";
+import { listFilteredValidationLogs, type LogFilters } from "@/lib/repos/validation-logs";
 
 export async function GET(req: Request) {
   const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
@@ -33,9 +33,19 @@ export async function GET(req: Request) {
     );
   }
 
-  void req;
+  const { searchParams } = new URL(req.url);
+  const filters: LogFilters = {
+    dateFrom: searchParams.get("dateFrom") ?? undefined,
+    dateTo: searchParams.get("dateTo") ?? undefined,
+    gateId: searchParams.get("gateId") ?? undefined,
+    outcome: searchParams.get("outcome") ?? undefined,
+    eventType: searchParams.get("eventType") ?? undefined,
+    shiftType: searchParams.get("shiftType") ?? undefined,
+    houseNumber: searchParams.get("houseNumber") ?? undefined,
+    passType: searchParams.get("passType") ?? undefined,
+  };
 
-  const logs = await listValidationLogsForEstate({ estateId, limit: 500 });
+  const logs = await listFilteredValidationLogs({ estateId, filters, limit: 1000 });
 
   const escapeCsv = (value: unknown) => {
     const s = value == null ? "" : String(value);
@@ -47,9 +57,12 @@ export async function GET(req: Request) {
   const header = [
     "validatedAt",
     "gateName",
+    "shiftType",
+    "eventType",
     "houseNumber",
     "residentName",
     "passType",
+    "guestCount",
     "outcome",
     "decision",
     "failureReason",
@@ -61,9 +74,12 @@ export async function GET(req: Request) {
   const rows = logs.map((l) => [
     l.validatedAt,
     l.gateName,
+    l.shiftType ?? "",
+    l.eventType ?? "ENTRY",
     l.houseNumber ?? "",
     l.residentName ?? "",
     l.passType ?? "",
+    String(l.guestCount ?? 1),
     l.outcome,
     l.decision,
     l.failureReason ?? "",

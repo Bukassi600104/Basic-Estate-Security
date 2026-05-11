@@ -13,16 +13,12 @@ import {
   clearCredentialResetRequest,
   getResidentById,
 } from "@/lib/repos/residents";
-import { listUsersForResident, getUserById } from "@/lib/repos/users";
-import { cognitoAdminSetPassword } from "@/lib/aws/cognito";
+import { listUsersForResident } from "@/lib/repos/users";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getEstateById } from "@/lib/repos/estates";
 
 export const runtime = "nodejs";
 
-/**
- * GET /api/estate-admin/credential-resets
- * List all pending credential reset requests for the estate.
- */
 export async function GET() {
   const sessionRes = await requireRoleSession({ roles: ["ESTATE_ADMIN"] });
   if (!sessionRes.ok) return sessionRes.response;
@@ -47,17 +43,11 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error("list_credential_resets_error", JSON.stringify({
-      estateId,
-      error: (error as Error)?.message ?? "",
-    }));
+    console.error("list_credential_resets_error", (error as Error)?.message);
     return NextResponse.json({ error: "Failed to list requests" }, { status: 500 });
   }
 }
 
-/**
- * Generate a secure password (5-8 characters)
- */
 function generatePassword(): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const lower = "abcdefghijkmnpqrstuvwxyz";
@@ -84,10 +74,6 @@ const processSchema = z.object({
   residentId: z.string().min(1),
 });
 
-/**
- * POST /api/estate-admin/credential-resets
- * Process a credential reset request - generate new password.
- */
 export async function POST(req: Request) {
   const origin = enforceSameOriginOr403(req);
   if (!origin.ok) return origin.response;
@@ -119,7 +105,7 @@ export async function POST(req: Request) {
           "Cache-Control": "no-store, max-age=0",
           ...(rl.retryAfterSeconds ? { "Retry-After": String(rl.retryAfterSeconds) } : {}),
         },
-      }
+      },
     );
   }
 
@@ -131,43 +117,36 @@ export async function POST(req: Request) {
 
   const { residentId } = parsed.data;
 
-  // Verify resident belongs to this estate
   const resident = await getResidentById(residentId);
   if (!resident || resident.estateId !== estateId) {
     return NextResponse.json({ error: "Resident not found" }, { status: 404 });
   }
 
-  // Get linked users for this resident
   const users = await listUsersForResident({ estateId, residentId, limit: 10 });
   if (users.length === 0) {
     return NextResponse.json({ error: "No user accounts found for this resident" }, { status: 404 });
   }
 
-  // Get estate for name
   const estate = await getEstateById(estateId);
+  const sbAdmin = getSupabaseAdmin();
 
-  // Generate new passwords for all linked users
   const newCredentials: Array<{ userId: string; email: string; password: string; role: string }> = [];
 
   for (const user of users) {
     const newPassword = generatePassword();
-    const username = user.email ?? "";
-
-    if (!username) continue;
+    const email = user.email ?? "";
+    if (!email) continue;
 
     try {
-      await cognitoAdminSetPassword({ username, password: newPassword });
+      await sbAdmin.auth.admin.updateUserById(user.userId, { password: newPassword });
       newCredentials.push({
         userId: user.userId,
-        email: username,
+        email,
         password: newPassword,
         role: user.role,
       });
     } catch (error) {
-      console.error("reset_password_error", JSON.stringify({
-        userId: user.userId,
-        error: (error as Error)?.message ?? "",
-      }));
+      console.error("reset_password_error", (error as Error)?.message);
     }
   }
 
@@ -175,15 +154,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to reset any credentials" }, { status: 500 });
   }
 
-  // Clear the reset request
   try {
     await clearCredentialResetRequest(residentId);
   } catch (e) {
-    // Non-critical
-    console.error("clear_reset_request_error", JSON.stringify({
-      residentId,
-      error: (e as Error)?.message ?? "",
-    }));
+    console.error("clear_reset_request_error", (e as Error)?.message);
   }
 
   return NextResponse.json({

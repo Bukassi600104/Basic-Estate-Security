@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import { enforceSameOriginOr403, requireEstateId, requireRoleSession } from "@/lib/auth/guards";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserById, deleteUser } from "@/lib/repos/users";
-import { cognitoAdminDeleteUser } from "@/lib/aws/cognito";
 import { putActivityLog } from "@/lib/repos/activity-logs";
-import { getEstateById } from "@/lib/repos/estates";
 
-/**
- * GET /api/estate-admin/sub-admins/[userId]
- * Get a specific sub-admin
- */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ userId: string }> }
@@ -29,12 +24,10 @@ export async function GET(
       return NextResponse.json({ error: "Sub-admin not found" }, { status: 404 });
     }
 
-    // Verify they belong to the same estate
     if (subAdmin.estateId !== estateId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Verify they're a sub-admin
     if (subAdmin.role !== "SUB_ADMIN") {
       return NextResponse.json({ error: "User is not a sub-admin" }, { status: 400 });
     }
@@ -58,10 +51,6 @@ export async function GET(
   }
 }
 
-/**
- * DELETE /api/estate-admin/sub-admins/[userId]
- * Delete a sub-admin
- */
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ userId: string }> }
@@ -85,27 +74,23 @@ export async function DELETE(
       return NextResponse.json({ error: "Sub-admin not found" }, { status: 404 });
     }
 
-    // Verify they belong to the same estate
     if (subAdmin.estateId !== estateId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Verify they're a sub-admin
     if (subAdmin.role !== "SUB_ADMIN") {
       return NextResponse.json({ error: "User is not a sub-admin" }, { status: 400 });
     }
 
-    // Delete from Cognito
-    if (subAdmin.email) {
-      await cognitoAdminDeleteUser({ username: subAdmin.email }).catch((err) => {
-        console.error("Failed to delete sub-admin from Cognito:", err);
-      });
+    try {
+      const sbAdmin = getSupabaseAdmin();
+      await sbAdmin.auth.admin.deleteUser(userId);
+    } catch (authErr) {
+      console.error("Failed to delete sub-admin from auth:", authErr);
     }
 
-    // Delete from DynamoDB
     await deleteUser(userId);
 
-    // Log activity
     await putActivityLog({
       estateId,
       type: "SUB_ADMIN_DELETED",

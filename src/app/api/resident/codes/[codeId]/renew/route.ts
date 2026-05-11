@@ -77,7 +77,7 @@ export async function POST(
 
   const now = new Date();
   const newExpiresAtIso = new Date(now.getTime() + STAFF_TTL_MS).toISOString();
-  await renewStaffCode({ codeKey: code.codeKey, newExpiresAtIso });
+  await renewStaffCode({ codeId: code.codeId, newExpiresAtIso });
 
   return NextResponse.json({ ok: true });
 }

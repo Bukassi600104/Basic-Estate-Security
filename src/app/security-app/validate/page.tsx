@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   ChevronDown,
@@ -8,15 +9,25 @@ import {
   Clock,
   History,
   Home,
+  LogIn,
+  LogOut,
   Phone,
+  Power,
   Search,
   ShieldCheck,
+  Sun,
+  Moon,
   User,
+  Users,
   XCircle,
 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 
-type Gate = { id: string; name: string };
+type ShiftInfo = {
+  shiftId: string;
+  gateName: string;
+  shiftType: "DAY" | "NIGHT";
+};
 
 type LookupResult = {
   code: {
@@ -24,6 +35,9 @@ type LookupResult = {
     code: string;
     type: string;
     status: string;
+    eventType: string;
+    guestCount: number;
+    guestNames?: string;
     expiresAt: string;
     expired: boolean;
     resident: { name: string; houseNumber: string; status: string; phone?: string };
@@ -34,55 +48,51 @@ type RecentValidation = {
   code: string;
   residentName: string;
   houseNumber: string;
+  eventType: string;
+  guestCount: number;
   outcome: "SUCCESS" | "FAILURE";
   time: string;
 };
 
-const GATE_STORAGE_KEY = "guard_selected_gate";
-
 export default function SecurityValidatePage() {
-  const [gates, setGates] = useState<Gate[]>([]);
-  const [gateId, setGateId] = useState<string>("");
+  const router = useRouter();
+  const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lookup, setLookup] = useState<LookupResult | null>(null);
   const [validating, setValidating] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; data?: LookupResult } | null>(null);
+  const [result, setResult] = useState<{
+    success: boolean;
+    eventType?: string;
+    guestCount?: number;
+    residentName?: string;
+    houseNumber?: string;
+  } | null>(null);
   const [recentValidations, setRecentValidations] = useState<RecentValidation[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [endingShift, setEndingShift] = useState(false);
 
   const canLookup = useMemo(() => code.trim().length >= 3, [code]);
 
-  // Load gates and restore saved gate selection
-  async function loadGates() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/guard/gates");
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Failed to load gates");
-      const list = (data.gates ?? []) as Gate[];
-      setGates(list);
-
-      // Restore saved gate or use first
-      const savedGate = localStorage.getItem(GATE_STORAGE_KEY);
-      if (savedGate && list.some((g) => g.id === savedGate)) {
-        setGateId(savedGate);
-      } else if (!gateId && list.length) {
-        setGateId(list[0].id);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load gates");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    void loadGates();
-    // Load recent validations from localStorage
+    async function loadShift() {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/guard/gates");
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.shift) {
+          setShiftInfo(data.shift);
+        }
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadShift();
+
     const saved = localStorage.getItem("recent_validations");
     if (saved) {
       try {
@@ -91,16 +101,8 @@ export default function SecurityValidatePage() {
         // ignore
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Save gate selection
-  function handleGateChange(newGateId: string) {
-    setGateId(newGateId);
-    localStorage.setItem(GATE_STORAGE_KEY, newGateId);
-  }
-
-  // Add to recent validations
   function addToHistory(validation: RecentValidation) {
     const updated = [validation, ...recentValidations.slice(0, 9)];
     setRecentValidations(updated);
@@ -134,23 +136,31 @@ export default function SecurityValidatePage() {
       const res = await fetch("/api/guard/validate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ code: code.trim(), gateId }),
+        body: JSON.stringify({ code: code.trim() }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Validation failed");
 
-      // Add to history
-      if (lookup) {
-        addToHistory({
-          code: code.trim(),
-          residentName: lookup.code.resident.name,
-          houseNumber: lookup.code.resident.houseNumber,
-          outcome: "SUCCESS",
-          time: new Date().toISOString(),
-        });
-      }
+      const eventType = data.eventType ?? lookup?.code?.eventType ?? "ENTRY";
+      const guestCount = data.guestCount ?? lookup?.code?.guestCount ?? 1;
 
-      setResult({ success: true, data: lookup ?? undefined });
+      addToHistory({
+        code: code.trim(),
+        residentName: data.residentName ?? lookup?.code.resident.name ?? "Unknown",
+        houseNumber: data.houseNumber ?? lookup?.code.resident.houseNumber ?? "—",
+        eventType,
+        guestCount,
+        outcome: "SUCCESS",
+        time: new Date().toISOString(),
+      });
+
+      setResult({
+        success: true,
+        eventType,
+        guestCount,
+        residentName: data.residentName ?? lookup?.code.resident.name,
+        houseNumber: data.houseNumber ?? lookup?.code.resident.houseNumber,
+      });
       setTimeout(() => {
         setResult(null);
         setLookup(null);
@@ -160,11 +170,12 @@ export default function SecurityValidatePage() {
       const errorMessage = e instanceof Error ? e.message : "Validation failed";
       setError(errorMessage);
 
-      // Add failure to history
       addToHistory({
         code: code.trim(),
         residentName: lookup?.code.resident.name || "Unknown",
         houseNumber: lookup?.code.resident.houseNumber || "—",
+        eventType: lookup?.code.eventType || "ENTRY",
+        guestCount: lookup?.code.guestCount || 1,
         outcome: "FAILURE",
         time: new Date().toISOString(),
       });
@@ -175,6 +186,18 @@ export default function SecurityValidatePage() {
       }, 3000);
     } finally {
       setValidating(false);
+    }
+  }
+
+  async function handleEndShift() {
+    if (endingShift) return;
+    setEndingShift(true);
+    try {
+      await fetch("/api/guard/end-shift", { method: "POST" });
+      await fetch("/api/auth/sign-out", { method: "POST" });
+      router.push("/");
+    } catch {
+      setEndingShift(false);
     }
   }
 
@@ -200,7 +223,6 @@ export default function SecurityValidatePage() {
 
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white overflow-x-hidden">
-      {/* Background decoration */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-brand-green/10 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-brand-navy/5 blur-3xl" />
@@ -217,11 +239,19 @@ export default function SecurityValidatePage() {
             {result.success ? (
               <>
                 <CheckCircle2 className="mx-auto h-24 w-24 animate-bounce" />
-                <p className="mt-6 text-3xl font-bold">Access Granted</p>
-                {result.data && (
+                <p className="mt-6 text-3xl font-bold">
+                  {result.eventType === "EXIT" ? "Exit Granted" : "Entry Granted"}
+                </p>
+                {result.residentName && (
                   <div className="mt-4 rounded-xl bg-white/20 p-4">
-                    <p className="text-xl font-semibold">{result.data.code.resident.name}</p>
-                    <p className="text-lg opacity-90">House {result.data.code.resident.houseNumber}</p>
+                    <p className="text-xl font-semibold">{result.residentName}</p>
+                    <p className="text-lg opacity-90">House {result.houseNumber}</p>
+                    {(result.guestCount ?? 1) > 1 && (
+                      <p className="mt-2 text-lg font-bold">
+                        <Users className="mr-2 inline h-5 w-5" />
+                        {result.guestCount} Guests
+                      </p>
+                    )}
                   </div>
                 )}
               </>
@@ -237,64 +267,80 @@ export default function SecurityValidatePage() {
       )}
 
       <div className="mx-auto flex min-h-[100dvh] max-h-[100dvh] max-w-lg flex-col px-5 py-6 pb-48 overflow-y-auto">
-        {/* Header */}
+        {/* Header with Shift Badge */}
         <header>
-          <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-green text-white shadow-lg">
-              <ShieldCheck className="h-7 w-7" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-green text-white shadow-lg">
+                <ShieldCheck className="h-7 w-7" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  Validate Code
+                </h1>
+                <p className="text-sm text-slate-600">Enter visitor access code</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Validate Code
-              </h1>
-              <p className="text-sm text-slate-600">Enter visitor access code</p>
-            </div>
+            <button
+              onClick={handleEndShift}
+              disabled={endingShift}
+              className="flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50"
+            >
+              <Power className="h-4 w-4" />
+              <span className="hidden sm:inline">End Shift</span>
+            </button>
           </div>
+
+          {/* Shift Badge */}
+          {shiftInfo && (
+            <div className={`mt-4 flex items-center gap-3 rounded-xl border px-4 py-3 ${
+              shiftInfo.shiftType === "DAY"
+                ? "border-yellow-200 bg-yellow-50"
+                : "border-indigo-200 bg-indigo-50"
+            }`}>
+              {shiftInfo.shiftType === "DAY" ? (
+                <Sun className={`h-5 w-5 text-yellow-600`} />
+              ) : (
+                <Moon className={`h-5 w-5 text-indigo-600`} />
+              )}
+              <div>
+                <p className={`text-sm font-bold ${
+                  shiftInfo.shiftType === "DAY" ? "text-yellow-800" : "text-indigo-800"
+                }`}>
+                  {shiftInfo.gateName} — {shiftInfo.shiftType} Shift
+                </p>
+                <p className={`text-xs ${
+                  shiftInfo.shiftType === "DAY" ? "text-yellow-600" : "text-indigo-600"
+                }`}>
+                  Gate locked for this session
+                </p>
+              </div>
+            </div>
+          )}
         </header>
 
         {/* Main Content */}
         <main className="mt-6 flex-1 space-y-6">
-          {/* Gate Selector */}
-          <div>
-            <label className="text-sm font-bold text-slate-700">Select Gate</label>
-            <div className="relative mt-2">
-              <select
-                value={gateId}
-                onChange={(e) => handleGateChange(e.target.value)}
-                className="h-14 w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 pr-12 text-base font-medium text-slate-900 outline-none transition-all focus:border-brand-green focus:ring-4 focus:ring-brand-green/20"
-                disabled={loading}
-                required
-              >
-                {gates.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            </div>
-          </div>
-
-          {/* Code Input - Extra Large */}
+          {/* Code Input */}
           <div>
             <label className="text-sm font-bold text-slate-700">Access Code</label>
             <input
               value={code}
               onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                const val = e.target.value.replace(/\D/g, "").slice(0, 8);
                 setCode(val);
                 setError(null);
                 setLookup(null);
               }}
-              placeholder="000000"
+              placeholder="00000000"
               inputMode="numeric"
               pattern="[0-9]*"
-              className="mt-2 h-24 w-full rounded-2xl border-2 border-slate-200 bg-white text-center text-5xl font-bold tracking-[0.4em] text-slate-900 outline-none transition-all placeholder:text-slate-200 focus:border-brand-green focus:ring-4 focus:ring-brand-green/20"
-              maxLength={6}
+              className="mt-2 h-24 w-full rounded-2xl border-2 border-slate-200 bg-white text-center text-5xl font-bold tracking-[0.3em] text-slate-900 outline-none transition-all placeholder:text-slate-200 focus:border-brand-green focus:ring-4 focus:ring-brand-green/20"
+              maxLength={8}
               autoComplete="off"
             />
             <p className="mt-2 text-center text-sm text-slate-500">
-              Enter the 6-digit code from the visitor
+              Enter the 8-digit code from the visitor
             </p>
           </div>
 
@@ -309,11 +355,24 @@ export default function SecurityValidatePage() {
           {/* Lookup Result Card */}
           {lookup && (
             <div className="overflow-hidden rounded-2xl border-2 border-brand-green/30 bg-white shadow-lg animate-in slide-in-from-bottom-4">
-              <div className="border-b border-slate-100 bg-brand-green/5 px-4 py-3">
+              <div className="border-b border-slate-100 bg-brand-green/5 px-4 py-3 flex items-center justify-between">
                 <span className="text-sm font-bold text-brand-navy">Code Preview</span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
+                    lookup.code.eventType === "EXIT"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-sky-100 text-sky-700"
+                  }`}
+                >
+                  {lookup.code.eventType === "EXIT" ? (
+                    <LogOut className="h-3 w-3" />
+                  ) : (
+                    <LogIn className="h-3 w-3" />
+                  )}
+                  {lookup.code.eventType || "ENTRY"}
+                </span>
               </div>
               <div className="p-4 space-y-4">
-                {/* Resident Info */}
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy/10 text-brand-navy">
                     <User className="h-6 w-6" />
@@ -324,7 +383,6 @@ export default function SecurityValidatePage() {
                   </div>
                 </div>
 
-                {/* House & Phone */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
                     <Home className="h-5 w-5 text-slate-400" />
@@ -333,7 +391,16 @@ export default function SecurityValidatePage() {
                       <p className="font-bold text-slate-900">{lookup.code.resident.houseNumber}</p>
                     </div>
                   </div>
-                  {lookup.code.resident.phone && (
+                  {lookup.code.guestCount > 1 && (
+                    <div className="flex items-center gap-3 rounded-xl bg-brand-green/10 p-3">
+                      <Users className="h-5 w-5 text-brand-green" />
+                      <div>
+                        <p className="text-xs text-slate-500">Guests</p>
+                        <p className="font-bold text-brand-green">{lookup.code.guestCount}</p>
+                      </div>
+                    </div>
+                  )}
+                  {lookup.code.resident.phone && lookup.code.guestCount <= 1 && (
                     <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
                       <Phone className="h-5 w-5 text-slate-400" />
                       <div>
@@ -344,7 +411,13 @@ export default function SecurityValidatePage() {
                   )}
                 </div>
 
-                {/* Code Details */}
+                {lookup.code.guestNames && (
+                  <div className="rounded-xl bg-slate-50 px-4 py-3">
+                    <p className="text-xs text-slate-500">Guest Names</p>
+                    <p className="mt-1 text-sm font-medium text-slate-900">{lookup.code.guestNames}</p>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
                   <div>
                     <span className="text-xs text-slate-500">Type</span>
@@ -364,7 +437,7 @@ export default function SecurityValidatePage() {
             </div>
           )}
 
-          {/* Recent Validations History */}
+          {/* Recent Validations */}
           {recentValidations.length > 0 && (
             <div className="rounded-xl border border-slate-200 bg-white">
               <button
@@ -404,7 +477,7 @@ export default function SecurityValidatePage() {
                         <div>
                           <p className="text-sm font-semibold text-slate-900">{v.residentName}</p>
                           <p className="text-xs text-slate-500">
-                            {v.houseNumber} • Code: {v.code}
+                            {v.houseNumber} • {v.eventType} • {v.guestCount > 1 ? `${v.guestCount} guests` : "1 guest"}
                           </p>
                         </div>
                       </div>
@@ -439,7 +512,7 @@ export default function SecurityValidatePage() {
             <button
               type="button"
               onClick={validate}
-              disabled={!canLookup || !gateId || validating || loading}
+              disabled={!canLookup || validating || loading}
               className="flex h-14 flex-[2] items-center justify-center gap-2 rounded-xl bg-brand-green text-base font-bold text-white shadow-lg transition-all hover:bg-brand-green/90 disabled:opacity-50"
             >
               {validating ? (
@@ -447,9 +520,14 @@ export default function SecurityValidatePage() {
                   <Spinner className="text-white" />
                   Validating...
                 </>
+              ) : lookup?.code.eventType === "EXIT" ? (
+                <>
+                  <LogOut className="h-5 w-5" />
+                  Validate & Allow Exit
+                </>
               ) : (
                 <>
-                  <ShieldCheck className="h-5 w-5" />
+                  <LogIn className="h-5 w-5" />
                   Validate & Allow Entry
                 </>
               )}

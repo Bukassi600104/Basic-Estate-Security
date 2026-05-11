@@ -1,7 +1,4 @@
-import { GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { nanoid } from "nanoid";
-import { getDdbDocClient } from "@/lib/aws/dynamo";
-import { getEnv } from "@/lib/env";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export type ResidentStatus = "PENDING" | "APPROVED" | "SUSPENDED";
 
@@ -13,14 +10,29 @@ export type ResidentRecord = {
   status: ResidentStatus;
   phone?: string;
   email?: string;
-  verificationCode?: string; // Format: BS-{ESTATE_INITIALS}-{YEAR}
-  credentialResetRequested?: boolean; // true when resident requests password reset
-  credentialResetRequestedAt?: string; // ISO timestamp of request
+  verificationCode?: string;
+  credentialResetRequested?: boolean;
+  credentialResetRequestedAt?: string;
   createdAt: string;
   updatedAt: string;
 };
 
-export type DdbCursor = Record<string, unknown>;
+function rowToResident(row: Record<string, unknown>): ResidentRecord {
+  return {
+    residentId: row.resident_id as string,
+    estateId: row.estate_id as string,
+    name: row.name as string,
+    houseNumber: row.house_number as string,
+    status: row.status as ResidentStatus,
+    phone: (row.phone as string) ?? undefined,
+    email: (row.email as string) ?? undefined,
+    verificationCode: (row.verification_code as string) ?? undefined,
+    credentialResetRequested: (row.credential_reset_requested as boolean) ?? undefined,
+    credentialResetRequestedAt: (row.credential_reset_requested_at as string) ?? undefined,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
+}
 
 export async function createResident(params: {
   estateId: string;
@@ -30,183 +42,129 @@ export async function createResident(params: {
   email?: string;
   status?: ResidentStatus;
   verificationCode?: string;
-}) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
+}): Promise<ResidentRecord> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("residents")
+    .insert({
+      estate_id: params.estateId,
+      name: params.name,
+      house_number: params.houseNumber,
+      status: params.status ?? "APPROVED",
+      phone: params.phone ?? null,
+      email: params.email ?? null,
+      verification_code: params.verificationCode ?? null,
+    })
+    .select()
+    .single();
 
-  const resident: ResidentRecord = {
-    residentId: `res_${nanoid(12)}`,
-    estateId: params.estateId,
-    name: params.name,
-    houseNumber: params.houseNumber,
-    status: params.status ?? "APPROVED",
-    phone: params.phone,
-    email: params.email,
-    verificationCode: params.verificationCode,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await ddb.send(
-    new PutCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      Item: resident,
-      ConditionExpression: "attribute_not_exists(residentId)",
-    }),
-  );
-
-  return resident;
+  if (error) throw error;
+  return rowToResident(data);
 }
 
-export async function listResidentsForEstate(estateId: string, limit = 250) {
-  const page = await listResidentsForEstatePage({ estateId, limit });
-  return page.items;
+export async function listResidentsForEstate(estateId: string, limit = 250): Promise<ResidentRecord[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("residents")
+    .select()
+    .eq("estate_id", estateId)
+    .order("house_number", { ascending: true })
+    .limit(limit);
+
+  if (error || !data) return [];
+  return data.map(rowToResident);
 }
 
 export async function listResidentsForEstatePage(params: {
   estateId: string;
   limit?: number;
-  cursor?: DdbCursor;
-}) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  const limit = params.limit ?? 250;
-
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      IndexName: "GSI1",
-      KeyConditionExpression: "estateId = :e",
-      ExpressionAttributeValues: { ":e": params.estateId },
-      Limit: limit,
-      ExclusiveStartKey: (params.cursor as any) ?? undefined,
-    }),
-  );
-
-  const items = (res.Items as ResidentRecord[] | undefined) ?? [];
-  return {
-    items: items.slice(0, limit),
-    nextCursor: (res.LastEvaluatedKey as DdbCursor | undefined) ?? undefined,
-  };
+  cursor?: unknown;
+}): Promise<{ items: ResidentRecord[]; nextCursor: undefined }> {
+  const items = await listResidentsForEstate(params.estateId, params.limit);
+  return { items, nextCursor: undefined };
 }
 
 export async function updateResidentStatus(params: { residentId: string; status: ResidentStatus }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("residents")
+    .update({ status: params.status, updated_at: new Date().toISOString() })
+    .eq("resident_id", params.residentId)
+    .select()
+    .single();
 
-  const res = await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      Key: { residentId: params.residentId },
-      UpdateExpression: "SET #status = :s, updatedAt = :u",
-      ExpressionAttributeNames: { "#status": "status" },
-      ExpressionAttributeValues: { ":s": params.status, ":u": now },
-      ConditionExpression: "attribute_exists(residentId)",
-      ReturnValues: "ALL_NEW",
-    }),
-  );
-
-  return (res.Attributes as ResidentRecord | undefined) ?? null;
+  if (error || !data) return null;
+  return rowToResident(data);
 }
 
 export async function deleteResident(residentId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  await ddb.send(
-    new DeleteCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      Key: { residentId },
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb.from("residents").delete().eq("resident_id", residentId);
 }
 
-export async function getResidentById(residentId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const res = await ddb.send(
-    new GetCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      Key: { residentId },
-    }),
-  );
+export async function getResidentById(residentId: string): Promise<ResidentRecord | null> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("residents")
+    .select()
+    .eq("resident_id", residentId)
+    .single();
 
-  return (res.Item as ResidentRecord | undefined) ?? null;
+  if (error || !data) return null;
+  return rowToResident(data);
 }
 
-/**
- * Find resident by phone number within an estate.
- * Normalizes phone numbers for comparison.
- */
 export async function findResidentByPhoneInEstate(params: {
   estateId: string;
   phone: string;
 }): Promise<ResidentRecord | null> {
   const normalizedPhone = normalizePhone(params.phone);
   const residents = await listResidentsForEstate(params.estateId, 500);
-  return (
-    residents.find((r) => r.phone && normalizePhone(r.phone) === normalizedPhone) ?? null
-  );
+  return residents.find((r) => r.phone && normalizePhone(r.phone) === normalizedPhone) ?? null;
 }
 
-/**
- * Normalize phone number for comparison.
- * Removes all non-digit chars except leading +.
- */
 function normalizePhone(phone: string): string {
   const cleaned = phone.replace(/[^\d+]/g, "");
-  // If doesn't start with +, assume Nigerian number
   if (!cleaned.startsWith("+")) {
     return `+234${cleaned.replace(/^0/, "")}`;
   }
   return cleaned;
 }
 
-/**
- * Request credential reset for a resident.
- */
 export async function requestCredentialReset(residentId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
+  const sb = getSupabaseAdmin();
   const now = new Date().toISOString();
-
-  await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      Key: { residentId },
-      UpdateExpression: "SET credentialResetRequested = :r, credentialResetRequestedAt = :t, updatedAt = :u",
-      ExpressionAttributeValues: { ":r": true, ":t": now, ":u": now },
-      ConditionExpression: "attribute_exists(residentId)",
-    }),
-  );
+  await sb
+    .from("residents")
+    .update({
+      credential_reset_requested: true,
+      credential_reset_requested_at: now,
+      updated_at: now,
+    })
+    .eq("resident_id", residentId);
 }
 
-/**
- * Clear credential reset request after admin processes it.
- */
 export async function clearCredentialResetRequest(residentId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
-
-  await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_RESIDENTS,
-      Key: { residentId },
-      UpdateExpression: "REMOVE credentialResetRequested, credentialResetRequestedAt SET updatedAt = :u",
-      ExpressionAttributeValues: { ":u": now },
-      ConditionExpression: "attribute_exists(residentId)",
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb
+    .from("residents")
+    .update({
+      credential_reset_requested: false,
+      credential_reset_requested_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("resident_id", residentId);
 }
 
-/**
- * List residents with pending credential reset requests.
- */
 export async function listResidentsWithCredentialResetRequests(estateId: string): Promise<ResidentRecord[]> {
-  const residents = await listResidentsForEstate(estateId, 500);
-  return residents.filter((r) => r.credentialResetRequested === true);
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("residents")
+    .select()
+    .eq("estate_id", estateId)
+    .eq("credential_reset_requested", true)
+    .order("credential_reset_requested_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data.map(rowToResident);
 }

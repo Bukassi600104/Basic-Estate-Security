@@ -40,7 +40,7 @@ The platform uses **Progressive Web Apps (PWAs)** for residents and security per
   - Installed and launched in standalone mode (no browser UI)
 - Internet access is mandatory
 - One-time and recurring access codes supported
-- AWS-only infrastructure
+- Vercel + Supabase infrastructure
 
 ---
 
@@ -88,10 +88,10 @@ Only the Admin dashboards are accessible through the main website navigation.
 
 ### 5.2 Backend & Infrastructure
 - Next.js 14 (App Router) serving both UI and API routes
-- AWS Amplify Hosting (SSR target)
-- Authentication: AWS Cognito User Pool (JWT session stored in secure cookie)
-- Persistence: DynamoDB (multi-table, tenant-isolated)
-- AWS CloudWatch for logging and monitoring
+- Vercel hosting for the Next.js app
+- Authentication: Supabase Auth with SSR cookie sessions
+- Persistence: Supabase Postgres, tenant-isolated by `estateId`
+- Vercel/Supabase logs for runtime and database monitoring
 
 Notes:
 - Admin dashboards are server-rendered pages.
@@ -119,9 +119,9 @@ Notes:
 ## 7. Resident PWA – Functional Requirements
 
 ### Authentication
-- Cognito sign-in (username + password)
-- Accounts are provisioned by the Estate Admin (or Super Admin) in Cognito
-- Role is enforced via Cognito claims (`RESIDENT` / `RESIDENT_DELEGATE`)
+- Supabase sign-in (email + password)
+- Accounts are provisioned by the Estate Admin or Super Admin through Supabase Auth
+- Role is enforced via the `users` profile row and API guards
 
 ### Features
 - Generate one-time visitor access codes (guest)

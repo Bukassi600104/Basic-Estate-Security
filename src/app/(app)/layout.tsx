@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
-import { clearSessionCookie } from "@/lib/auth/session";
+import { createSupabaseServerClient } from "@/lib/supabase/client";
 
 async function SignOutButton() {
   return (
     <form
       action={async () => {
         "use server";
-        clearSessionCookie();
+        const supabase = createSupabaseServerClient();
+        await supabase.auth.signOut();
       }}
     >
       <button

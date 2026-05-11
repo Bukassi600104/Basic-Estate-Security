@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { enforceSameOriginOr403, requireEstateId, requireRoleSession } from "@/lib/auth/guards";
-import { cognitoAdminDeleteUser } from "@/lib/aws/cognito";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getUserById, deleteUser } from "@/lib/repos/users";
 import { putActivityLog } from "@/lib/repos/activity-logs";
 
@@ -21,7 +21,6 @@ export async function DELETE(
   const guardId = params.guardId;
 
   try {
-    // Get the guard to verify they exist and belong to this estate
     const guard = await getUserById(guardId);
 
     if (!guard) {
@@ -36,25 +35,19 @@ export async function DELETE(
       return NextResponse.json({ error: "User is not a guard" }, { status: 400 });
     }
 
-    // Delete from Cognito first (using email or phone as username)
-    const cognitoUsername = guard.email || guard.phone;
-    if (cognitoUsername) {
-      try {
-        await cognitoAdminDeleteUser({ username: cognitoUsername });
-      } catch (cognitoError) {
-        console.error("Failed to delete guard from Cognito:", cognitoError);
-        // Continue with DynamoDB deletion even if Cognito fails
-      }
+    try {
+      const sbAdmin = getSupabaseAdmin();
+      await sbAdmin.auth.admin.deleteUser(guardId);
+    } catch (authError) {
+      console.error("Failed to delete guard from auth:", authError);
     }
 
-    // Delete from DynamoDB
     await deleteUser(guardId);
 
-    // Log activity
     await putActivityLog({
       estateId,
       type: "GUARD_DELETED",
-      message: `${guard.name} (${cognitoUsername})`,
+      message: `${guard.name} (${guard.email || guard.phone})`,
     });
 
     return NextResponse.json({ ok: true });

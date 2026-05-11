@@ -1,86 +1,67 @@
-# Basic Security
+# Estate Security
 
-A security pass system for estates: residents generate guest/staff codes, guards validate them, admins onboard residents and view activity logs, and super admins oversee all estates.
+A role-based security pass system for gated estates. Residents generate guest and staff access codes, guards validate codes at gates, estate admins manage residents/guards/logs, and super admins oversee estates.
 
-## Local dev
+## Stack
 
-1. Install deps:
+- Next.js 14 App Router, TypeScript, Tailwind CSS
+- Supabase Auth and Postgres
+- Vercel production deployment
+
+## Local Development
+
+1. Install dependencies:
    - `npm.cmd install`
-2. Create `.env` from `.env.example` and set required AWS env vars (Cognito + DynamoDB tables).
-3. Run:
+2. Copy `.env.example` to `.env` and set Supabase values:
+   - `SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_URL`
+   - `SUPABASE_ANON_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+3. Run the app:
    - `npm.cmd run dev`
+
+## Supabase Setup
+
+This repo is intended to use the hosted Supabase project `kdjmxckeieenpmpmymft`.
+
+- Link the project: `npm.cmd run db:link`
+- Apply migrations: `npm.cmd run db:migrate`
+- Create the platform admin: `npm.cmd run admin:create`
+- Seed the demo estate: `npm.cmd run seed:demo`
+
+The app keeps database access behind server-side API routes and uses the Supabase service-role key only on the server. Do not commit `.env` or service-role credentials.
 
 ## Production
 
-Target deployment is **AWS Amplify Hosting** (Next.js SSR) with:
+Production deploys through Vercel from `main`.
 
-- **Cognito User Pool** for authentication
-- **DynamoDB** for persistence
+Required Vercel environment variables:
 
-### Health checks
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `APP_URL`
 
-- Use `GET /api/healthz` for smoke checks.
+Before pushing production changes, run:
 
+- `npm.cmd run lint`
+- `npm.cmd run build`
 
-### Resident & Security PWAs
+## Health Checks
 
-This project is **PWA-first** (no Telegram or third-party messaging dependency).
-Estate admins generate install/claim links from the dashboard.
+- `GET /api/healthz` checks the app process.
+- `GET /api/readyz` verifies Supabase connectivity.
 
 ## Roles
 
-### Platform-Level (Internal)
-- **SUPER_ADMIN**: Platform owner/developer. Monitors all estates, views analytics, checks health/security. NOT for end users. Created via `scripts/create-super-admin.mjs`.
+- `SUPER_ADMIN`: platform owner/developer, created with `scripts/create-super-admin.mjs`.
+- `ESTATE_ADMIN`: estate administrator who self-registers.
+- `SUB_ADMIN`: limited estate administrator.
+- `RESIDENT`: generates guest/staff codes.
+- `RESIDENT_DELEGATE`: resident-approved delegate.
+- `GUARD`: validates codes at gates and records decisions.
 
-### Estate-Level (End Users)
-- **ESTATE_ADMIN**: Estate administrator (customer). Self-registers via website, onboards residents and guards, views logs.
-- **RESIDENT**: Generates guest/staff access codes for their house.
-- **RESIDENT_DELEGATE**: Resident-approved phone number that can generate codes on behalf of resident.
-- **GUARD**: Security personnel who validates codes at gates and records allow/deny decisions.
+## Code Validation
 
-> **Note:** Super Admin monitors the platform. Estate Admins manage their own estates independently.
-
-## DynamoDB scaling (GSIs)
-
-The app is designed to use **Query on GSIs** for scalable list operations. If GSIs are missing (or older items don’t have indexed attributes), some codepaths may fall back to `Scan` as a migration safety net (not recommended for production).
-
-Recommended GSIs (names are fixed in code):
-
-- `DDB_TABLE_ESTATES`
-   - `GSI1`:
-      - Partition key: `gsi1pk` (string, constant value `ESTATES`)
-      - Sort key: `createdAt` (string)
-
-- `DDB_TABLE_VALIDATION_LOGS`
-   - `GSI1`:
-      - Partition key: `estateId` (string)
-      - Sort key: `validatedAt` (string)
-
-- `DDB_TABLE_ACTIVITY_LOGS`
-   - `GSI1`:
-      - Partition key: `estateId` (string)
-      - Sort key: `createdAt` (string)
-
-- `DDB_TABLE_RESIDENTS`
-   - `GSI1`:
-      - Partition key: `estateId` (string)
-      - Sort key: `houseNumber` (string)
-
-- `DDB_TABLE_USERS`
-   - `GSI1`:
-      - Partition key: `estateId` (string)
-      - Sort key: `createdAt` (string)
-
-- `DDB_TABLE_CODES`
-   - `GSI1`:
-      - Partition key: `residentKey` (string, `ESTATE#{estateId}#RESIDENT#{residentId}`)
-      - Sort key: `createdAt` (string)
-   - `GSI2`:
-      - Partition key: `codeId` (string)
-
-- `DDB_TABLE_GATES`
-   - `GSI1`:
-      - Partition key: `estateId` (string)
-      - Sort key: `name` (string)
-
-If a GSI is not provisioned yet (or older items don’t have the new index attributes), the code may fall back to `Scan`.
+- Guest codes are 8-digit Luhn codes, single-use, and expire after 6 hours.
+- Staff codes are 8-digit Luhn codes, renewable, and expire after 183 days.
+- Guest code consumption is handled by a Postgres RPC to prevent duplicate successful validations under repeated scans.

@@ -91,18 +91,12 @@ export default function ResidentSettingsPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white pb-8">
-      {/* Background decoration */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-brand-navy/5 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-brand-green/5 blur-3xl" />
-      </div>
-
+    <div className="pb-8">
       <div className="mx-auto max-w-lg px-5 py-6">
         {/* Header */}
         <header className="flex items-center gap-4">
           <Link
-            href="/resident-app/codes"
+            href="/resident-app/profile"
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -249,6 +243,21 @@ export default function ResidentSettingsPage() {
           </form>
         </div>
 
+        {/* Phone Number Notice */}
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+            <div>
+              <h3 className="font-bold text-amber-900">Phone Number Changes</h3>
+              <p className="mt-1 text-sm text-amber-800">
+                To change your registered phone number or approved delegate numbers,
+                please contact your estate administrator. Phone number changes cannot
+                be made from this app for security purposes.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Forgot Password - Request Reset */}
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3">
@@ -307,7 +316,7 @@ export default function ResidentSettingsPage() {
         {/* Back Link */}
         <div className="mt-6 text-center">
           <Link
-            href="/resident-app/codes"
+            href="/resident-app/profile"
             className="text-sm font-semibold text-brand-navy hover:underline"
           >
             Back to Pass Codes

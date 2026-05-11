@@ -50,6 +50,10 @@ output "ddb_table_rate_limits" {
   value = aws_dynamodb_table.rate_limits.name
 }
 
+output "ddb_table_guard_shifts" {
+  value = aws_dynamodb_table.guard_shifts.name
+}
+
 output "amplify_ssr_policy_arn" {
   value = aws_iam_policy.amplify_ssr_access.arn
 }

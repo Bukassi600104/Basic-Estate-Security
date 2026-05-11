@@ -1,30 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireRoleSession } from "@/lib/auth/guards";
 import { requireEstateExists } from "@/lib/auth/guards";
-import { listActivityLogsForEstatePage, type DdbCursor } from "@/lib/repos/activity-logs";
-
-function base64UrlEncode(input: string) {
-  return Buffer.from(input, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function base64UrlDecode(input: string) {
-  const padded = input.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((input.length + 3) % 4);
-  return Buffer.from(padded, "base64").toString("utf8");
-}
-
-function encodeCursor(cursor: DdbCursor | undefined) {
-  if (!cursor) return undefined;
-  return base64UrlEncode(JSON.stringify(cursor));
-}
-
-function decodeCursor(param: string | null): DdbCursor | undefined {
-  if (!param) return undefined;
-  try {
-    return JSON.parse(base64UrlDecode(param)) as DdbCursor;
-  } catch {
-    return undefined;
-  }
-}
+import { listActivityLogsForEstatePage } from "@/lib/repos/activity-logs";
 
 export async function GET(req: Request, { params }: { params: { estateId: string } }) {
   const sessionRes = await requireRoleSession({ roles: ["SUPER_ADMIN"] });
@@ -36,13 +13,12 @@ export async function GET(req: Request, { params }: { params: { estateId: string
   const url = new URL(req.url);
   const limitRaw = url.searchParams.get("limit");
   const limit = Math.max(1, Math.min(200, Number(limitRaw ?? "50") || 50));
-  const cursor = decodeCursor(url.searchParams.get("cursor"));
 
-  const page = await listActivityLogsForEstatePage({ estateId: params.estateId, limit, cursor });
+  const page = await listActivityLogsForEstatePage({ estateId: params.estateId, limit });
 
   return NextResponse.json({
     ok: true,
     activity: page.items,
-    nextCursor: encodeCursor(page.nextCursor),
+    nextCursor: page.nextCursor,
   });
 }

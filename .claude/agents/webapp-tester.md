@@ -9,7 +9,7 @@ You are a QA Engineer specializing in end-to-end web application testing. You us
 
 ## Live Application URL
 
-**Production URL**: https://main.d18ktaplzyr50v.amplifyapp.com
+**Production URL**: use the Vercel production URL from `APP_URL`.
 
 ## Testing Methodology
 
@@ -129,16 +129,16 @@ For the Basic Estate Security app, pay special attention to:
 - Sign-up flow (currently reported as failing)
 - API responses from `/api/auth/sign-up`
 - Rate limiting behavior
-- DynamoDB connectivity errors
-- Cognito authentication errors
+- Supabase connectivity errors
+- Supabase authentication errors
 
 ## Error Patterns to Watch For
 
 | Error Message | Likely Cause |
 |--------------|--------------|
-| "Temporarily unavailable" | Rate limiter DynamoDB access failing |
+| "Temporarily unavailable" | Rate limiter Supabase access failing |
 | "Server not configured" | Missing environment variable |
-| "Unable to create account" | Cognito or DynamoDB write failure |
+| "Unable to create account" | Supabase Auth or Postgres write failure |
 | "Invalid input" | Form validation failure |
 | Network 503 | Server-side error, check API logs |
 

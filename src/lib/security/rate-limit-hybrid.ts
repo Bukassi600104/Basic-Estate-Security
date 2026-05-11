@@ -1,19 +1,17 @@
-import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { getDdbDocClient } from "@/lib/aws/dynamo";
-import { getEnv } from "@/lib/env";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { rateLimit as rateLimitMemory } from "@/lib/security/rate-limit";
 
 export type RateLimitCategory = "LOGIN" | "OPS";
 
 type HybridRateLimitResult =
-  | { ok: true; source: "ddb" | "memory" }
+  | { ok: true; source: "pg" | "memory" }
   | {
       ok: false;
       status: 429 | 503;
       error: string;
       retryAfterSeconds?: number;
       remainingSeconds?: number;
-      source: "ddb" | "memory" | "blocked";
+      source: "pg" | "memory" | "blocked";
     };
 
 function getWindowStartMs(nowMs: number, windowMs: number) {
@@ -34,62 +32,40 @@ export async function rateLimitHybrid(params: {
 }): Promise<HybridRateLimitResult> {
   const nowMs = Date.now();
   const windowStartMs = getWindowStartMs(nowMs, params.windowMs);
-
-  // We store each window as a separate counter item. That makes retry-after
-  // computation deterministic without an extra read.
   const rateLimitKey = `rl:${params.key}:w${windowStartMs}`;
+  const expiresAt = new Date(windowStartMs + params.windowMs + 60_000).toISOString();
 
   try {
-    const env = getEnv();
-    const ddb = getDdbDocClient();
+    const sb = getSupabaseAdmin();
+    const { data, error } = await sb.rpc("increment_rate_limit", {
+      p_key: rateLimitKey,
+      p_expires_at: expiresAt,
+    });
 
-    const ttlEpochSeconds = Math.ceil((windowStartMs + params.windowMs) / 1000) + 60;
-
-    const res = await ddb.send(
-      new UpdateCommand({
-        TableName: env.DDB_TABLE_RATE_LIMITS,
-        Key: { rateLimitKey },
-        UpdateExpression: "ADD #count :inc SET ttlEpochSeconds = :ttl",
-        ExpressionAttributeNames: {
-          "#count": "count",
-        },
-        ExpressionAttributeValues: {
-          ":inc": 1,
-          ":ttl": ttlEpochSeconds,
-        },
-        ReturnValues: "UPDATED_NEW",
-      }),
-    );
-
-    const newCount = (res.Attributes?.count as number | undefined) ?? 1;
-    if (newCount > params.limit) {
-      const remainingSeconds = getRemainingSeconds(nowMs, windowStartMs, params.windowMs);
-      return {
-        ok: false,
-        status: 429,
-        error: "Too many attempts",
-        retryAfterSeconds: remainingSeconds,
-        remainingSeconds,
-        source: "ddb",
-      };
+    if (error) {
+      throw error;
     }
 
-    return { ok: true, source: "ddb" };
+    const rows = data as unknown;
+    const newCount =
+      typeof rows === "number"
+        ? rows
+        : Array.isArray(rows)
+          ? ((rows[0]?.count as number | undefined) ?? 1)
+          : 1;
+    if (newCount > params.limit) {
+      const remainingSeconds = getRemainingSeconds(nowMs, windowStartMs, params.windowMs);
+      return { ok: false, status: 429, error: "Too many attempts", retryAfterSeconds: remainingSeconds, remainingSeconds, source: "pg" };
+    }
+
+    return { ok: true, source: "pg" };
   } catch (err) {
-    // Log the actual error for debugging
-    const e = err as Error & { name?: string; code?: string; $metadata?: { httpStatusCode?: number } };
-    console.error("rate_limit_ddb_error", JSON.stringify({
+    console.error("rate_limit_pg_error", JSON.stringify({
       key: params.key,
       category: params.category,
-      errorName: e?.name ?? "Unknown",
-      errorMessage: e?.message ?? "Unknown error",
-      errorCode: e?.code ?? null,
-      httpStatusCode: e?.$metadata?.httpStatusCode ?? null,
+      error: (err as Error)?.message ?? "Unknown",
     }));
 
-    // Fail-open policy: If DynamoDB rate limiting fails, fall back to in-memory
-    // rate limiting. This ensures the app remains available even if there are
-    // infrastructure issues with DynamoDB credentials.
     const rl = rateLimitMemory({ key: `mem:${params.key}`, limit: params.limit, windowMs: params.windowMs });
     if (!rl.ok) {
       return {

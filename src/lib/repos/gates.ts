@@ -1,106 +1,91 @@
-import { DeleteCommand, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { nanoid } from "nanoid";
-import { getDdbDocClient } from "@/lib/aws/dynamo";
-import { getEnv } from "@/lib/env";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+export type ShiftType = "DAY" | "NIGHT";
 
 export type GateRecord = {
   gateId: string;
   estateId: string;
   name: string;
+  shiftType?: ShiftType;
+  shiftStartHour?: number;
+  shiftEndHour?: number;
   createdAt: string;
   updatedAt: string;
 };
 
-export async function getGateById(gateId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const res = await ddb.send(
-    new GetCommand({
-      TableName: env.DDB_TABLE_GATES,
-      Key: { gateId },
-    }),
-  );
-
-  return (res.Item as GateRecord | undefined) ?? null;
+function rowToGate(row: Record<string, unknown>): GateRecord {
+  return {
+    gateId: row.gate_id as string,
+    estateId: row.estate_id as string,
+    name: row.name as string,
+    shiftType: (row.shift_type as ShiftType) ?? undefined,
+    shiftStartHour: (row.shift_start_hour as number) ?? undefined,
+    shiftEndHour: (row.shift_end_hour as number) ?? undefined,
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string,
+  };
 }
 
-export async function listGatesForEstate(estateId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
+export async function getGateById(gateId: string): Promise<GateRecord | null> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("gates")
+    .select()
+    .eq("gate_id", gateId)
+    .single();
 
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: env.DDB_TABLE_GATES,
-      IndexName: "GSI1",
-      KeyConditionExpression: "estateId = :e",
-      ExpressionAttributeValues: { ":e": estateId },
-      ScanIndexForward: true,
-      Limit: 100,
-    }),
-  );
+  if (error || !data) return null;
+  return rowToGate(data);
+}
 
-  return (res.Items as GateRecord[] | undefined) ?? [];
+export async function listGatesForEstate(estateId: string): Promise<GateRecord[]> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("gates")
+    .select()
+    .eq("estate_id", estateId)
+    .order("created_at", { ascending: true })
+    .limit(100);
+
+  if (error || !data) return [];
+  return data.map(rowToGate);
 }
 
 export async function createGate(params: { estateId: string; name: string }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
-
-  // Best-effort duplicate check (Query-based). For strict enforcement, use a uniqueness table/GSI.
   const existing = await listGatesForEstate(params.estateId);
   const normalized = params.name.trim().toLowerCase();
   if (existing.some((g) => g.name.trim().toLowerCase() === normalized)) {
     return { ok: false as const, error: "Gate already exists" };
   }
 
-  const gate: GateRecord = {
-    gateId: `gate_${nanoid(12)}`,
-    estateId: params.estateId,
-    name: params.name.trim(),
-    createdAt: now,
-    updatedAt: now,
-  };
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("gates")
+    .insert({
+      estate_id: params.estateId,
+      name: params.name.trim(),
+    })
+    .select()
+    .single();
 
-  await ddb.send(
-    new PutCommand({
-      TableName: env.DDB_TABLE_GATES,
-      Item: gate,
-      ConditionExpression: "attribute_not_exists(gateId)",
-    }),
-  );
-
-  return { ok: true as const, gate };
+  if (error) throw error;
+  return { ok: true as const, gate: rowToGate(data) };
 }
 
-export async function updateGateName(params: { gateId: string; name: string }) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-  const now = new Date().toISOString();
+export async function updateGateName(params: { gateId: string; name: string }): Promise<GateRecord | null> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("gates")
+    .update({ name: params.name.trim(), updated_at: new Date().toISOString() })
+    .eq("gate_id", params.gateId)
+    .select()
+    .single();
 
-  const res = await ddb.send(
-    new UpdateCommand({
-      TableName: env.DDB_TABLE_GATES,
-      Key: { gateId: params.gateId },
-      UpdateExpression: "SET #name = :n, updatedAt = :u",
-      ExpressionAttributeNames: { "#name": "name" },
-      ExpressionAttributeValues: { ":n": params.name.trim(), ":u": now },
-      ConditionExpression: "attribute_exists(gateId)",
-      ReturnValues: "ALL_NEW",
-    }),
-  );
-
-  return (res.Attributes as GateRecord | undefined) ?? null;
+  if (error || !data) return null;
+  return rowToGate(data);
 }
 
 export async function deleteGate(gateId: string) {
-  const env = getEnv();
-  const ddb = getDdbDocClient();
-
-  await ddb.send(
-    new DeleteCommand({
-      TableName: env.DDB_TABLE_GATES,
-      Key: { gateId },
-    }),
-  );
+  const sb = getSupabaseAdmin();
+  await sb.from("gates").delete().eq("gate_id", gateId);
 }

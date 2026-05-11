@@ -15,6 +15,7 @@ locals {
   ddb_table_pwa_invites     = "${var.project_name}_PwaInvites"
   ddb_table_uniq            = "${var.project_name}_Uniq"
   ddb_table_rate_limits     = "${var.project_name}_RateLimits"
+  ddb_table_guard_shifts    = "${var.project_name}_GuardShifts"
 }
 
 # Cognito (auth)
@@ -373,6 +374,45 @@ resource "aws_dynamodb_table" "rate_limits" {
   tags = local.tags
 }
 
+resource "aws_dynamodb_table" "guard_shifts" {
+  name         = local.ddb_table_guard_shifts
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "shiftId"
+
+  attribute {
+    name = "shiftId"
+    type = "S"
+  }
+  attribute {
+    name = "estateId"
+    type = "S"
+  }
+  attribute {
+    name = "startedAt"
+    type = "S"
+  }
+  attribute {
+    name = "guardUserId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "GSI1"
+    hash_key        = "estateId"
+    range_key       = "startedAt"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "GSI2"
+    hash_key        = "guardUserId"
+    range_key       = "startedAt"
+    projection_type = "ALL"
+  }
+
+  tags = local.tags
+}
+
 # IAM policy you can attach to Amplify's SSR execution role.
 # This is required so server-side routes can read/write DynamoDB and perform Cognito Admin APIs.
 data "aws_iam_policy_document" "amplify_ssr_access" {
@@ -412,6 +452,8 @@ data "aws_iam_policy_document" "amplify_ssr_access" {
       "${aws_dynamodb_table.uniq.arn}/index/*",
       aws_dynamodb_table.rate_limits.arn,
       "${aws_dynamodb_table.rate_limits.arn}/index/*",
+      aws_dynamodb_table.guard_shifts.arn,
+      "${aws_dynamodb_table.guard_shifts.arn}/index/*",
     ]
   }
 

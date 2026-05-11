@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
-import { getSession, ACCESS_COOKIE_NAME, setMfaSetupCookie } from "@/lib/auth/session";
-import { headers, cookies } from "next/headers";
+import { getSession } from "@/lib/auth/session";
+import { headers } from "next/headers";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
-import { cognitoStartTotpEnrollment } from "@/lib/aws/cognito";
+import { createSupabaseServerClient } from "@/lib/supabase/client";
 
 export const runtime = "nodejs";
 
@@ -40,45 +40,22 @@ export async function POST(req: Request) {
     );
   }
 
-  const accessToken = cookies().get(ACCESS_COOKIE_NAME)?.value;
-  if (!accessToken) {
-    return NextResponse.json({ error: "Please sign in again" }, { status: 401 });
-  }
-
   try {
-    const { secretCode, session: enrollmentSession } = await cognitoStartTotpEnrollment({
-      accessToken,
-    });
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
 
-    setMfaSetupCookie(enrollmentSession);
+    if (error) throw error;
 
     const issuer = "BasicEstateSecurity";
     const label = encodeURIComponent(`${issuer}:${session.name || session.userId}`);
-    const otpauthUrl = `otpauth://totp/${label}?secret=${encodeURIComponent(secretCode)}&issuer=${encodeURIComponent(issuer)}`;
+    const otpauthUrl = `otpauth://totp/${label}?secret=${encodeURIComponent(data.totp.secret)}&issuer=${encodeURIComponent(issuer)}`;
 
     return NextResponse.json(
-      {
-        ok: true,
-        secretCode,
-        otpauthUrl,
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      },
+      { ok: true, secretCode: data.totp.secret, otpauthUrl, factorId: data.id },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   } catch (err) {
-    const e = err as Error & { name?: string; code?: string; $metadata?: { httpStatusCode?: number } };
-    console.error("mfa_totp_start_failed", JSON.stringify({
-      errorName: e?.name ?? "Unknown",
-      errorMessage: e?.message ?? "Unknown error",
-      errorCode: (e as any)?.code ?? null,
-      httpStatusCode: e?.$metadata?.httpStatusCode ?? null,
-    }));
-    return NextResponse.json(
-      { error: "Unable to start MFA setup. Please try again later." },
-      { status: 500 },
-    );
+    console.error("mfa_totp_start_failed", (err as Error)?.message);
+    return NextResponse.json({ error: "Unable to start MFA setup. Please try again later." }, { status: 500 });
   }
 }
