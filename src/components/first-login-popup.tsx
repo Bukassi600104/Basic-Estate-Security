@@ -37,7 +37,7 @@ export function FirstLoginPopup({ onClose, onSuccess }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/resident/change-password", {
+      const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword }),

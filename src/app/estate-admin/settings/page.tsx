@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/Spinner";
+import { Check, Eye, EyeOff, Key, Loader2, Lock, ShieldCheck } from "lucide-react";
 
 type EstateStatus = "ACTIVE" | "SUSPENDED" | "TERMINATED";
 
@@ -18,6 +19,17 @@ export default function EstateSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -57,6 +69,49 @@ export default function EstateSettingsPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  const pwHasLength = newPassword.length >= 8;
+  const pwHasUpper = /[A-Z]/.test(newPassword);
+  const pwHasLower = /[a-z]/.test(newPassword);
+  const pwHasDigit = /[0-9]/.test(newPassword);
+  const pwHasSpecial = /[!@#$%^&*]/.test(newPassword);
+  const pwMatch = newPassword === confirmPassword && confirmPassword.length > 0;
+  const pwValid = pwHasLength && pwHasUpper && pwHasLower && pwHasDigit && pwHasSpecial;
+  const canSubmitPw = currentPassword.length > 0 && pwValid && pwMatch && !pwLoading;
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmitPw) return;
+    setPwError(null);
+    setPwSuccess(false);
+    setPwLoading(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Failed to change password");
+      setPwSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : "Failed to change password");
+    } finally {
+      setPwLoading(false);
+    }
+  }
+
+  function PwReq({ met, text }: { met: boolean; text: string }) {
+    return (
+      <div className={`flex items-center gap-2 text-xs ${met ? "text-green-600" : "text-slate-500"}`}>
+        {met ? <Check className="h-3.5 w-3.5" /> : <div className="h-3.5 w-3.5 rounded-full border border-slate-300" />}
+        {text}
+      </div>
+    );
   }
 
   return (
@@ -165,6 +220,97 @@ export default function EstateSettingsPage() {
         ) : (
           <div className="mt-6 text-sm text-slate-600">Estate not found.</div>
         )}
+      </div>
+
+      {/* Change Password Card */}
+      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-white">
+            <Lock className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="font-bold text-slate-900">Change Password</h2>
+            <p className="text-sm text-slate-600">Update your login password</p>
+          </div>
+        </div>
+
+        {pwSuccess && (
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
+            <ShieldCheck className="h-5 w-5 text-green-600" />
+            <div>
+              <p className="font-semibold text-green-800">Password changed successfully!</p>
+              <p className="text-sm text-green-700">Your new password is now active.</p>
+            </div>
+          </div>
+        )}
+
+        {pwError && (
+          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+            {pwError}
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordChange} className="mt-6 grid gap-4">
+          <label className="grid gap-2 text-sm">
+            <span className="font-semibold text-slate-700">Current Password</span>
+            <div className="relative">
+              <Key className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none ring-blue-600/20 focus:border-blue-600 focus:ring-4" />
+              <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </label>
+
+          <label className="grid gap-2 text-sm">
+            <span className="font-semibold text-slate-700">New Password</span>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none ring-blue-600/20 focus:border-blue-600 focus:ring-4" />
+              <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {newPassword.length > 0 && (
+              <div className="mt-2 grid gap-1.5 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="text-xs font-semibold text-slate-700">Password requirements:</p>
+                <PwReq met={pwHasLength} text="At least 8 characters" />
+                <PwReq met={pwHasUpper} text="Uppercase letter (A-Z)" />
+                <PwReq met={pwHasLower} text="Lowercase letter (a-z)" />
+                <PwReq met={pwHasDigit} text="Number (0-9)" />
+                <PwReq met={pwHasSpecial} text="Special character (!@#$%^&*)" />
+              </div>
+            )}
+          </label>
+
+          <label className="grid gap-2 text-sm">
+            <span className="font-semibold text-slate-700">Confirm New Password</span>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={`h-12 w-full rounded-xl border bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none focus:ring-4 ${confirmPassword.length > 0 && !pwMatch ? "border-rose-300 ring-rose-100 focus:border-rose-500" : "border-slate-200 ring-blue-600/20 focus:border-blue-600"}`} />
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {confirmPassword.length > 0 && !pwMatch && (
+              <span className="text-xs font-medium text-rose-600">Passwords do not match</span>
+            )}
+          </label>
+
+          <button type="submit" disabled={!canSubmitPw} className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-60">
+            {pwLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Changing Password...
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="h-4 w-4" />
+                Change Password
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );

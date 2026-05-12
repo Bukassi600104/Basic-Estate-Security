@@ -50,3 +50,5 @@ yarn-error.log*
 tsconfig.tsbuildinfo
 supabase/.temp/
 .vercel/
+
+.vercel
