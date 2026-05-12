@@ -100,12 +100,44 @@ async function createAuthUser(email, password, name, role, estateId) {
     email_confirm: true,
     user_metadata: { name, role, estate_id: estateId },
   });
-  if (error) throw new Error(`Auth createUser failed for ${email}: ${error.message}`);
+  if (error) {
+    if (error.message?.includes("already been registered")) {
+      // Find existing user and update their metadata
+      const { data: { users } } = await sb.auth.admin.listUsers();
+      const existing = users.find(u => u.email === email);
+      if (existing) {
+        await sb.auth.admin.updateUserById(existing.id, {
+          password,
+          user_metadata: { name, role, estate_id: estateId },
+        });
+        console.log(`  (existing user reused: ${email})`);
+        return existing;
+      }
+    }
+    throw new Error(`Auth createUser failed for ${email}: ${error.message}`);
+  }
   return data.user;
 }
 
 async function main() {
   console.log("\n=== Seeding Jehova Elohim Estate Demo ===\n");
+
+  // 0. Clean up previous demo estate if it exists
+  const { data: existing } = await sb.from("estates").select("estate_id").eq("name", "Jehova Elohim Estate");
+  if (existing?.length) {
+    for (const e of existing) {
+      console.log(`Cleaning up previous estate: ${e.estate_id}`);
+      await sb.from("activity_logs").delete().eq("estate_id", e.estate_id);
+      await sb.from("validation_logs").delete().eq("estate_id", e.estate_id);
+      await sb.from("guard_shifts").delete().eq("estate_id", e.estate_id);
+      await sb.from("codes").delete().eq("estate_id", e.estate_id);
+      await sb.from("users").delete().eq("estate_id", e.estate_id);
+      await sb.from("residents").delete().eq("estate_id", e.estate_id);
+      await sb.from("gates").delete().eq("estate_id", e.estate_id);
+      await sb.from("estates").delete().eq("estate_id", e.estate_id);
+    }
+    console.log("Previous data cleaned.\n");
+  }
 
   // 1. Create Estate
   const estateId = `est_${nanoid()}`;
