@@ -8,9 +8,9 @@
   --brand-green: #4ade80;
   --brand-navy-dark: #162a40;
   --brand-green-dark: #10a648;
-  --bg-dark: #0a1a0f;
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --border-dark: rgba(255, 255, 255, 0.1);
+  --bg-dark: #0f2318;
+  --bg-card: rgba(255, 255, 255, 0.07);
+  --border-dark: rgba(255, 255, 255, 0.12);
 }
 
 html,
@@ -19,7 +19,7 @@ body {
 }
 
 body {
-  @apply bg-[#0a1a0f] text-white antialiased;
+  @apply bg-[#0f2318] text-white antialiased;
 }
 
 ::selection {
@@ -111,7 +111,7 @@ html {
 
 .bottom-action-bar {
   @apply fixed bottom-0 left-0 right-0 z-50;
-  @apply bg-[#0a1a0f]/95 backdrop-blur-xl border-t border-white/10;
+  @apply bg-[#0f2318]/95 backdrop-blur-xl border-t border-white/10;
   @apply px-4 py-3;
   @apply animate-slide-in-bottom;
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
@@ -221,7 +221,7 @@ html {
 }
 
 .hero-gradient {
-  background: linear-gradient(135deg, #0a1a0f 0%, #0d2818 50%, #0a1a0f 100%);
+  background: linear-gradient(135deg, #0f2318 0%, #163320 50%, #0f2318 100%);
   background-size: 200% 200%;
   animation: gradientShift 15s ease infinite;
 }

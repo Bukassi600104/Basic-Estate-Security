@@ -19,6 +19,7 @@ function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const email = searchParams.get("email");
@@ -28,6 +29,14 @@ function SignInForm() {
       setInfoMessage("An account with this email already exists. Please sign in.");
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    function handleScroll() {
+      setScrollY(window.scrollY);
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,37 +89,62 @@ function SignInForm() {
   }
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[#0a1a0f]">
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/images/security-guard.png"
-          alt=""
-          fill
-          className="object-cover object-center opacity-40"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a1a0f] via-[#0a1a0f]/90 to-[#0a1a0f]/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a1a0f] via-transparent to-[#0a1a0f]/80" />
+    <div className="flex min-h-[100dvh] bg-[#0f2318]">
+      {/* Left side — Security Guard Image with Parallax */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ transform: `translateY(${scrollY * 0.25}px)` }}
+        >
+          <Image
+            src="/images/security-guard.png"
+            alt="Security Guard"
+            fill
+            className="object-cover object-center"
+            style={{ filter: 'brightness(1.4) contrast(1.05)' }}
+            priority
+          />
+        </div>
+        {/* Light gradient on right edge only — blends into form */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f2318]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318]/70 via-transparent to-[#0f2318]/30" />
+
+        {/* Floating badge */}
+        <div className="absolute bottom-12 left-10 right-10">
+          <div className="rounded-2xl border border-white/15 bg-[#0f2318]/75 p-6 backdrop-blur-xl shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/20">
+                <Shield className="h-5 w-5 text-brand-green" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Trusted Security Platform</p>
+                <p className="text-xs text-white/60">Protecting estates across Nigeria</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-[100dvh] flex-col">
-        {/* Top bar */}
+      {/* Right side — Form */}
+      <div className="relative z-10 flex w-full flex-col lg:w-1/2">
+        {/* Header */}
         <header className="flex items-center justify-between px-6 py-5 lg:px-10">
           <div className="flex items-center gap-4">
-            <Link href="/" className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
+            <Link
+              href="/"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.07] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
+            >
               <ArrowLeft className="h-5 w-5" />
             </Link>
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand-green/30 bg-brand-green/10">
-              <Shield className="h-5 w-5 text-brand-green" />
-            </div>
-            <div>
-              <div className="text-sm font-extrabold uppercase tracking-wider text-white">Basic Estate</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
-            </div>
-          </Link>
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand-green/30 bg-brand-green/10">
+                <Shield className="h-5 w-5 text-brand-green" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold uppercase tracking-wider text-white">Basic Estate</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
+              </div>
+            </Link>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-white/60">
             <Globe className="h-3.5 w-3.5" />
@@ -118,9 +152,9 @@ function SignInForm() {
           </div>
         </header>
 
-        {/* Main */}
-        <div className="flex flex-1 items-center px-6 pb-10 lg:px-10">
-          <div className="w-full max-w-md">
+        {/* Form area */}
+        <div className="flex flex-1 items-center px-6 pb-10 lg:px-12">
+          <div className="w-full max-w-md mx-auto lg:mx-0">
             <div className="text-xs font-bold uppercase tracking-[0.25em] text-brand-green">
               Welcome Back
             </div>
@@ -130,7 +164,7 @@ function SignInForm() {
               CAN <span className="text-brand-green">TRUST</span>
             </h1>
 
-            <p className="mt-4 text-sm leading-relaxed text-white/60">
+            <p className="mt-4 text-sm leading-relaxed text-white/65">
               Sign in to your account to continue
               monitoring and protecting what matters.
             </p>
@@ -138,13 +172,13 @@ function SignInForm() {
             <form className="mt-8 grid gap-4" onSubmit={mfaRequired ? onConfirmMfa : onSubmit}>
               {/* Email */}
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/70">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
                   Email Address
                 </label>
                 <div className="relative">
-                  <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                  <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                   <input
-                    className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                    className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     type="email"
@@ -159,13 +193,13 @@ function SignInForm() {
               {/* Password or MFA */}
               {mfaRequired ? (
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/70">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
                     Authenticator Code
                   </label>
                   <div className="relative">
-                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                     <input
-                      className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                      className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                       value={mfaCode}
                       onChange={(e) => setMfaCode(e.target.value)}
                       inputMode="numeric"
@@ -178,7 +212,7 @@ function SignInForm() {
               ) : (
                 <div>
                   <div className="mb-2 flex items-center justify-between">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-white/75">
                       Password
                     </label>
                     <span className="text-xs font-semibold text-brand-green cursor-pointer hover:text-brand-green-300">
@@ -186,9 +220,9 @@ function SignInForm() {
                     </span>
                   </div>
                   <div className="relative">
-                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                     <input
-                      className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-12 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                      className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-12 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
@@ -199,7 +233,7 @@ function SignInForm() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-white/40 transition-colors hover:text-white/70"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-white/45 transition-colors hover:text-white/70"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -212,14 +246,13 @@ function SignInForm() {
               <label className="inline-flex items-center gap-2.5 text-sm text-white/70">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-white/30 bg-white/5 text-brand-green focus:ring-brand-green/30"
+                  className="h-4 w-4 rounded border-white/30 bg-white/[0.07] text-brand-green focus:ring-brand-green/30"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
                 <span className="font-medium">Remember me</span>
               </label>
 
-              {/* Messages */}
               {infoMessage && (
                 <div className="flex items-start gap-3 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm font-medium text-blue-300">
                   <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -237,7 +270,7 @@ function SignInForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative mt-1 flex h-13 w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 px-6 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 disabled:opacity-60"
+                className="group relative mt-1 flex h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 px-6 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
               >
                 {loading ? (
                   <>
@@ -254,13 +287,13 @@ function SignInForm() {
             </form>
 
             {/* Secure login badge */}
-            <div className="mt-5 flex items-center justify-center gap-2 text-xs text-white/40">
+            <div className="mt-5 flex items-center justify-center gap-2 text-xs text-white/45">
               <Lock className="h-3 w-3" />
               Secure login protected by 256-bit encryption
             </div>
 
             {/* Footer links */}
-            <div className="mt-8 flex flex-col gap-3 text-sm text-white/50">
+            <div className="mt-8 flex flex-col gap-3 text-sm text-white/55">
               <div>
                 New estate?{" "}
                 <Link href="/auth/sign-up" className="font-bold text-brand-green hover:text-brand-green-300">
@@ -268,10 +301,10 @@ function SignInForm() {
                 </Link>
               </div>
               <div className="flex gap-4 text-xs">
-                <Link href="/auth/guard-verify" className="font-semibold text-white/40 hover:text-brand-green transition-colors">
+                <Link href="/auth/guard-verify" className="font-semibold text-white/45 hover:text-brand-green transition-colors">
                   Security Guard Login
                 </Link>
-                <Link href="/auth/resident-verify" className="font-semibold text-white/40 hover:text-brand-green transition-colors">
+                <Link href="/auth/resident-verify" className="font-semibold text-white/45 hover:text-brand-green transition-colors">
                   Resident Login
                 </Link>
               </div>
@@ -280,15 +313,26 @@ function SignInForm() {
         </div>
 
         {/* Bottom bar */}
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 py-4 lg:px-10">
-          <p className="text-xs text-white/30">
+        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.10] px-6 py-4 lg:px-10">
+          <p className="text-xs text-white/35">
             &copy; {new Date().getFullYear()} Basic Estate Security. All rights reserved.
           </p>
-          <div className="flex gap-4 text-xs text-white/30">
-            <span className="cursor-pointer hover:text-white/50">Privacy Policy</span>
-            <span className="cursor-pointer hover:text-white/50">Terms of Service</span>
+          <div className="flex gap-4 text-xs text-white/35">
+            <span className="cursor-pointer hover:text-white/55">Privacy Policy</span>
+            <span className="cursor-pointer hover:text-white/55">Terms of Service</span>
           </div>
         </footer>
+      </div>
+
+      {/* Mobile background image (faint texture) */}
+      <div className="fixed inset-0 -z-10 lg:hidden">
+        <Image
+          src="/images/security-guard.png"
+          alt=""
+          fill
+          className="object-cover object-center"
+          style={{ filter: 'brightness(1.4)', opacity: 0.08 }}
+        />
       </div>
     </div>
   );
@@ -296,7 +340,7 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0a1a0f]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0f2318]" />}>
       <SignInForm />
     </Suspense>
   );

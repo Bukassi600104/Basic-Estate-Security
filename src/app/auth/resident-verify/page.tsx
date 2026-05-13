@@ -62,12 +62,12 @@ export default function ResidentVerifyPage() {
   }
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[#0a1a0f]">
-      {/* Background */}
+    <div className="relative min-h-[100dvh] overflow-hidden bg-[#0f2318]">
+      {/* Background — brighter image, lighter overlays */}
       <div className="absolute inset-0">
-        <Image src="/images/security-guard.png" alt="" fill className="object-cover object-center opacity-30" priority />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a1a0f] via-[#0a1a0f]/95 to-[#0a1a0f]/70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a1a0f] via-transparent to-[#0a1a0f]/90" />
+        <Image src="/images/security-guard.png" alt="" fill className="object-cover object-center" style={{ filter: 'brightness(1.4)', opacity: 0.22 }} priority />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f2318] via-[#0f2318]/90 to-[#0f2318]/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318] via-transparent to-[#0f2318]/70" />
       </div>
 
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
@@ -122,7 +122,7 @@ export default function ResidentVerifyPage() {
                     <div className="relative">
                       <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={estateName}
                         onChange={(e) => setEstateName(e.target.value)}
                         placeholder="Blue Gardens Estate"
@@ -136,7 +136,7 @@ export default function ResidentVerifyPage() {
                     <div className="relative">
                       <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={residentName}
                         onChange={(e) => setResidentName(e.target.value)}
                         placeholder="John Doe"
@@ -163,7 +163,7 @@ export default function ResidentVerifyPage() {
                     <div className="relative">
                       <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         type="tel"
@@ -178,7 +178,7 @@ export default function ResidentVerifyPage() {
                     <div className="relative">
                       <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-4 text-sm font-medium uppercase tracking-wider text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 placeholder:normal-case placeholder:tracking-normal focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium uppercase tracking-wider text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 placeholder:normal-case placeholder:tracking-normal focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
                         placeholder="BS-XX-2025"
@@ -195,7 +195,7 @@ export default function ResidentVerifyPage() {
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/5 pl-11 pr-12 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-12 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         type={showPassword ? "text" : "password"}
@@ -221,7 +221,7 @@ export default function ResidentVerifyPage() {
                   <div className="mt-2 flex items-center gap-3">
                     <button
                       type="button"
-                      className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-5 text-sm font-bold text-white/70 transition-all hover:bg-white/10"
+                      className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/[0.07] px-5 text-sm font-bold text-white/70 transition-all hover:bg-white/10"
                       onClick={() => setStep(1)}
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -260,13 +260,13 @@ export default function ResidentVerifyPage() {
         </div>
 
         {/* Bottom bar */}
-        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 py-4 lg:px-10">
-          <p className="text-xs text-white/30">
+        <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.10] px-6 py-4 lg:px-10">
+          <p className="text-xs text-white/35">
             &copy; {new Date().getFullYear()} Basic Estate Security. All rights reserved.
           </p>
-          <div className="flex gap-4 text-xs text-white/30">
-            <span className="cursor-pointer hover:text-white/50">Privacy Policy</span>
-            <span className="cursor-pointer hover:text-white/50">Terms of Service</span>
+          <div className="flex gap-4 text-xs text-white/35">
+            <span className="cursor-pointer hover:text-white/55">Privacy Policy</span>
+            <span className="cursor-pointer hover:text-white/55">Terms of Service</span>
           </div>
         </footer>
       </div>

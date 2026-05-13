@@ -63,18 +63,18 @@ export async function AppShell({
   const allNavItems = [...(nav || []), ...(bottomNav || [])];
 
   return (
-    <div className="min-h-screen bg-[#0a1a0f] pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#0f2318] pb-20 md:pb-0">
       {/* Dynamic background */}
       <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-brand-green/5 blur-[120px] animate-pulse-soft" />
-        <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-brand-green/8 blur-[120px] animate-pulse-soft" style={{ animationDelay: "1s" }} />
+        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-brand-green/8 blur-[120px] animate-pulse-soft" />
+        <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-brand-green/10 blur-[120px] animate-pulse-soft" style={{ animationDelay: "1s" }} />
         <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-navy/10 blur-[100px]" />
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-7xl">
         {/* Fixed sidebar - desktop only */}
         <aside className="hidden w-72 flex-shrink-0 md:block">
-          <div className="fixed top-0 h-screen w-72 flex-col border-r border-white/10 bg-[#0d1f12]/80 px-5 py-6 backdrop-blur-xl flex">
+          <div className="fixed top-0 h-screen w-72 flex-col border-r border-white/[0.12] bg-[#0f2318]/90 px-5 py-6 backdrop-blur-xl flex">
             <Link href="/dashboard" className="flex items-center gap-3 px-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-green/30 bg-brand-green/10 shadow-sm">
                 <ShieldCheck className="h-5 w-5 text-brand-green" />
@@ -95,7 +95,7 @@ export async function AppShell({
 
             <div className="mt-auto pt-6">
               {session ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="rounded-2xl border border-white/[0.12] bg-white/[0.07] p-4">
                   <div className="text-sm font-semibold text-white">{displayName}</div>
                   <div className="mt-1 text-xs font-semibold tracking-wide text-brand-green/60">
                     {formatRoleLabel(session.role)}
@@ -118,7 +118,7 @@ export async function AppShell({
 
         <div className="min-w-0 flex-1">
           {/* Mobile header */}
-          <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0a1a0f]/95 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 border-b border-white/[0.12] bg-[#0f2318]/95 backdrop-blur-xl">
             <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
               <div className="flex items-center gap-3 md:hidden">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand-green/30 bg-brand-green/10 shadow-sm">
