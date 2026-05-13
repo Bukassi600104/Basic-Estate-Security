@@ -48,20 +48,20 @@ export function UpgradeModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl">
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white/5 shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-3xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-white/5 px-6 py-4 rounded-t-3xl">
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900">
+            <h2 className="text-xl font-extrabold text-white">
               Upgrade Your Plan
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-white/60">
               Choose a plan that fits your estate&apos;s needs
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white/60"
           >
             <X className="h-5 w-5" />
           </button>
@@ -69,13 +69,13 @@ export function UpgradeModal({
 
         {/* Billing toggle */}
         <div className="flex justify-center px-6 pt-6">
-          <div className="inline-flex rounded-full bg-slate-100 p-1">
+          <div className="inline-flex rounded-full bg-white/10 p-1">
             <button
               onClick={() => setBillingCycle("MONTHLY")}
               className={`rounded-full px-6 py-2 text-sm font-bold transition-all ${
                 billingCycle === "MONTHLY"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white/5 text-white shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
               Monthly
@@ -84,8 +84,8 @@ export function UpgradeModal({
               onClick={() => setBillingCycle("YEARLY")}
               className={`rounded-full px-6 py-2 text-sm font-bold transition-all ${
                 billingCycle === "YEARLY"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white/5 text-white shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
               Yearly
@@ -118,7 +118,7 @@ export function UpgradeModal({
                     ? "border-brand-navy bg-brand-navy/5"
                     : isCurrentTier
                       ? "border-brand-green bg-brand-green/5"
-                      : "border-slate-200 bg-white hover:border-slate-300"
+                      : "border-white/10 bg-white/5 hover:border-white/15"
                 }`}
               >
                 {/* Popular badge */}
@@ -145,9 +145,9 @@ export function UpgradeModal({
                 <div
                   className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${
                     tier === "BASIC"
-                      ? "bg-slate-100 text-slate-600"
+                      ? "bg-white/10 text-white/60"
                       : tier === "STANDARD"
-                        ? "bg-blue-100 text-blue-600"
+                        ? "bg-brand-green/15 text-brand-green"
                         : "bg-purple-100 text-purple-600"
                   }`}
                 >
@@ -161,52 +161,52 @@ export function UpgradeModal({
                 </div>
 
                 {/* Tier name and price */}
-                <h3 className="text-lg font-extrabold text-slate-900">
+                <h3 className="text-lg font-extrabold text-white">
                   {config.name}
                 </h3>
-                <p className="mt-1 text-sm text-slate-600">{config.description}</p>
+                <p className="mt-1 text-sm text-white/60">{config.description}</p>
 
                 <div className="mt-4">
-                  <span className="text-3xl font-extrabold text-slate-900">
+                  <span className="text-3xl font-extrabold text-white">
                     {formatNaira(price)}
                   </span>
-                  <span className="text-slate-500">/month</span>
+                  <span className="text-white/50">/month</span>
                 </div>
 
                 {billingCycle === "YEARLY" && config.price && (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-white/50">
                     Billed {formatNaira(config.price.yearly)} yearly
                   </p>
                 )}
 
                 {/* Features */}
                 <ul className="mt-6 space-y-3">
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                  <li className="flex items-center gap-2 text-sm text-white/70">
                     <Check className="h-4 w-4 text-brand-green" />
                     Up to {config.maxHouses} houses
                   </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                  <li className="flex items-center gap-2 text-sm text-white/70">
                     <Check className="h-4 w-4 text-brand-green" />
                     {config.maxAdmins} admin{config.maxAdmins > 1 ? "s" : ""}
                   </li>
-                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                  <li className="flex items-center gap-2 text-sm text-white/70">
                     <Check className="h-4 w-4 text-brand-green" />
                     Unlimited guards & gates
                   </li>
                   {config.features.exportEnabled && (
-                    <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <li className="flex items-center gap-2 text-sm text-white/70">
                       <Check className="h-4 w-4 text-brand-green" />
                       Export to Excel
                     </li>
                   )}
                   {config.features.advancedAnalytics && (
-                    <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <li className="flex items-center gap-2 text-sm text-white/70">
                       <Check className="h-4 w-4 text-brand-green" />
                       Advanced analytics
                     </li>
                   )}
                   {config.features.subAdminEnabled && (
-                    <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <li className="flex items-center gap-2 text-sm text-white/70">
                       <Check className="h-4 w-4 text-brand-green" />
                       Sub-admin accounts
                     </li>
@@ -218,14 +218,14 @@ export function UpgradeModal({
                   {isCurrentTier ? (
                     <button
                       disabled
-                      className="w-full rounded-xl bg-slate-100 py-3 text-sm font-bold text-slate-400"
+                      className="w-full rounded-xl bg-white/10 py-3 text-sm font-bold text-white/40"
                     >
                       Current Plan
                     </button>
                   ) : isDowngrade ? (
                     <button
                       onClick={() => handleSelectTier(tier)}
-                      className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                      className="w-full rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-bold text-white/70 hover:bg-white/5"
                     >
                       Downgrade
                     </button>
@@ -234,7 +234,7 @@ export function UpgradeModal({
                       onClick={() => handleSelectTier(tier)}
                       className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white ${
                         config.popular
-                          ? "bg-brand-navy hover:bg-brand-navy/90"
+                          ? "bg-brand-navy hover:shadow-brand-green/40"
                           : "bg-slate-900 hover:bg-slate-800"
                       }`}
                     >
@@ -258,7 +258,7 @@ export function UpgradeModal({
           </p>
           <a
             href="mailto:sales@basicsecurity.ng"
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/5 px-6 py-3 text-sm font-bold text-white hover:bg-white/10"
           >
             Contact Sales
             <ArrowRight className="h-4 w-4" />

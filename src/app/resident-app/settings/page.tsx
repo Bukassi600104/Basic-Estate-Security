@@ -79,11 +79,11 @@ export default function ResidentSettingsPage() {
 
   function RequirementItem({ met, text }: { met: boolean; text: string }) {
     return (
-      <div className={`flex items-center gap-2 text-xs ${met ? "text-green-600" : "text-slate-500"}`}>
+      <div className={`flex items-center gap-2 text-xs ${met ? "text-emerald-400" : "text-white/50"}`}>
         {met ? (
           <Check className="h-3.5 w-3.5" />
         ) : (
-          <div className="h-3.5 w-3.5 rounded-full border border-slate-300" />
+          <div className="h-3.5 w-3.5 rounded-full border border-white/15" />
         )}
         {text}
       </div>
@@ -97,42 +97,42 @@ export default function ResidentSettingsPage() {
         <header className="flex items-center gap-4">
           <Link
             href="/resident-app/profile"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/60 hover:bg-white/5"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-xl font-bold tracking-tight text-white">
               Settings
             </h1>
-            <p className="text-sm text-slate-600">Manage your account</p>
+            <p className="text-sm text-white/60">Manage your account</p>
           </div>
         </header>
 
         {/* Change Password Card */}
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-brand-green to-brand-green-600 text-white">
               <Lock className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">Change Password</h2>
-              <p className="text-sm text-slate-600">Update your login password</p>
+              <h2 className="font-bold text-white">Change Password</h2>
+              <p className="text-sm text-white/60">Update your login password</p>
             </div>
           </div>
 
           {success && (
-            <div className="mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-              <ShieldCheck className="h-5 w-5 text-green-600" />
+            <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
               <div>
-                <p className="font-semibold text-green-800">Password changed successfully!</p>
-                <p className="text-sm text-green-700">Your new password is now active.</p>
+                <p className="font-semibold text-emerald-300">Password changed successfully!</p>
+                <p className="text-sm text-emerald-400">Your new password is now active.</p>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+            <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
               {error}
             </div>
           )}
@@ -140,20 +140,20 @@ export default function ResidentSettingsPage() {
           <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
             {/* Current Password */}
             <label className="grid gap-2 text-sm">
-              <span className="font-semibold text-slate-700">Current Password</span>
+              <span className="font-semibold text-white/70">Current Password</span>
               <div className="relative">
-                <Key className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Key className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                 <input
                   type={showCurrent ? "text" : "password"}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
                   {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -162,20 +162,20 @@ export default function ResidentSettingsPage() {
 
             {/* New Password */}
             <label className="grid gap-2 text-sm">
-              <span className="font-semibold text-slate-700">New Password</span>
+              <span className="font-semibold text-white/70">New Password</span>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                 <input
                   type={showNew ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNew(!showNew)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
                   {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -183,8 +183,8 @@ export default function ResidentSettingsPage() {
 
               {/* Password Requirements */}
               {newPassword.length > 0 && (
-                <div className="mt-2 grid gap-1.5 rounded-xl border border-slate-100 bg-slate-50 p-3">
-                  <p className="text-xs font-semibold text-slate-700">Password requirements:</p>
+                <div className="mt-2 grid gap-1.5 rounded-xl border border-white/5 bg-white/5 p-3">
+                  <p className="text-xs font-semibold text-white/70">Password requirements:</p>
                   <RequirementItem met={hasLength} text="5-8 characters" />
                   <RequirementItem met={hasUpper} text="Uppercase letter (A-Z)" />
                   <RequirementItem met={hasLower} text="Lowercase letter (a-z)" />
@@ -196,37 +196,37 @@ export default function ResidentSettingsPage() {
 
             {/* Confirm Password */}
             <label className="grid gap-2 text-sm">
-              <span className="font-semibold text-slate-700">Confirm New Password</span>
+              <span className="font-semibold text-white/70">Confirm New Password</span>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                 <input
                   type={showConfirm ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
-                  className={`h-12 w-full rounded-xl border bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none focus:ring-4 ${
+                  className={`h-12 w-full rounded-xl border bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none focus:ring-4 ${
                     confirmPassword.length > 0 && !passwordsMatch
                       ? "border-rose-300 ring-rose-100 focus:border-rose-500"
-                      : "border-slate-200 ring-brand-navy/20 focus:border-brand-navy"
+                      : "border-white/10 ring-brand-green/20 focus:border-brand-green/50"
                   }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {confirmPassword.length > 0 && !passwordsMatch && (
-                <span className="text-xs font-medium text-rose-600">Passwords do not match</span>
+                <span className="text-xs font-medium text-rose-400">Passwords do not match</span>
               )}
             </label>
 
             <button
               type="submit"
               disabled={!canSubmit}
-              className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-navy/90 disabled:opacity-60"
+              className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-brand-green/40 disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -244,12 +244,12 @@ export default function ResidentSettingsPage() {
         </div>
 
         {/* Phone Number Notice */}
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+        <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" />
             <div>
-              <h3 className="font-bold text-amber-900">Phone Number Changes</h3>
-              <p className="mt-1 text-sm text-amber-800">
+              <h3 className="font-bold text-amber-200">Phone Number Changes</h3>
+              <p className="mt-1 text-sm text-amber-300">
                 To change your registered phone number or approved delegate numbers,
                 please contact your estate administrator. Phone number changes cannot
                 be made from this app for security purposes.
@@ -259,34 +259,34 @@ export default function ResidentSettingsPage() {
         </div>
 
         {/* Forgot Password - Request Reset */}
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
               <RefreshCcw className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">Forgot Password?</h2>
-              <p className="text-sm text-slate-600">Request new credentials from your estate admin</p>
+              <h2 className="font-bold text-white">Forgot Password?</h2>
+              <p className="text-sm text-white/60">Request new credentials from your estate admin</p>
             </div>
           </div>
 
           {resetSuccess ? (
-            <div className="mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-              <ShieldCheck className="h-5 w-5 text-green-600" />
+            <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
               <div>
-                <p className="font-semibold text-green-800">Request submitted!</p>
-                <p className="text-sm text-green-700">Your estate admin will contact you with new credentials.</p>
+                <p className="font-semibold text-emerald-300">Request submitted!</p>
+                <p className="text-sm text-emerald-400">Your estate admin will contact you with new credentials.</p>
               </div>
             </div>
           ) : (
             <>
-              <p className="mt-4 text-sm text-slate-600">
+              <p className="mt-4 text-sm text-white/60">
                 If you&apos;ve forgotten your password and can&apos;t change it above, you can request
                 your estate admin to generate new login credentials for you.
               </p>
 
               {resetError && (
-                <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                <div className="mt-3 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
                   {resetError}
                 </div>
               )}
@@ -295,7 +295,7 @@ export default function ResidentSettingsPage() {
                 type="button"
                 onClick={handleResetRequest}
                 disabled={resetLoading}
-                className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-500 bg-white text-sm font-bold text-amber-700 transition-all hover:bg-amber-50 disabled:opacity-60"
+                className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-500 bg-white/5 text-sm font-bold text-amber-400 transition-all hover:bg-amber-500/10 disabled:opacity-60"
               >
                 {resetLoading ? (
                   <>
@@ -317,7 +317,7 @@ export default function ResidentSettingsPage() {
         <div className="mt-6 text-center">
           <Link
             href="/resident-app/profile"
-            className="text-sm font-semibold text-brand-navy hover:underline"
+            className="text-sm font-semibold text-brand-green hover:underline"
           >
             Back to Pass Codes
           </Link>

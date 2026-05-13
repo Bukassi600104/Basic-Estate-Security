@@ -28,17 +28,17 @@ export function TrialBanner({ estate }: TrialBannerProps) {
   // Determine styling based on urgency
   const styles = {
     normal: {
-      container: "bg-brand-navy/10 border-brand-navy/20 text-brand-navy",
+      container: "bg-brand-green/10 border-brand-navy/20 text-brand-green",
       icon: <Clock className="h-4 w-4" />,
-      button: "bg-brand-navy text-white hover:bg-brand-navy-700",
+      button: "bg-gradient-to-r from-brand-green to-brand-green-600 text-white hover:bg-brand-navy-700",
     },
     warning: {
-      container: "bg-amber-50 border-amber-200 text-amber-800",
+      container: "bg-amber-500/10 border-amber-500/20 text-amber-300",
       icon: <AlertTriangle className="h-4 w-4" />,
       button: "bg-amber-600 text-white hover:bg-amber-700",
     },
     critical: {
-      container: "bg-rose-50 border-rose-200 text-rose-800",
+      container: "bg-rose-500/10 border-rose-500/20 text-rose-300",
       icon: <XCircle className="h-4 w-4" />,
       button: "bg-rose-600 text-white hover:bg-rose-700",
     },
@@ -96,9 +96,9 @@ export function TrialBannerCompact({ estate }: TrialBannerProps) {
   }
 
   const styles = {
-    normal: "bg-brand-navy/10 border-brand-navy/20 text-brand-navy",
-    warning: "bg-amber-50 border-amber-200 text-amber-800",
-    critical: "bg-rose-50 border-rose-200 text-rose-800",
+    normal: "bg-brand-green/10 border-brand-navy/20 text-brand-green",
+    warning: "bg-amber-500/10 border-amber-500/20 text-amber-300",
+    critical: "bg-rose-500/10 border-rose-500/20 text-rose-300",
   }[urgency];
 
   return (

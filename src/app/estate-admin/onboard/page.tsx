@@ -189,34 +189,34 @@ export default function OnboardResidentPage() {
   const residentPhoneValidation = residentPhone.trim() ? isValidNigerianPhone(residentPhone.trim()) : null;
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-[#0a1a0f] to-[#0d1f12]">
       <div className="mx-auto max-w-2xl px-5 py-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link
             href="/estate-admin"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:bg-white/5"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Link>
           <Link
             href="/estate-admin/logs"
-            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10"
           >
             Logs
           </Link>
         </div>
 
         {/* Card */}
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy text-white shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-brand-green to-brand-green-600 text-white shadow-sm">
               <UserPlus className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Onboard Resident</h1>
-              <p className="mt-1 text-sm text-slate-600">
+              <h1 className="text-xl font-bold text-white">Onboard Resident</h1>
+              <p className="mt-1 text-sm text-white/60">
                 {step === 1
                   ? "Enter resident details"
                   : step === 2
@@ -227,21 +227,21 @@ export default function OnboardResidentPage() {
           </div>
 
           {/* Step Indicator */}
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500">
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50">
             <div
               className={`h-2 w-2 rounded-full ${step === 1 ? "bg-brand-navy" : step > 1 ? "bg-brand-green" : "bg-slate-300"}`}
             />
-            <span className={step === 1 ? "text-brand-navy" : step > 1 ? "text-brand-green" : ""}>Details</span>
-            <div className="mx-2 h-px w-6 bg-slate-200" />
+            <span className={step === 1 ? "text-brand-green" : step > 1 ? "text-brand-green" : ""}>Details</span>
+            <div className="mx-2 h-px w-6 bg-white/10" />
             <div
               className={`h-2 w-2 rounded-full ${step === 2 ? "bg-brand-navy" : step > 2 ? "bg-brand-green" : "bg-slate-300"}`}
             />
-            <span className={step === 2 ? "text-brand-navy" : step > 2 ? "text-brand-green" : ""}>Numbers</span>
-            <div className="mx-2 h-px w-6 bg-slate-200" />
+            <span className={step === 2 ? "text-brand-green" : step > 2 ? "text-brand-green" : ""}>Numbers</span>
+            <div className="mx-2 h-px w-6 bg-white/10" />
             <div
               className={`h-2 w-2 rounded-full ${step === 3 ? "bg-brand-navy" : "bg-slate-300"}`}
             />
-            <span className={step === 3 ? "text-brand-navy" : ""}>Review</span>
+            <span className={step === 3 ? "text-brand-green" : ""}>Review</span>
           </div>
 
           <form className="mt-6" onSubmit={onSubmit}>
@@ -249,9 +249,9 @@ export default function OnboardResidentPage() {
               <div className="grid gap-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="grid gap-2 text-sm">
-                    <span className="font-semibold text-slate-700">Resident name</span>
+                    <span className="font-semibold text-white/70">Resident name</span>
                     <input
-                      className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
                       value={residentName}
                       onChange={(e) => setResidentName(e.target.value)}
                       placeholder="John Doe"
@@ -259,9 +259,9 @@ export default function OnboardResidentPage() {
                     />
                   </label>
                   <label className="grid gap-2 text-sm">
-                    <span className="font-semibold text-slate-700">House number</span>
+                    <span className="font-semibold text-white/70">House number</span>
                     <input
-                      className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
                       value={houseNumber}
                       onChange={(e) => setHouseNumber(e.target.value)}
                       placeholder="A-101"
@@ -271,12 +271,12 @@ export default function OnboardResidentPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="grid gap-2 text-sm">
-                    <span className="font-semibold text-slate-700">Phone number</span>
+                    <span className="font-semibold text-white/70">Phone number</span>
                     <input
-                      className={`h-12 rounded-xl border bg-white px-4 text-base font-medium text-slate-900 outline-none focus:ring-4 ${
+                      className={`h-12 rounded-xl border bg-white/5 px-4 text-base font-medium text-white outline-none focus:ring-4 ${
                         residentPhoneValidation && !residentPhoneValidation.valid
                           ? "border-rose-300 ring-rose-100 focus:border-rose-500"
-                          : "border-slate-200 ring-brand-navy/20 focus:border-brand-navy"
+                          : "border-white/10 ring-brand-green/20 focus:border-brand-green/50"
                       }`}
                       value={residentPhone}
                       onChange={(e) => setResidentPhone(e.target.value)}
@@ -285,15 +285,15 @@ export default function OnboardResidentPage() {
                       required
                     />
                     {residentPhoneValidation && !residentPhoneValidation.valid && (
-                      <span className="text-xs font-medium text-rose-600">
+                      <span className="text-xs font-medium text-rose-400">
                         {residentPhoneValidation.error}
                       </span>
                     )}
                   </label>
                   <label className="grid gap-2 text-sm">
-                    <span className="font-semibold text-slate-700">Email (optional)</span>
+                    <span className="font-semibold text-white/70">Email (optional)</span>
                     <input
-                      className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
                       value={residentEmail}
                       onChange={(e) => setResidentEmail(e.target.value)}
                       type="email"
@@ -304,7 +304,7 @@ export default function OnboardResidentPage() {
 
                 <button
                   type="button"
-                  className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 text-sm font-bold text-white shadow-sm hover:bg-brand-navy/90 disabled:opacity-60"
+                  className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 text-sm font-bold text-white shadow-sm hover:shadow-brand-green/40 disabled:opacity-60"
                   onClick={() => canProceed() && setStep(2)}
                   disabled={!canProceed()}
                 >
@@ -315,15 +315,15 @@ export default function OnboardResidentPage() {
             ) : step === 2 ? (
               <div className="grid gap-4">
                 {/* Approved Numbers Section */}
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-white/70">
                     <Users className="h-4 w-4" />
                     Approved Numbers
                     <span className="ml-auto rounded-full bg-brand-navy px-2 py-0.5 text-xs font-bold text-white">
                       Required
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-white/50">
                     At least 1 number must be approved. These numbers can generate access codes.
                   </p>
 
@@ -333,21 +333,21 @@ export default function OnboardResidentPage() {
                       {approvedNumbers.map((num) => (
                         <div
                           key={num.phone}
-                          className="flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3"
+                          className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/100 text-white">
                               <Check className="h-4 w-4" />
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-slate-900">{num.phone}</div>
-                              <div className="text-xs font-medium text-green-600">Approved</div>
+                              <div className="text-sm font-bold text-white">{num.phone}</div>
+                              <div className="text-xs font-medium text-emerald-400">Approved</div>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => removeApprovedNumber(num.phone)}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-white hover:text-rose-500"
+                            className="rounded-lg p-2 text-white/40 hover:bg-white/5 hover:text-rose-500"
                           >
                             <X className="h-4 w-4" />
                           </button>
@@ -361,10 +361,10 @@ export default function OnboardResidentPage() {
                     <div className="mt-4">
                       <div className="grid gap-3 sm:flex">
                         <div className="relative flex-1">
-                          <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                          <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                           <input
                             placeholder="08031234567"
-                            className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-base font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+                            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-4 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
                             value={newApprovalPhone}
                             onChange={(e) => {
                               setNewApprovalPhone(e.target.value);
@@ -386,7 +386,7 @@ export default function OnboardResidentPage() {
                       </div>
 
                       {approvalError && (
-                        <div className="mt-2 text-xs font-medium text-rose-600">
+                        <div className="mt-2 text-xs font-medium text-rose-400">
                           {approvalError}
                         </div>
                       )}
@@ -395,13 +395,13 @@ export default function OnboardResidentPage() {
 
                   {/* Animated approval message box */}
                   {approvalState !== "idle" && (
-                    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/5">
                       <div className="flex items-center gap-3 px-4 py-3">
                         {approvalState === "processing" && (
                           <>
-                            <Loader2 className="h-5 w-5 animate-spin text-brand-navy" />
+                            <Loader2 className="h-5 w-5 animate-spin text-brand-green" />
                             <div className="flex-1">
-                              <div className="text-sm font-semibold text-slate-900">
+                              <div className="text-sm font-semibold text-white">
                                 <span className="inline-flex items-center gap-1">
                                   Processing
                                   <span className="inline-flex gap-0.5">
@@ -411,7 +411,7 @@ export default function OnboardResidentPage() {
                                   </span>
                                 </span>
                               </div>
-                              <div className="h-1.5 mt-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                              <div className="h-1.5 mt-2 w-full rounded-full bg-white/10 overflow-hidden">
                                 <div className="h-full w-1/3 rounded-full bg-brand-navy animate-pulse" />
                               </div>
                             </div>
@@ -421,7 +421,7 @@ export default function OnboardResidentPage() {
                           <>
                             <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
                             <div className="flex-1">
-                              <div className="text-sm font-semibold text-slate-900">
+                              <div className="text-sm font-semibold text-white">
                                 <span className="inline-flex items-center gap-1">
                                   Please wait, validating number
                                   <span className="inline-flex gap-0.5">
@@ -431,23 +431,23 @@ export default function OnboardResidentPage() {
                                   </span>
                                 </span>
                               </div>
-                              <div className="h-1.5 mt-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                                <div className="h-full w-2/3 rounded-full bg-amber-500 animate-pulse" />
+                              <div className="h-1.5 mt-2 w-full rounded-full bg-white/10 overflow-hidden">
+                                <div className="h-full w-2/3 rounded-full bg-amber-500/100 animate-pulse" />
                               </div>
                             </div>
                           </>
                         )}
                         {approvalState === "approved" && (
                           <>
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/100 text-white">
                               <Check className="h-4 w-4" />
                             </div>
                             <div className="flex-1">
-                              <div className="text-sm font-bold text-green-600">
+                              <div className="text-sm font-bold text-emerald-400">
                                 Approved!
                               </div>
-                              <div className="h-1.5 mt-2 w-full rounded-full bg-green-100 overflow-hidden">
-                                <div className="h-full w-full rounded-full bg-green-500" />
+                              <div className="h-1.5 mt-2 w-full rounded-full bg-emerald-500/15 overflow-hidden">
+                                <div className="h-full w-full rounded-full bg-emerald-500/100" />
                               </div>
                             </div>
                           </>
@@ -458,20 +458,20 @@ export default function OnboardResidentPage() {
 
                   {/* Status message */}
                   {approvedNumbers.length === 0 && approvalState === "idle" && (
-                    <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800">
+                    <div className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs font-medium text-amber-300">
                       You must approve at least 1 phone number before onboarding this resident.
                     </div>
                   )}
 
                   {approvedNumbers.length === 2 && (
-                    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-100 px-4 py-3 text-xs font-medium text-slate-600">
+                    <div className="mt-4 rounded-lg border border-white/10 bg-white/10 px-4 py-3 text-xs font-medium text-white/60">
                       Maximum of 2 numbers reached.
                     </div>
                   )}
                 </div>
 
                 {error ? (
-                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
                     {error}
                   </div>
                 ) : null}
@@ -479,7 +479,7 @@ export default function OnboardResidentPage() {
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-900 hover:bg-slate-50"
+                    className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 text-sm font-bold text-white hover:bg-white/5"
                     onClick={() => setStep(1)}
                   >
                     <ArrowLeft className="h-4 w-4" />
@@ -492,8 +492,8 @@ export default function OnboardResidentPage() {
                     onClick={() => canOnboard() && setStep(3)}
                     className={`flex flex-1 h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold shadow-sm transition-all ${
                       canOnboard()
-                        ? "bg-brand-navy text-white hover:bg-brand-navy/90"
-                        : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        ? "bg-gradient-to-r from-brand-green to-brand-green-600 text-white hover:shadow-brand-green/40"
+                        : "bg-white/10 text-white/40 cursor-not-allowed"
                     } disabled:opacity-60`}
                   >
                     Review & Confirm
@@ -504,48 +504,48 @@ export default function OnboardResidentPage() {
             ) : step === 3 ? (
               <div className="grid gap-4">
                 {/* Review Summary */}
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <h3 className="text-sm font-bold text-slate-900">Resident Details</h3>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <h3 className="text-sm font-bold text-white">Resident Details</h3>
                   <div className="mt-3 grid gap-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Name</span>
-                      <span className="font-semibold text-slate-900">{residentName}</span>
+                      <span className="text-white/50">Name</span>
+                      <span className="font-semibold text-white">{residentName}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">House Number</span>
-                      <span className="font-semibold text-slate-900">{houseNumber}</span>
+                      <span className="text-white/50">House Number</span>
+                      <span className="font-semibold text-white">{houseNumber}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Phone</span>
-                      <span className="font-semibold text-slate-900">{residentPhone}</span>
+                      <span className="text-white/50">Phone</span>
+                      <span className="font-semibold text-white">{residentPhone}</span>
                     </div>
                     {residentEmail && (
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Email</span>
-                        <span className="font-semibold text-slate-900">{residentEmail}</span>
+                        <span className="text-white/50">Email</span>
+                        <span className="font-semibold text-white">{residentEmail}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                  <h3 className="text-sm font-bold text-slate-900">Approved Numbers ({approvedNumbers.length})</h3>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                  <h3 className="text-sm font-bold text-white">Approved Numbers ({approvedNumbers.length})</h3>
                   <div className="mt-3 grid gap-2">
                     {approvedNumbers.map((num) => (
                       <div key={num.phone} className="flex items-center gap-2 text-sm">
                         <Check className="h-4 w-4 text-green-500" />
-                        <span className="font-semibold text-slate-900">{num.phone}</span>
+                        <span className="font-semibold text-white">{num.phone}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800">
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs font-medium text-amber-300">
                   Please verify all details are correct. Phone numbers cannot be changed by the resident after onboarding — they must contact you (the admin) to make changes.
                 </div>
 
                 {error ? (
-                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
                     {error}
                   </div>
                 ) : null}
@@ -553,7 +553,7 @@ export default function OnboardResidentPage() {
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    className="flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-900 hover:bg-slate-50"
+                    className="flex h-12 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 text-sm font-bold text-white hover:bg-white/5"
                     onClick={() => setStep(2)}
                   >
                     <ArrowLeft className="h-4 w-4" />
@@ -575,21 +575,21 @@ export default function OnboardResidentPage() {
 
         {/* Credentials Card */}
         {credentials ? (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Login Credentials</h2>
-            <p className="mt-1 text-sm text-slate-600">
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-white">Login Credentials</h2>
+            <p className="mt-1 text-sm text-white/60">
               Copy and share these securely. Passwords are shown only once.
             </p>
 
             <div className="mt-4 grid gap-3">
               {/* Estate Verification Code */}
               <div className="rounded-2xl border-2 border-brand-green bg-brand-green/5 p-4">
-                <div className="text-sm font-bold text-brand-navy">Estate Verification Code</div>
-                <p className="mt-1 text-xs text-slate-600">
+                <div className="text-sm font-bold text-brand-green">Estate Verification Code</div>
+                <p className="mt-1 text-xs text-white/60">
                   All residents and delegates need this code to sign in.
                 </p>
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-brand-green/30 bg-white px-4 py-3">
-                  <div className="text-2xl font-mono font-bold text-brand-navy">
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-brand-green/30 bg-white/5 px-4 py-3">
+                  <div className="text-2xl font-mono font-bold text-brand-green">
                     {credentials.verificationCode}
                   </div>
                   <button
@@ -604,29 +604,29 @@ export default function OnboardResidentPage() {
               </div>
 
               {/* Resident Credentials */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-sm font-bold text-slate-900">Resident</div>
-                <div className="mt-2 text-sm text-slate-700">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-sm font-bold text-white">Resident</div>
+                <div className="mt-2 text-sm text-white/70">
                   {credentials.resident.name} • {credentials.resident.phone}
                 </div>
                 <div className="mt-3 grid gap-2">
-                  <div className="text-xs font-bold uppercase text-slate-500">Login Username</div>
-                  <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="text-xs font-bold uppercase text-white/50">Login Username</div>
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                     <div className="text-sm font-mono break-all">{credentials.resident.username}</div>
                     <button
                       type="button"
-                      className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                      className="rounded-lg px-2 py-1 text-sm font-semibold text-white/60 hover:bg-white/10"
                       onClick={() => copy(credentials.resident.username)}
                     >
                       <ClipboardCopy className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="text-xs font-bold uppercase text-slate-500">Password</div>
-                  <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="text-xs font-bold uppercase text-white/50">Password</div>
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                     <div className="text-sm font-mono">{credentials.resident.password}</div>
                     <button
                       type="button"
-                      className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                      className="rounded-lg px-2 py-1 text-sm font-semibold text-white/60 hover:bg-white/10"
                       onClick={() => copy(credentials.resident.password)}
                     >
                       <ClipboardCopy className="h-4 w-4" />
@@ -637,30 +637,30 @@ export default function OnboardResidentPage() {
 
               {/* Delegates */}
               {credentials.delegates.length > 0 && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="text-sm font-bold text-slate-900">Approved Numbers (Delegates)</div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-sm font-bold text-white">Approved Numbers (Delegates)</div>
                   <div className="mt-3 grid gap-3">
                     {credentials.delegates.map((d) => (
-                      <div key={d.phone} className="rounded-xl border border-slate-200 bg-white p-3">
-                        <div className="text-sm font-semibold text-slate-900">{d.phone}</div>
+                      <div key={d.phone} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                        <div className="text-sm font-semibold text-white">{d.phone}</div>
                         <div className="mt-2 grid gap-2">
-                          <div className="text-xs font-bold uppercase text-slate-500">Username</div>
-                          <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                          <div className="text-xs font-bold uppercase text-white/50">Username</div>
+                          <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
                             <div className="text-sm font-mono break-all">{d.username}</div>
                             <button
                               type="button"
-                              className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                              className="rounded-lg px-2 py-1 text-sm font-semibold text-white/60 hover:bg-white/10"
                               onClick={() => copy(d.username)}
                             >
                               <ClipboardCopy className="h-4 w-4" />
                             </button>
                           </div>
-                          <div className="text-xs font-bold uppercase text-slate-500">Password</div>
-                          <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                          <div className="text-xs font-bold uppercase text-white/50">Password</div>
+                          <div className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
                             <div className="text-sm font-mono">{d.password}</div>
                             <button
                               type="button"
-                              className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+                              className="rounded-lg px-2 py-1 text-sm font-semibold text-white/60 hover:bg-white/10"
                               onClick={() => copy(d.password)}
                             >
                               <ClipboardCopy className="h-4 w-4" />

@@ -123,10 +123,10 @@ export function CountdownTimer({
       </div>
       {showLabel && (
         <div className="flex flex-col">
-          <span className={`font-semibold text-slate-900 ${text}`}>
+          <span className={`font-semibold text-white ${text}`}>
             {timeLeft.display}
           </span>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-white/50">
             {timeLeft.isExpired ? "Code expired" : "remaining"}
           </span>
         </div>

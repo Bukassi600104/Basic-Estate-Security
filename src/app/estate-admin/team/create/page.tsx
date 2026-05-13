@@ -97,30 +97,30 @@ export default function CreateSubAdminPage() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-green/20">
             <Check className="h-8 w-8 text-brand-green" />
           </div>
-          <h1 className="mt-6 text-2xl font-bold text-slate-900">
+          <h1 className="mt-6 text-2xl font-bold text-white">
             Sub-Admin Created!
           </h1>
-          <p className="mt-2 text-sm text-slate-600">
+          <p className="mt-2 text-sm text-white/60">
             Share these credentials with {name}. They will need to change their
             password on first login.
           </p>
 
-          <div className="mt-6 space-y-4 rounded-xl bg-white p-4 text-left">
+          <div className="mt-6 space-y-4 rounded-xl bg-white/5 p-4 text-left">
             <div>
-              <label className="text-xs font-semibold text-slate-500">Email</label>
-              <p className="mt-1 font-mono text-sm text-slate-900">{email}</p>
+              <label className="text-xs font-semibold text-white/50">Email</label>
+              <p className="mt-1 font-mono text-sm text-white">{email}</p>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500">
+              <label className="text-xs font-semibold text-white/50">
                 Temporary Password
               </label>
-              <p className="mt-1 rounded bg-slate-100 px-3 py-2 font-mono text-sm text-slate-900">
+              <p className="mt-1 rounded bg-white/10 px-3 py-2 font-mono text-sm text-white">
                 {success.tempPassword}
               </p>
             </div>
           </div>
 
-          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left text-xs text-amber-800">
+          <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-left text-xs text-amber-300">
             <strong>Important:</strong> This password will only be shown once.
             Make sure to copy and share it securely with the sub-admin.
           </div>
@@ -128,7 +128,7 @@ export default function CreateSubAdminPage() {
           <div className="mt-8 flex gap-3">
             <Link
               href="/estate-admin/team"
-              className="flex-1 rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-900 hover:bg-slate-50"
+              className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/5"
             >
               Back to Team
             </Link>
@@ -139,7 +139,7 @@ export default function CreateSubAdminPage() {
                 setEmail("");
                 setPermissions([]);
               }}
-              className="flex-1 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-navy-700"
+              className="flex-1 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-bold text-white hover:shadow-brand-green/40"
             >
               Add Another
             </button>
@@ -153,15 +153,15 @@ export default function CreateSubAdminPage() {
     <div className="mx-auto max-w-2xl px-4 py-8">
       <Link
         href="/estate-admin/team"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900"
+        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Team
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Add Sub-Admin</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-bold text-white">Add Sub-Admin</h1>
+        <p className="mt-1 text-sm text-white/60">
           Create a new sub-admin account with specific permissions.
         </p>
       </div>
@@ -169,16 +169,16 @@ export default function CreateSubAdminPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-2 block text-sm font-semibold text-white/70">
             Name
           </label>
           <div className="relative">
-            <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+              className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
               placeholder="Enter sub-admin name"
               required
             />
@@ -187,21 +187,21 @@ export default function CreateSubAdminPage() {
 
         {/* Email */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
+          <label className="mb-2 block text-sm font-semibold text-white/70">
             Email
           </label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+              className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
               placeholder="Enter email address"
               required
             />
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-white/50">
             A temporary password will be generated for them to use.
           </p>
         </div>
@@ -209,22 +209,22 @@ export default function CreateSubAdminPage() {
         {/* Permissions */}
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <label className="text-sm font-semibold text-slate-700">
+            <label className="text-sm font-semibold text-white/70">
               Permissions
             </label>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={selectAll}
-                className="text-xs font-semibold text-brand-navy hover:underline"
+                className="text-xs font-semibold text-brand-green hover:underline"
               >
                 Select All
               </button>
-              <span className="text-slate-300">|</span>
+              <span className="text-white/20">|</span>
               <button
                 type="button"
                 onClick={clearAll}
-                className="text-xs font-semibold text-slate-500 hover:underline"
+                className="text-xs font-semibold text-white/50 hover:underline"
               >
                 Clear All
               </button>
@@ -238,7 +238,7 @@ export default function CreateSubAdminPage() {
                 className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all ${
                   permissions.includes(perm.key)
                     ? "border-brand-navy bg-brand-navy/5"
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                    : "border-white/10 bg-white/5 hover:border-white/15"
                 }`}
               >
                 <div className="pt-0.5">
@@ -246,7 +246,7 @@ export default function CreateSubAdminPage() {
                     className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all ${
                       permissions.includes(perm.key)
                         ? "border-brand-navy bg-brand-navy"
-                        : "border-slate-300"
+                        : "border-white/15"
                     }`}
                   >
                     {permissions.includes(perm.key) && (
@@ -255,8 +255,8 @@ export default function CreateSubAdminPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-slate-900">{perm.label}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{perm.description}</p>
+                  <p className="font-semibold text-white">{perm.label}</p>
+                  <p className="mt-0.5 text-xs text-white/50">{perm.description}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -270,7 +270,7 @@ export default function CreateSubAdminPage() {
         </div>
 
         {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-300">
             {error}
           </div>
         )}
@@ -278,14 +278,14 @@ export default function CreateSubAdminPage() {
         <div className="flex gap-3">
           <Link
             href="/estate-admin/team"
-            className="flex-1 rounded-full border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-900 hover:bg-slate-50"
+            className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-center text-sm font-bold text-white hover:bg-white/5"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={loading || !name || !email}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:bg-brand-navy-700 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:shadow-brand-green/40 disabled:opacity-60"
           >
             {loading ? (
               <>

@@ -185,16 +185,16 @@ export default function ResidentAppCodesPage() {
       <div className="mx-auto max-w-lg px-5 py-6">
         {/* Header */}
         <header>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
             Pass Codes
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-white/50">
             Generate &amp; manage access codes
           </p>
         </header>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+          <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
             {error}
           </div>
         )}
@@ -202,14 +202,14 @@ export default function ResidentAppCodesPage() {
         {/* Quick stats */}
         {!loading && (
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
                 Active Guests
               </p>
-              <p className="mt-1 text-3xl font-extrabold text-brand-navy">{activePairCount}</p>
+              <p className="mt-1 text-3xl font-extrabold text-brand-green">{activePairCount}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
                 Staff Codes
               </p>
               <p className="mt-1 text-3xl font-extrabold text-brand-green">
@@ -223,7 +223,7 @@ export default function ResidentAppCodesPage() {
         {loading ? (
           <div className="mt-8 space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 animate-pulse rounded-2xl bg-slate-100" />
+              <div key={i} className="h-32 animate-pulse rounded-2xl bg-white/10" />
             ))}
           </div>
         ) : (
@@ -231,7 +231,7 @@ export default function ResidentAppCodesPage() {
             {/* Guest Code Pairs */}
             {codePairs.length > 0 && (
               <section className="mt-6">
-                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-400">
+                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/40">
                   <Users className="h-4 w-4" /> Guest Codes
                 </h2>
                 <div className="mt-3 space-y-4">
@@ -240,21 +240,21 @@ export default function ResidentAppCodesPage() {
                     return (
                       <div
                         key={pair.visitId}
-                        className={`rounded-2xl border bg-white shadow-sm transition-all ${
-                          active ? "border-brand-green/40 shadow-glow-green/10" : "border-slate-200"
+                        className={`rounded-2xl border bg-white/5 transition-all ${
+                          active ? "border-brand-green/40 shadow-glow-green/10" : "border-white/10"
                         }`}
                       >
                         {/* Header bar */}
-                        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3">
+                        <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
                           <div className="flex items-center gap-2">
                             {pair.entryCode.guestCount > 1 && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-xs font-bold text-brand-navy">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-brand-green/10 px-2.5 py-0.5 text-xs font-bold text-brand-green">
                                 <Users className="h-3 w-3" />
                                 {pair.entryCode.guestCount} guests
                               </span>
                             )}
                             <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                              active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                              active ? "bg-emerald-500/15 text-emerald-400" : "bg-white/10 text-white/50"
                             }`}>
                               {active ? "ACTIVE" : pair.entryCode.status}
                             </span>
@@ -265,10 +265,10 @@ export default function ResidentAppCodesPage() {
                             )}
                             <button
                               onClick={() => sharePair(pair)}
-                              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/10 hover:text-white/60"
                             >
                               {copiedId === `share-${pair.visitId}` ? (
-                                <Check className="h-4 w-4 text-green-600" />
+                                <Check className="h-4 w-4 text-emerald-400" />
                               ) : (
                                 <Share2 className="h-4 w-4" />
                               )}
@@ -297,7 +297,7 @@ export default function ResidentAppCodesPage() {
                         </div>
 
                         {pair.entryCode.guestNames && (
-                          <div className="border-t border-slate-100 px-5 py-2.5 text-xs text-slate-500">
+                          <div className="border-t border-white/5 px-5 py-2.5 text-xs text-white/50">
                             {pair.entryCode.guestNames}
                           </div>
                         )}
@@ -311,7 +311,7 @@ export default function ResidentAppCodesPage() {
             {/* Staff Codes */}
             {staffCodes.length > 0 && (
               <section className="mt-6">
-                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-400">
+                <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white/40">
                   <ShieldCheck className="h-4 w-4" /> Staff Codes
                 </h2>
                 <div className="mt-3 space-y-3">
@@ -320,21 +320,21 @@ export default function ResidentAppCodesPage() {
                     return (
                       <div
                         key={c.id}
-                        className={`rounded-2xl border bg-white p-4 shadow-sm ${
-                          active ? "border-brand-green/30" : "border-slate-200"
+                        className={`rounded-2xl border bg-white/5 p-4 shadow-sm ${
+                          active ? "border-brand-green/30" : "border-white/10"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <code className="rounded-xl bg-slate-50 px-4 py-3 font-mono text-2xl font-extrabold tracking-[0.2em] text-slate-900 sm:text-3xl">
+                            <code className="rounded-xl bg-white/5 px-4 py-3 font-mono text-2xl font-extrabold tracking-[0.2em] text-white sm:text-3xl">
                               {c.code}
                             </code>
                             <button
                               onClick={() => copyCode(c.code, c.id)}
                               className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
                                 copiedId === c.id
-                                  ? "border-green-300 bg-green-50 text-green-600"
-                                  : "border-slate-200 text-slate-400 hover:bg-slate-50"
+                                  ? "border-green-300 bg-emerald-500/10 text-emerald-400"
+                                  : "border-white/10 text-white/40 hover:bg-white/5"
                               }`}
                             >
                               {copiedId === c.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -343,7 +343,7 @@ export default function ResidentAppCodesPage() {
                           {c.type === "STAFF" && active && (
                             <button
                               onClick={() => renew(c.id)}
-                              className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                              className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-white/60 hover:bg-white/5"
                             >
                               <RefreshCcw className="h-3.5 w-3.5" />
                               Renew
@@ -352,7 +352,7 @@ export default function ResidentAppCodesPage() {
                         </div>
                         <div className="mt-2 flex items-center gap-2">
                           <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                            active ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
+                            active ? "bg-emerald-500/15 text-emerald-400" : "bg-white/10 text-white/50"
                           }`}>
                             {active ? "ACTIVE" : c.status}
                           </span>
@@ -369,10 +369,10 @@ export default function ResidentAppCodesPage() {
 
             {/* Empty state */}
             {codePairs.length === 0 && staffCodes.length === 0 && (
-              <div className="mt-10 rounded-2xl border border-dashed border-slate-200 px-6 py-14 text-center">
+              <div className="mt-10 rounded-2xl border border-dashed border-white/10 px-6 py-14 text-center">
                 <KeyRound className="mx-auto h-14 w-14 text-slate-200" />
-                <p className="mt-4 text-lg font-bold text-slate-700">No codes yet</p>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-4 text-lg font-bold text-white/70">No codes yet</p>
+                <p className="mt-1 text-sm text-white/50">
                   Tap the + button below to generate your first access code
                 </p>
               </div>
@@ -384,7 +384,7 @@ export default function ResidentAppCodesPage() {
       {/* FAB */}
       <button
         onClick={() => setShowSheet(true)}
-        className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-navy text-white shadow-premium-lg transition-transform active:scale-95"
+        className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-brand-green to-brand-green-600 text-white shadow-premium-lg transition-transform active:scale-95"
       >
         <Plus className="h-7 w-7" />
       </button>
@@ -396,15 +396,15 @@ export default function ResidentAppCodesPage() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => !creating && setShowSheet(false)}
           />
-          <div className="relative w-full max-w-lg animate-slide-in-bottom rounded-t-3xl bg-white px-6 pb-8 pt-4 safe-area-pb">
+          <div className="relative w-full max-w-lg animate-slide-in-bottom rounded-t-3xl bg-white/5 px-6 pb-8 pt-4 safe-area-pb">
             {/* Handle */}
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-300" />
 
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">Generate Code</h3>
+              <h3 className="text-lg font-bold text-white">Generate Code</h3>
               <button
                 onClick={() => !creating && setShowSheet(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-white/40 hover:bg-white/10"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -417,24 +417,24 @@ export default function ResidentAppCodesPage() {
                 className={`rounded-2xl border-2 p-4 text-left transition-all ${
                   sheetType === "GUEST"
                     ? "border-brand-navy bg-brand-navy/5"
-                    : "border-slate-200 hover:border-slate-300"
+                    : "border-white/10 hover:border-white/15"
                 }`}
               >
-                <Users className={`h-6 w-6 ${sheetType === "GUEST" ? "text-brand-navy" : "text-slate-400"}`} />
-                <p className="mt-2 font-bold text-slate-900">Guest</p>
-                <p className="text-xs text-slate-500">Entry + exit pair, 4h</p>
+                <Users className={`h-6 w-6 ${sheetType === "GUEST" ? "text-brand-green" : "text-white/40"}`} />
+                <p className="mt-2 font-bold text-white">Guest</p>
+                <p className="text-xs text-white/50">Entry + exit pair, 4h</p>
               </button>
               <button
                 onClick={() => setSheetType("STAFF")}
                 className={`rounded-2xl border-2 p-4 text-left transition-all ${
                   sheetType === "STAFF"
                     ? "border-brand-green bg-brand-green/5"
-                    : "border-slate-200 hover:border-slate-300"
+                    : "border-white/10 hover:border-white/15"
                 }`}
               >
-                <ShieldCheck className={`h-6 w-6 ${sheetType === "STAFF" ? "text-brand-green" : "text-slate-400"}`} />
-                <p className="mt-2 font-bold text-slate-900">Staff</p>
-                <p className="text-xs text-slate-500">Renewable, 6 months</p>
+                <ShieldCheck className={`h-6 w-6 ${sheetType === "STAFF" ? "text-brand-green" : "text-white/40"}`} />
+                <p className="mt-2 font-bold text-white">Staff</p>
+                <p className="text-xs text-white/50">Renewable, 6 months</p>
               </button>
             </div>
 
@@ -443,7 +443,7 @@ export default function ResidentAppCodesPage() {
               <div className="mt-4 space-y-4">
                 {/* Guest count stepper */}
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-sm font-semibold text-white/70">
                     Number of Guests
                   </label>
                   <div className="mt-2 flex items-center gap-4">
@@ -451,18 +451,18 @@ export default function ResidentAppCodesPage() {
                       type="button"
                       onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
                       disabled={guestCount <= 1}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40"
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-white/60 transition-colors hover:bg-white/5 disabled:opacity-40"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-8 text-center text-2xl font-extrabold text-slate-900">
+                    <span className="w-8 text-center text-2xl font-extrabold text-white">
                       {guestCount}
                     </span>
                     <button
                       type="button"
                       onClick={() => setGuestCount(Math.min(20, guestCount + 1))}
                       disabled={guestCount >= 20}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40"
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-white/60 transition-colors hover:bg-white/5 disabled:opacity-40"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
@@ -471,8 +471,8 @@ export default function ResidentAppCodesPage() {
 
                 {/* Guest names (optional) */}
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">
-                    Guest Names <span className="font-normal text-slate-400">(optional)</span>
+                  <label className="text-sm font-semibold text-white/70">
+                    Guest Names <span className="font-normal text-white/40">(optional)</span>
                   </label>
                   <input
                     type="text"
@@ -480,7 +480,7 @@ export default function ResidentAppCodesPage() {
                     onChange={(e) => setGuestNames(e.target.value)}
                     placeholder="e.g. John, Sarah"
                     maxLength={500}
-                    className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none ring-brand-navy/20 placeholder:text-slate-400 focus:border-brand-navy focus:ring-4"
+                    className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none ring-brand-green/20 placeholder:text-white/40 focus:border-brand-green/50 focus:ring-4"
                   />
                 </div>
               </div>
@@ -491,7 +491,7 @@ export default function ResidentAppCodesPage() {
               disabled={creating}
               className={`mt-6 flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-60 ${
                 sheetType === "GUEST"
-                  ? "bg-brand-navy hover:bg-brand-navy/90"
+                  ? "bg-brand-navy hover:shadow-brand-green/40"
                   : "bg-brand-green hover:bg-brand-green/90"
               }`}
             >
@@ -541,8 +541,8 @@ function CodeCell({
   onCopy: () => void;
 }) {
   const colors = color === "green"
-    ? { badge: "bg-green-100 text-green-700", ring: "border-green-200" }
-    : { badge: "bg-amber-100 text-amber-700", ring: "border-amber-200" };
+    ? { badge: "bg-emerald-500/15 text-emerald-400", ring: "border-emerald-500/20" }
+    : { badge: "bg-amber-500/15 text-amber-400", ring: "border-amber-500/20" };
 
   return (
     <div className="px-5 py-4">
@@ -553,15 +553,15 @@ function CodeCell({
         </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <code className="font-mono text-2xl font-extrabold tracking-[0.15em] text-slate-900 sm:text-3xl">
+        <code className="font-mono text-2xl font-extrabold tracking-[0.15em] text-white sm:text-3xl">
           {code}
         </code>
         <button
           onClick={onCopy}
           className={`ml-auto flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border transition-all ${
             copied
-              ? "border-green-300 bg-green-50 text-green-600"
-              : "border-slate-200 text-slate-400 hover:bg-slate-50"
+              ? "border-green-300 bg-emerald-500/10 text-emerald-400"
+              : "border-white/10 text-white/40 hover:bg-white/5"
           }`}
         >
           {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}

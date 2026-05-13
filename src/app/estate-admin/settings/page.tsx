@@ -107,8 +107,8 @@ export default function EstateSettingsPage() {
 
   function PwReq({ met, text }: { met: boolean; text: string }) {
     return (
-      <div className={`flex items-center gap-2 text-xs ${met ? "text-green-600" : "text-slate-500"}`}>
-        {met ? <Check className="h-3.5 w-3.5" /> : <div className="h-3.5 w-3.5 rounded-full border border-slate-300" />}
+      <div className={`flex items-center gap-2 text-xs ${met ? "text-emerald-400" : "text-white/50"}`}>
+        {met ? <Check className="h-3.5 w-3.5" /> : <div className="h-3.5 w-3.5 rounded-full border border-white/15" />}
         {text}
       </div>
     );
@@ -116,28 +116,28 @@ export default function EstateSettingsPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm backdrop-blur">
         <div className="flex flex-col gap-2">
-          <h1 className="text-xl font-extrabold tracking-tight text-slate-900">Settings</h1>
-          <p className="text-sm text-slate-600">Manage estate status and basic details.</p>
+          <h1 className="text-xl font-extrabold tracking-tight text-white">Settings</h1>
+          <p className="text-sm text-white/60">Manage estate status and basic details.</p>
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
             {error}
           </div>
         ) : null}
 
         {loading ? (
-          <div className="mt-6 flex items-center gap-2 text-sm text-slate-600">
-            <Spinner className="text-slate-500" />
+          <div className="mt-6 flex items-center gap-2 text-sm text-white/60">
+            <Spinner className="text-white/50" />
             Loading…
           </div>
         ) : estate ? (
           <div className="mt-6 grid gap-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">Estate</div>
-              <div className="mt-2 text-sm text-slate-700">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div className="text-sm font-semibold text-white">Estate</div>
+              <div className="mt-2 text-sm text-white/70">
                 <div>
                   <span className="font-semibold">Name:</span> {estate.name}
                 </div>
@@ -147,14 +147,14 @@ export default function EstateSettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">Address</div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div className="text-sm font-semibold text-white">Address</div>
               <div className="mt-3 flex flex-col gap-3 md:flex-row">
                 <input
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Estate address"
-                  className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none ring-blue-600/20 focus:ring-4"
+                  className="h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-brand-green/20 focus:ring-4"
                 />
                 <button
                   type="button"
@@ -174,9 +174,9 @@ export default function EstateSettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-900">Estate status</div>
-              <p className="mt-1 text-sm text-slate-600">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div className="text-sm font-semibold text-white">Estate status</div>
+              <p className="mt-1 text-sm text-white/60">
                 Suspended estates block all resident and security portal access. Terminated is permanent.
               </p>
 
@@ -195,7 +195,7 @@ export default function EstateSettingsPage() {
                     type="button"
                     disabled={saving}
                     onClick={() => save({ status: "SUSPENDED" })}
-                    className="inline-flex h-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 text-xs font-extrabold text-rose-800 hover:bg-rose-100 disabled:opacity-60"
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/10 px-4 text-xs font-extrabold text-rose-300 hover:bg-rose-500/150/15 disabled:opacity-60"
                   >
                     Suspend
                   </button>
@@ -209,7 +209,7 @@ export default function EstateSettingsPage() {
                       if (!confirm("Terminate estate? This blocks all access permanently.")) return;
                       save({ status: "TERMINATED" });
                     }}
-                    className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
                   >
                     Terminate
                   </button>
@@ -218,62 +218,62 @@ export default function EstateSettingsPage() {
             </div>
           </div>
         ) : (
-          <div className="mt-6 text-sm text-slate-600">Estate not found.</div>
+          <div className="mt-6 text-sm text-white/60">Estate not found.</div>
         )}
       </div>
 
       {/* Change Password Card */}
-      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-white">
             <Lock className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="font-bold text-slate-900">Change Password</h2>
-            <p className="text-sm text-slate-600">Update your login password</p>
+            <h2 className="font-bold text-white">Change Password</h2>
+            <p className="text-sm text-white/60">Update your login password</p>
           </div>
         </div>
 
         {pwSuccess && (
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3">
-            <ShieldCheck className="h-5 w-5 text-green-600" />
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
             <div>
-              <p className="font-semibold text-green-800">Password changed successfully!</p>
-              <p className="text-sm text-green-700">Your new password is now active.</p>
+              <p className="font-semibold text-emerald-300">Password changed successfully!</p>
+              <p className="text-sm text-emerald-400">Your new password is now active.</p>
             </div>
           </div>
         )}
 
         {pwError && (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
+          <div className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-medium text-rose-300">
             {pwError}
           </div>
         )}
 
         <form onSubmit={handlePasswordChange} className="mt-6 grid gap-4">
           <label className="grid gap-2 text-sm">
-            <span className="font-semibold text-slate-700">Current Password</span>
+            <span className="font-semibold text-white/70">Current Password</span>
             <div className="relative">
-              <Key className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none ring-blue-600/20 focus:border-blue-600 focus:ring-4" />
-              <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <Key className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+              <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4" />
+              <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                 {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </label>
 
           <label className="grid gap-2 text-sm">
-            <span className="font-semibold text-slate-700">New Password</span>
+            <span className="font-semibold text-white/70">New Password</span>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none ring-blue-600/20 focus:border-blue-600 focus:ring-4" />
-              <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+              <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4" />
+              <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                 {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {newPassword.length > 0 && (
-              <div className="mt-2 grid gap-1.5 rounded-xl border border-slate-100 bg-slate-50 p-3">
-                <p className="text-xs font-semibold text-slate-700">Password requirements:</p>
+              <div className="mt-2 grid gap-1.5 rounded-xl border border-white/5 bg-white/5 p-3">
+                <p className="text-xs font-semibold text-white/70">Password requirements:</p>
                 <PwReq met={pwHasLength} text="At least 8 characters" />
                 <PwReq met={pwHasUpper} text="Uppercase letter (A-Z)" />
                 <PwReq met={pwHasLower} text="Lowercase letter (a-z)" />
@@ -284,16 +284,16 @@ export default function EstateSettingsPage() {
           </label>
 
           <label className="grid gap-2 text-sm">
-            <span className="font-semibold text-slate-700">Confirm New Password</span>
+            <span className="font-semibold text-white/70">Confirm New Password</span>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={`h-12 w-full rounded-xl border bg-white pl-11 pr-11 text-base font-medium text-slate-900 outline-none focus:ring-4 ${confirmPassword.length > 0 && !pwMatch ? "border-rose-300 ring-rose-100 focus:border-rose-500" : "border-slate-200 ring-blue-600/20 focus:border-blue-600"}`} />
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+              <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={`h-12 w-full rounded-xl border bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none focus:ring-4 ${confirmPassword.length > 0 && !pwMatch ? "border-rose-300 ring-rose-100 focus:border-rose-500" : "border-white/10 ring-brand-green/20 focus:border-brand-green/50"}`} />
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {confirmPassword.length > 0 && !pwMatch && (
-              <span className="text-xs font-medium text-rose-600">Passwords do not match</span>
+              <span className="text-xs font-medium text-rose-400">Passwords do not match</span>
             )}
           </label>
 

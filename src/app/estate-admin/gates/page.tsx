@@ -65,16 +65,16 @@ export default function EstateGatesPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-900">Gates</h1>
-            <p className="mt-1 text-sm text-slate-600">Configure gate names used by the guard bot during validation.</p>
+            <h1 className="text-xl font-extrabold tracking-tight text-white">Gates</h1>
+            <p className="mt-1 text-sm text-white/60">Configure gate names used by the guard bot during validation.</p>
           </div>
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+          <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
             {error}
           </div>
         ) : null}
@@ -84,7 +84,7 @@ export default function EstateGatesPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Gate name (e.g., Main Gate)"
-            className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none ring-blue-600/20 focus:ring-4"
+            className="h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-brand-green/20 focus:ring-4"
             required
             minLength={2}
           />
@@ -97,7 +97,7 @@ export default function EstateGatesPage() {
           <button
             type="button"
             onClick={load}
-            className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 hover:bg-slate-50"
+            className="inline-flex h-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 text-sm font-extrabold text-white hover:bg-white/5"
           >
             Refresh
           </button>
@@ -105,8 +105,8 @@ export default function EstateGatesPage() {
 
         <div className="mt-6 overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="text-slate-600">
-              <tr className="border-b border-slate-200">
+            <thead className="text-white/60">
+              <tr className="border-b border-white/10">
                 <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Gate</th>
                 <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Actions</th>
               </tr>
@@ -114,7 +114,7 @@ export default function EstateGatesPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="py-4 text-slate-600" colSpan={2}>
+                  <td className="py-4 text-white/60" colSpan={2}>
                     Loading…
                   </td>
                 </tr>
@@ -122,20 +122,20 @@ export default function EstateGatesPage() {
 
               {!loading && gates.length === 0 ? (
                 <tr>
-                  <td className="py-4 text-rose-800" colSpan={2}>
+                  <td className="py-4 text-rose-300" colSpan={2}>
                     No gates configured. Add at least one gate to enable validation in the Security PWA.
                   </td>
                 </tr>
               ) : null}
 
               {gates.map((g) => (
-                <tr key={g.id} className="border-b border-slate-100">
-                  <td className="py-3 pr-4 font-semibold text-slate-900">{g.name}</td>
+                <tr key={g.id} className="border-b border-white/5">
+                  <td className="py-3 pr-4 font-semibold text-white">{g.name}</td>
                   <td className="py-3 pr-4">
                     <button
                       type="button"
                       onClick={() => deleteGate(g.id)}
-                      className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50"
+                      className="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-extrabold text-white hover:bg-white/5"
                     >
                       Remove
                     </button>

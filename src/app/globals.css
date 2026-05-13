@@ -3,11 +3,14 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --brand-navy: #1e3a5f;
   --brand-green: #4ade80;
   --brand-navy-dark: #162a40;
   --brand-green-dark: #10a648;
+  --bg-dark: #0a1a0f;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --border-dark: rgba(255, 255, 255, 0.1);
 }
 
 html,
@@ -16,15 +19,13 @@ body {
 }
 
 body {
-  @apply bg-white text-slate-950 antialiased;
+  @apply bg-[#0a1a0f] text-white antialiased;
 }
 
-/* subtle, non-generic defaults */
 ::selection {
-  @apply bg-blue-600 text-white;
+  @apply bg-brand-green/40 text-white;
 }
 
-/* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
 }
@@ -33,12 +34,10 @@ html {
    PREMIUM ANIMATION UTILITIES
    ======================================== */
 
-/* Page transition fade-in */
 .page-enter {
   @apply animate-fade-in;
 }
 
-/* Staggered children animation */
 .stagger-children > * {
   @apply opacity-0 animate-fade-in-up;
 }
@@ -50,20 +49,18 @@ html {
 .stagger-children > *:nth-child(6) { animation-delay: 375ms; }
 .stagger-children > *:nth-child(7) { animation-delay: 450ms; }
 
-/* Skeleton loading shimmer */
 .skeleton {
-  @apply relative overflow-hidden bg-slate-200 rounded-lg;
+  @apply relative overflow-hidden rounded-lg;
   background: linear-gradient(
     90deg,
-    rgb(226 232 240) 0%,
-    rgb(241 245 249) 50%,
-    rgb(226 232 240) 100%
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* Button hover/press animations */
 .btn-interactive {
   @apply transition-all duration-200 ease-out;
 }
@@ -74,17 +71,14 @@ html {
   @apply translate-y-0 scale-[0.98] shadow-sm;
 }
 
-/* Input focus transitions */
 .input-premium {
   @apply transition-all duration-200 ease-out;
-  @apply border-slate-200 bg-white;
+  @apply border-white/15 bg-white/5;
 }
 .input-premium:focus {
-  @apply ring-4 ring-blue-600/20 border-blue-400;
-  @apply shadow-inner-soft;
+  @apply ring-4 ring-brand-green/20 border-brand-green/50;
 }
 
-/* Card hover effects */
 .card-hover {
   @apply transition-all duration-300 ease-out;
 }
@@ -92,18 +86,15 @@ html {
   @apply -translate-y-1 shadow-premium-lg;
 }
 
-/* Glass morphism enhancement */
 .glass-premium {
-  @apply bg-white/80 backdrop-blur-xl border border-white/40;
+  @apply bg-white/5 backdrop-blur-xl border border-white/10;
   @apply shadow-premium;
 }
 
-/* Success state animation */
 .success-state {
   @apply animate-success-pop;
 }
 
-/* Error state animation */
 .error-state {
   @apply animate-shake-error;
 }
@@ -112,23 +103,20 @@ html {
    MOBILE-FIRST UTILITIES
    ======================================== */
 
-/* Mobile touch target minimum */
 @layer utilities {
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
 }
 
-/* Bottom action bar for mobile */
 .bottom-action-bar {
   @apply fixed bottom-0 left-0 right-0 z-50;
-  @apply bg-white/95 backdrop-blur-xl border-t border-slate-200;
+  @apply bg-[#0a1a0f]/95 backdrop-blur-xl border-t border-white/10;
   @apply px-4 py-3;
   @apply animate-slide-in-bottom;
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* Safe area padding for iOS */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-area-pb {
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
@@ -139,28 +127,25 @@ html {
    CODE & STATUS DISPLAY
    ======================================== */
 
-/* Code display styling */
 .code-display {
   @apply font-mono text-2xl font-bold tracking-[0.2em] text-center;
-  @apply bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-brand-green to-brand-green-600 bg-clip-text text-transparent;
 }
 
-/* Status badges with animations */
 .status-badge {
   @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider;
   @apply transition-all duration-200;
 }
 .status-badge-active {
-  @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
+  @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
 }
 .status-badge-used {
-  @apply bg-slate-100 text-slate-600 border border-slate-200;
+  @apply bg-white/5 text-white/50 border border-white/10;
 }
 .status-badge-expired {
-  @apply bg-amber-100 text-amber-800 border border-amber-200;
+  @apply bg-amber-500/15 text-amber-400 border border-amber-500/20;
 }
 
-/* Icon hover animation */
 .icon-hover {
   @apply transition-transform duration-200;
 }
@@ -172,14 +157,12 @@ html {
    FORM CONTAINMENT (Mobile Viewport Fix)
    ======================================== */
 
-/* Form container that stays within viewport */
 .form-contained {
   max-height: calc(100dvh - 6rem);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-/* Scroll container for forms */
 .scroll-container {
   @apply overflow-y-auto overscroll-contain;
   -webkit-overflow-scrolling: touch;
@@ -189,7 +172,6 @@ html {
    HERO & HOMEPAGE ANIMATIONS
    ======================================== */
 
-/* Typing text effect */
 .typing-text {
   overflow: hidden;
   white-space: nowrap;
@@ -207,7 +189,6 @@ html {
   50% { border-color: var(--brand-green) }
 }
 
-/* Floating elements */
 .floating {
   animation: float 6s ease-in-out infinite;
 }
@@ -225,15 +206,13 @@ html {
   50% { transform: translateY(-20px); }
 }
 
-/* Animated counter */
 .stat-counter {
   @apply tabular-nums font-bold;
 }
 
-/* Gradient text */
 .gradient-text {
   @apply bg-clip-text text-transparent;
-  background-image: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand-green) 100%);
+  background-image: linear-gradient(135deg, var(--brand-green) 0%, #10a648 100%);
 }
 
 .gradient-text-green {
@@ -241,9 +220,8 @@ html {
   background-image: linear-gradient(135deg, #4ade80 0%, #10a648 100%);
 }
 
-/* Hero gradient background */
 .hero-gradient {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2c4d6e 50%, #1e3a5f 100%);
+  background: linear-gradient(135deg, #0a1a0f 0%, #0d2818 50%, #0a1a0f 100%);
   background-size: 200% 200%;
   animation: gradientShift 15s ease infinite;
 }
@@ -254,7 +232,6 @@ html {
   100% { background-position: 0% 50%; }
 }
 
-/* Glow effects */
 .glow-green {
   box-shadow: 0 0 30px rgba(74, 222, 128, 0.4);
 }
@@ -277,7 +254,7 @@ html {
    ======================================== */
 
 .stat-card {
-  @apply relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6;
+  @apply relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6;
   @apply transition-all duration-300;
 }
 
@@ -297,19 +274,19 @@ html {
 }
 
 .alert-badge-error {
-  @apply bg-rose-100 text-rose-700 border border-rose-200;
+  @apply bg-rose-500/15 text-rose-400 border border-rose-500/20;
 }
 
 .alert-badge-warning {
-  @apply bg-amber-100 text-amber-700 border border-amber-200;
+  @apply bg-amber-500/15 text-amber-400 border border-amber-500/20;
 }
 
 .alert-badge-success {
-  @apply bg-emerald-100 text-emerald-700 border border-emerald-200;
+  @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/20;
 }
 
 .alert-badge-info {
-  @apply bg-blue-100 text-blue-700 border border-blue-200;
+  @apply bg-blue-500/15 text-blue-400 border border-blue-500/20;
 }
 
 /* ========================================
@@ -331,7 +308,7 @@ html {
 }
 
 .countdown-ring .background {
-  stroke: #e2e8f0;
+  stroke: rgba(255, 255, 255, 0.1);
 }
 
 /* ========================================
@@ -339,7 +316,7 @@ html {
    ======================================== */
 
 .chart-container {
-  @apply rounded-2xl border border-slate-200 bg-white p-6;
+  @apply rounded-2xl border border-white/10 bg-white/5 p-6;
 }
 
 .chart-legend {

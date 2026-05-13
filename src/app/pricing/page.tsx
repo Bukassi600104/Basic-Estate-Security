@@ -36,7 +36,7 @@ function PricingToggle({
     <div className="flex items-center justify-center gap-4">
       <span
         className={`text-sm font-medium ${
-          billingCycle === "MONTHLY" ? "text-slate-900" : "text-slate-500"
+          billingCycle === "MONTHLY" ? "text-white" : "text-white/50"
         }`}
       >
         Monthly
@@ -47,14 +47,14 @@ function PricingToggle({
         aria-label="Toggle billing cycle"
       >
         <span
-          className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-md transition-all ${
+          className={`absolute top-1 h-6 w-6 rounded-full bg-white/5/5 shadow-md transition-all ${
             billingCycle === "YEARLY" ? "left-7" : "left-1"
           }`}
         />
       </button>
       <span
         className={`text-sm font-medium ${
-          billingCycle === "YEARLY" ? "text-slate-900" : "text-slate-500"
+          billingCycle === "YEARLY" ? "text-white" : "text-white/50"
         }`}
       >
         Yearly
@@ -98,10 +98,10 @@ function PricingCard({
 
   return (
     <div
-      className={`relative flex flex-col rounded-3xl border-2 bg-white p-8 shadow-sm transition-all hover:shadow-lg ${
+      className={`relative flex flex-col rounded-3xl border-2 bg-white/5/5 p-8 shadow-sm transition-all hover:shadow-lg ${
         isPopular
           ? "border-brand-green shadow-brand-green/20"
-          : "border-slate-200 hover:border-brand-navy/30"
+          : "border-white/10 hover:border-brand-navy/30"
       }`}
     >
       {isPopular && (
@@ -125,33 +125,33 @@ function PricingCard({
         </div>
       </div>
 
-      <h3 className="text-xl font-bold text-slate-900">{config.name}</h3>
-      <p className="mt-2 text-sm text-slate-600">{config.description}</p>
+      <h3 className="text-xl font-bold text-white">{config.name}</h3>
+      <p className="mt-2 text-sm text-white/60">{config.description}</p>
 
       <div className="mt-6">
         {price !== null ? (
           <>
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-extrabold text-slate-900">
+              <span className="text-4xl font-extrabold text-white">
                 {formatNaira(billingCycle === "MONTHLY" ? price : monthlyEquivalent!)}
               </span>
-              <span className="text-slate-500">/month</span>
+              <span className="text-white/50">/month</span>
             </div>
             {billingCycle === "YEARLY" && (
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-white/50">
                 Billed {formatNaira(price)} yearly
               </p>
             )}
           </>
         ) : (
           <div className="flex items-baseline">
-            <span className="text-3xl font-extrabold text-slate-900">Custom</span>
+            <span className="text-3xl font-extrabold text-white">Custom</span>
           </div>
         )}
       </div>
 
       <div className="mt-8 flex-1">
-        <p className="mb-4 text-sm font-semibold text-slate-700">What&apos;s included:</p>
+        <p className="mb-4 text-sm font-semibold text-white/70">What&apos;s included:</p>
         <ul className="space-y-3">
           {features.map((feature, idx) => (
             <li key={idx} className="flex items-start gap-3">
@@ -162,12 +162,12 @@ function PricingCard({
               )}
               <span
                 className={`text-sm ${
-                  feature.included ? "text-slate-700" : "text-slate-400"
+                  feature.included ? "text-white/70" : "text-white/40"
                 }`}
               >
                 {feature.feature}
                 {feature.value && (
-                  <span className="ml-1 font-semibold text-slate-900">
+                  <span className="ml-1 font-semibold text-white">
                     ({feature.value})
                   </span>
                 )}
@@ -181,7 +181,7 @@ function PricingCard({
         {isEnterprise ? (
           <Link
             href="mailto:support@basicsecurity.ng?subject=Enterprise%20Plan%20Inquiry"
-            className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-brand-navy bg-white px-6 py-3 text-base font-bold text-brand-navy transition-all hover:bg-brand-navy hover:text-white"
+            className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-brand-navy bg-white/5 px-6 py-3 text-base font-bold text-brand-navy transition-all hover:bg-brand-navy hover:text-white"
           >
             Contact Sales
             <ArrowRight className="h-5 w-5" />
@@ -192,7 +192,7 @@ function PricingCard({
             className={`flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-base font-bold transition-all ${
               isPopular
                 ? "bg-brand-green text-white shadow-lg hover:bg-brand-green-600 hover:shadow-xl"
-                : "bg-brand-navy text-white shadow-lg hover:bg-brand-navy-700 hover:shadow-xl"
+                : "bg-gradient-to-r from-brand-green to-brand-green-600 text-white shadow-lg hover:bg-brand-green/20 hover:shadow-xl"
             }`}
           >
             Start 30-Day Free Trial
@@ -211,7 +211,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+      <header className="border-b border-white/10 bg-white/5/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-3">
             <Logo size="md" showText={true} />
@@ -220,19 +220,19 @@ export default function PricingPage() {
           {/* Desktop navigation */}
           <nav className="hidden items-center gap-2 md:flex">
             <Link
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-white/70 transition-colors hover:bg-white/10"
               href="/auth/resident-verify"
             >
               Residents
             </Link>
             <Link
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-white/70 transition-colors hover:bg-white/10"
               href="/auth/guard-verify"
             >
               Security Guards
             </Link>
             <Link
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-white/70 transition-colors hover:bg-white/10"
               href="/auth/sign-in"
             >
               Admin Login
@@ -241,7 +241,7 @@ export default function PricingPage() {
 
           {/* Mobile menu button */}
           <button
-            className="rounded-xl p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+            className="rounded-xl p-2 text-white/70 hover:bg-white/10 md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
@@ -254,24 +254,24 @@ export default function PricingPage() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-slate-200 bg-white px-6 py-4 md:hidden">
+          <div className="border-t border-white/10 bg-white/5 px-6 py-4 md:hidden">
             <nav className="flex flex-col gap-2">
               <Link
-                className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-white/70 hover:bg-white/10"
                 href="/auth/resident-verify"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Residents
               </Link>
               <Link
-                className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-white/70 hover:bg-white/10"
                 href="/auth/guard-verify"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Security Guards
               </Link>
               <Link
-                className="rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                className="rounded-xl px-4 py-3 text-sm font-semibold text-white/70 hover:bg-white/10"
                 href="/auth/sign-in"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -285,10 +285,10 @@ export default function PricingPage() {
       <main className="py-16 md:py-24">
         {/* Hero */}
         <div className="mx-auto max-w-7xl px-6 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
             Simple, transparent pricing
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/60">
             Choose the plan that fits your estate. All plans include a{" "}
             <span className="font-semibold text-brand-green">30-day free trial</span>.
             No credit card required.
@@ -311,48 +311,48 @@ export default function PricingPage() {
 
         {/* FAQ Section */}
         <div className="mx-auto mt-24 max-w-3xl px-6">
-          <h2 className="text-center text-2xl font-bold text-slate-900">
+          <h2 className="text-center text-2xl font-bold text-white">
             Frequently Asked Questions
           </h2>
 
           <div className="mt-10 space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <h3 className="font-semibold text-slate-900">
+            <div className="rounded-2xl border border-white/10 bg-white/5/5 p-6">
+              <h3 className="font-semibold text-white">
                 What happens after the 30-day free trial?
               </h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-white/60">
                 After your trial ends, you&apos;ll need to subscribe to continue using the
                 platform. All your data will be preserved. You can upgrade, downgrade, or
                 cancel at any time.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <h3 className="font-semibold text-slate-900">
+            <div className="rounded-2xl border border-white/10 bg-white/5/5 p-6">
+              <h3 className="font-semibold text-white">
                 Can I change my plan later?
               </h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-white/60">
                 Yes! You can upgrade or downgrade your plan at any time. When upgrading,
                 you&apos;ll get immediate access to new features. When downgrading, changes
                 take effect at the next billing cycle.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <h3 className="font-semibold text-slate-900">
+            <div className="rounded-2xl border border-white/10 bg-white/5/5 p-6">
+              <h3 className="font-semibold text-white">
                 What payment methods do you accept?
               </h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-white/60">
                 We accept bank transfers, cards, and mobile money through our Nigerian
                 payment partners. Payment details will be provided before your trial ends.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
-              <h3 className="font-semibold text-slate-900">
+            <div className="rounded-2xl border border-white/10 bg-white/5/5 p-6">
+              <h3 className="font-semibold text-white">
                 What counts as a &quot;house&quot; or &quot;unit&quot;?
               </h3>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-white/60">
                 Each residential unit that can have residents onboarded counts as one
                 house. This includes apartments, duplexes, or standalone houses within
                 your estate.
@@ -384,11 +384,11 @@ export default function PricingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-white/10 bg-white/5/5">
         <div className="mx-auto max-w-7xl px-6 py-12">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <Logo size="md" showText={true} />
-            <div className="flex items-center gap-6 text-sm text-slate-600">
+            <div className="flex items-center gap-6 text-sm text-white/60">
               <Link
                 href="/auth/resident-verify"
                 className="transition-colors hover:text-brand-navy"
@@ -409,7 +409,7 @@ export default function PricingPage() {
               </Link>
             </div>
           </div>
-          <div className="mt-8 border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
+          <div className="mt-8 border-t border-white/10 pt-8 text-center text-sm text-white/50">
             © {new Date().getFullYear()} Basic Security. All rights reserved.
           </div>
         </div>

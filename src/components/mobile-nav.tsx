@@ -13,11 +13,10 @@ function isActivePath(pathname: string, href: string) {
 export function MobileNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
-  // Limit to 5 items max for mobile bottom nav
   const visibleItems = items.slice(0, 5);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur-xl md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#0a1a0f]/95 backdrop-blur-xl md:hidden">
       <div className="flex items-center justify-around px-2 py-2">
         {visibleItems.map((item) => {
           const active = isActivePath(pathname, item.href);
@@ -27,12 +26,12 @@ export function MobileNav({ items }: { items: NavItem[] }) {
               href={item.href}
               className={`flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 transition-colors ${
                 active
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-brand-green/15 text-brand-green"
+                  : "text-white/50 hover:bg-white/5 hover:text-white/80"
               }`}
             >
               {item.icon ? (
-                <span className={active ? "text-blue-700" : "text-slate-500"}>
+                <span className={active ? "text-brand-green" : "text-white/40"}>
                   {item.icon}
                 </span>
               ) : null}
@@ -43,8 +42,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
           );
         })}
       </div>
-      {/* Safe area padding for iOS devices */}
-      <div className="h-safe-area-inset-bottom bg-white" />
+      <div className="h-safe-area-inset-bottom bg-[#0a1a0f]" />
     </nav>
   );
 }

@@ -120,7 +120,7 @@ export default function EditSubAdminPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="h-8 w-8 text-brand-navy" />
+        <Spinner className="h-8 w-8 text-brand-green" />
       </div>
     );
   }
@@ -130,14 +130,14 @@ export default function EditSubAdminPage() {
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Link
           href="/estate-admin/team"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Team
         </Link>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <p className="text-slate-600">Sub-admin not found.</p>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+          <p className="text-white/60">Sub-admin not found.</p>
         </div>
       </div>
     );
@@ -147,7 +147,7 @@ export default function EditSubAdminPage() {
     <div className="mx-auto max-w-2xl px-4 py-8">
       <Link
         href="/estate-admin/team"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900"
+        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Team
@@ -155,32 +155,32 @@ export default function EditSubAdminPage() {
 
       {/* Sub-admin info header */}
       <div className="mb-8 flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-navy/10 text-brand-navy">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
           <Shield className="h-7 w-7" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{subAdmin.name}</h1>
-          <p className="text-sm text-slate-500">{subAdmin.email}</p>
+          <h1 className="text-2xl font-bold text-white">{subAdmin.name}</h1>
+          <p className="text-sm text-white/50">{subAdmin.email}</p>
         </div>
       </div>
 
       {/* Permissions section */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Permissions</h2>
+          <h2 className="text-lg font-semibold text-white">Permissions</h2>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={selectAll}
-              className="text-xs font-semibold text-brand-navy hover:underline"
+              className="text-xs font-semibold text-brand-green hover:underline"
             >
               Select All
             </button>
-            <span className="text-slate-300">|</span>
+            <span className="text-white/20">|</span>
             <button
               type="button"
               onClick={clearAll}
-              className="text-xs font-semibold text-slate-500 hover:underline"
+              className="text-xs font-semibold text-white/50 hover:underline"
             >
               Clear All
             </button>
@@ -194,7 +194,7 @@ export default function EditSubAdminPage() {
               className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all ${
                 permissions.includes(perm.key)
                   ? "border-brand-navy bg-brand-navy/5"
-                  : "border-slate-200 bg-white hover:border-slate-300"
+                  : "border-white/10 bg-white/5 hover:border-white/15"
               }`}
             >
               <div className="pt-0.5">
@@ -202,7 +202,7 @@ export default function EditSubAdminPage() {
                   className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all ${
                     permissions.includes(perm.key)
                       ? "border-brand-navy bg-brand-navy"
-                      : "border-slate-300"
+                      : "border-white/15"
                   }`}
                 >
                   {permissions.includes(perm.key) && (
@@ -211,8 +211,8 @@ export default function EditSubAdminPage() {
                 </div>
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-slate-900">{perm.label}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{perm.description}</p>
+                <p className="font-semibold text-white">{perm.label}</p>
+                <p className="mt-0.5 text-xs text-white/50">{perm.description}</p>
               </div>
               <input
                 type="checkbox"
@@ -225,7 +225,7 @@ export default function EditSubAdminPage() {
         </div>
 
         {error && (
-          <div className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <div className="mt-6 rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-300">
             {error}
           </div>
         )}
@@ -239,14 +239,14 @@ export default function EditSubAdminPage() {
         <div className="mt-6 flex gap-3">
           <Link
             href="/estate-admin/team"
-            className="flex-1 rounded-full border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-900 hover:bg-slate-50"
+            className="flex-1 rounded-full border border-white/15 bg-white/5 px-5 py-3 text-center text-sm font-bold text-white hover:bg-white/5"
           >
             Cancel
           </Link>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:bg-brand-navy-700 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:shadow-brand-green/40 disabled:opacity-60"
           >
             {saving ? (
               <>

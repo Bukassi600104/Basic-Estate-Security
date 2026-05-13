@@ -55,20 +55,20 @@ export function SuperAdminResidentsSection({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
       <h2 className="text-base font-semibold">Residents</h2>
-      <div className="mt-2 text-sm text-slate-600">Paginated list.</div>
+      <div className="mt-2 text-sm text-white/60">Paginated list.</div>
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+        <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
           {error}
         </div>
       ) : null}
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="text-slate-600">
-            <tr className="border-b border-slate-200">
+          <thead className="text-white/60">
+            <tr className="border-b border-white/10">
               <th className="py-2 pr-4 font-semibold">Name</th>
               <th className="py-2 pr-4 font-semibold">Unit</th>
               <th className="py-2 pr-4 font-semibold">Status</th>
@@ -76,15 +76,15 @@ export function SuperAdminResidentsSection({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.residentId} className="border-b border-slate-100">
-                <td className="py-3 pr-4 text-slate-700">{r.name}</td>
-                <td className="py-3 pr-4 text-slate-700">{r.houseNumber}</td>
-                <td className="py-3 pr-4 text-slate-700">{r.status}</td>
+              <tr key={r.residentId} className="border-b border-white/5">
+                <td className="py-3 pr-4 text-white/70">{r.name}</td>
+                <td className="py-3 pr-4 text-white/70">{r.houseNumber}</td>
+                <td className="py-3 pr-4 text-white/70">{r.status}</td>
               </tr>
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td className="py-3 text-slate-600" colSpan={3}>
+                <td className="py-3 text-white/60" colSpan={3}>
                   No residents.
                 </td>
               </tr>
@@ -99,7 +99,7 @@ export function SuperAdminResidentsSection({
             type="button"
             onClick={loadMore}
             disabled={loadingMore}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-xs font-extrabold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
           >
             {loadingMore ? "Loading…" : "Load more"}
           </button>

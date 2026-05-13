@@ -205,14 +205,14 @@ export default function SecurityValidatePage() {
     if (expired) return "text-amber-600";
     switch (status) {
       case "ACTIVE":
-        return "text-green-600";
+        return "text-emerald-400";
       case "USED":
       case "REVOKED":
-        return "text-slate-500";
+        return "text-white/50";
       case "EXPIRED":
         return "text-amber-600";
       default:
-        return "text-slate-600";
+        return "text-white/60";
     }
   }
 
@@ -275,16 +275,16 @@ export default function SecurityValidatePage() {
                 <ShieldCheck className="h-7 w-7" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-2xl font-bold tracking-tight text-white">
                   Validate Code
                 </h1>
-                <p className="text-sm text-slate-600">Enter visitor access code</p>
+                <p className="text-sm text-white/60">Enter visitor access code</p>
               </div>
             </div>
             <button
               onClick={handleEndShift}
               disabled={endingShift}
-              className="flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-600 transition-all hover:bg-rose-50"
+              className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-white/5 px-3 py-2 text-sm font-semibold text-rose-400 transition-all hover:bg-rose-500/10"
             >
               <Power className="h-4 w-4" />
               <span className="hidden sm:inline">End Shift</span>
@@ -323,7 +323,7 @@ export default function SecurityValidatePage() {
         <main className="mt-6 flex-1 space-y-6">
           {/* Code Input */}
           <div>
-            <label className="text-sm font-bold text-slate-700">Access Code</label>
+            <label className="text-sm font-bold text-white/70">Access Code</label>
             <input
               value={code}
               onChange={(e) => {
@@ -335,28 +335,28 @@ export default function SecurityValidatePage() {
               placeholder="00000000"
               inputMode="numeric"
               pattern="[0-9]*"
-              className="mt-2 h-24 w-full rounded-2xl border-2 border-slate-200 bg-white text-center text-5xl font-bold tracking-[0.3em] text-slate-900 outline-none transition-all placeholder:text-slate-200 focus:border-brand-green focus:ring-4 focus:ring-brand-green/20"
+              className="mt-2 h-24 w-full rounded-2xl border-2 border-white/10 bg-white/5 text-center text-5xl font-bold tracking-[0.3em] text-white outline-none transition-all placeholder:text-slate-200 focus:border-brand-green focus:ring-4 focus:ring-brand-green/20"
               maxLength={8}
               autoComplete="off"
             />
-            <p className="mt-2 text-center text-sm text-slate-500">
+            <p className="mt-2 text-center text-sm text-white/50">
               Enter the 8-digit code from the visitor
             </p>
           </div>
 
           {/* Error Message */}
           {error && !result && (
-            <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
-              <XCircle className="h-5 w-5 flex-shrink-0 text-rose-600" />
-              <span className="text-sm font-medium text-rose-800">{error}</span>
+            <div className="flex items-center gap-3 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3">
+              <XCircle className="h-5 w-5 flex-shrink-0 text-rose-400" />
+              <span className="text-sm font-medium text-rose-300">{error}</span>
             </div>
           )}
 
           {/* Lookup Result Card */}
           {lookup && (
-            <div className="overflow-hidden rounded-2xl border-2 border-brand-green/30 bg-white shadow-lg animate-in slide-in-from-bottom-4">
-              <div className="border-b border-slate-100 bg-brand-green/5 px-4 py-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-brand-navy">Code Preview</span>
+            <div className="overflow-hidden rounded-2xl border-2 border-brand-green/30 bg-white/5 shadow-lg animate-in slide-in-from-bottom-4">
+              <div className="border-b border-white/5 bg-brand-green/5 px-4 py-3 flex items-center justify-between">
+                <span className="text-sm font-bold text-brand-green">Code Preview</span>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
                     lookup.code.eventType === "EXIT"
@@ -374,59 +374,59 @@ export default function SecurityValidatePage() {
               </div>
               <div className="p-4 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-navy/10 text-brand-navy">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
                     <User className="h-6 w-6" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-slate-900">{lookup.code.resident.name}</p>
-                    <p className="text-sm text-slate-500">Resident</p>
+                    <p className="text-lg font-bold text-white">{lookup.code.resident.name}</p>
+                    <p className="text-sm text-white/50">Resident</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
-                    <Home className="h-5 w-5 text-slate-400" />
+                  <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
+                    <Home className="h-5 w-5 text-white/40" />
                     <div>
-                      <p className="text-xs text-slate-500">House</p>
-                      <p className="font-bold text-slate-900">{lookup.code.resident.houseNumber}</p>
+                      <p className="text-xs text-white/50">House</p>
+                      <p className="font-bold text-white">{lookup.code.resident.houseNumber}</p>
                     </div>
                   </div>
                   {lookup.code.guestCount > 1 && (
                     <div className="flex items-center gap-3 rounded-xl bg-brand-green/10 p-3">
                       <Users className="h-5 w-5 text-brand-green" />
                       <div>
-                        <p className="text-xs text-slate-500">Guests</p>
+                        <p className="text-xs text-white/50">Guests</p>
                         <p className="font-bold text-brand-green">{lookup.code.guestCount}</p>
                       </div>
                     </div>
                   )}
                   {lookup.code.resident.phone && lookup.code.guestCount <= 1 && (
-                    <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
-                      <Phone className="h-5 w-5 text-slate-400" />
+                    <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
+                      <Phone className="h-5 w-5 text-white/40" />
                       <div>
-                        <p className="text-xs text-slate-500">Phone</p>
-                        <p className="font-bold text-slate-900 text-sm">{lookup.code.resident.phone}</p>
+                        <p className="text-xs text-white/50">Phone</p>
+                        <p className="font-bold text-white text-sm">{lookup.code.resident.phone}</p>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {lookup.code.guestNames && (
-                  <div className="rounded-xl bg-slate-50 px-4 py-3">
-                    <p className="text-xs text-slate-500">Guest Names</p>
-                    <p className="mt-1 text-sm font-medium text-slate-900">{lookup.code.guestNames}</p>
+                  <div className="rounded-xl bg-white/5 px-4 py-3">
+                    <p className="text-xs text-white/50">Guest Names</p>
+                    <p className="mt-1 text-sm font-medium text-white">{lookup.code.guestNames}</p>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
                   <div>
-                    <span className="text-xs text-slate-500">Type</span>
-                    <p className={`font-bold ${lookup.code.type === "GUEST" ? "text-brand-navy" : "text-brand-green"}`}>
+                    <span className="text-xs text-white/50">Type</span>
+                    <p className={`font-bold ${lookup.code.type === "GUEST" ? "text-brand-green" : "text-brand-green"}`}>
                       {lookup.code.type}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-slate-500">Status</span>
+                    <span className="text-xs text-white/50">Status</span>
                     <p className={`font-bold ${getStatusColor(lookup.code.status, lookup.code.expired)}`}>
                       {lookup.code.status}
                       {lookup.code.expired ? " (Expired)" : ""}
@@ -439,49 +439,49 @@ export default function SecurityValidatePage() {
 
           {/* Recent Validations */}
           {recentValidations.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white">
+            <div className="rounded-xl border border-white/10 bg-white/5">
               <button
                 onClick={() => setShowHistory(!showHistory)}
                 className="flex w-full items-center justify-between px-4 py-3 text-left"
               >
                 <div className="flex items-center gap-2">
-                  <History className="h-4 w-4 text-slate-400" />
-                  <span className="text-sm font-semibold text-slate-700">Recent Validations</span>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
+                  <History className="h-4 w-4 text-white/40" />
+                  <span className="text-sm font-semibold text-white/70">Recent Validations</span>
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs font-bold text-white/60">
                     {recentValidations.length}
                   </span>
                 </div>
                 {showHistory ? (
-                  <ChevronUp className="h-4 w-4 text-slate-400" />
+                  <ChevronUp className="h-4 w-4 text-white/40" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                  <ChevronDown className="h-4 w-4 text-white/40" />
                 )}
               </button>
 
               {showHistory && (
-                <div className="border-t border-slate-100 divide-y divide-slate-50">
+                <div className="border-t border-white/5 divide-y divide-slate-50">
                   {recentValidations.map((v, idx) => (
                     <div key={idx} className="flex items-center justify-between px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div
                           className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                            v.outcome === "SUCCESS" ? "bg-green-100" : "bg-rose-100"
+                            v.outcome === "SUCCESS" ? "bg-emerald-500/15" : "bg-rose-100"
                           }`}
                         >
                           {v.outcome === "SUCCESS" ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                           ) : (
-                            <XCircle className="h-4 w-4 text-rose-600" />
+                            <XCircle className="h-4 w-4 text-rose-400" />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{v.residentName}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-sm font-semibold text-white">{v.residentName}</p>
+                          <p className="text-xs text-white/50">
                             {v.houseNumber} • {v.eventType} • {v.guestCount > 1 ? `${v.guestCount} guests` : "1 guest"}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <div className="flex items-center gap-1 text-xs text-white/40">
                         <Clock className="h-3 w-3" />
                         {formatTime(v.time)}
                       </div>
@@ -494,16 +494,16 @@ export default function SecurityValidatePage() {
         </main>
 
         {/* Fixed Bottom Action Bar */}
-        <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white p-4 shadow-lg safe-area-pb">
+        <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 bg-white/5 p-4 shadow-lg safe-area-pb">
           <div className="mx-auto max-w-lg flex gap-3">
             <button
               type="button"
               onClick={doLookup}
               disabled={!canLookup || loading || lookingUp}
-              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white text-base font-bold text-slate-900 transition-all hover:bg-slate-50 disabled:opacity-50"
+              className="flex h-14 flex-1 items-center justify-center gap-2 rounded-xl border-2 border-white/10 bg-white/5 text-base font-bold text-white transition-all hover:bg-white/5 disabled:opacity-50"
             >
               {lookingUp ? (
-                <Spinner className="text-slate-900" />
+                <Spinner className="text-white" />
               ) : (
                 <Search className="h-5 w-5" />
               )}

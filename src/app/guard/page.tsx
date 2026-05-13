@@ -7,13 +7,13 @@ export default async function GuardDashboard() {
   if (session.role !== "GUARD") return null;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+    <div className="rounded-3xl border border-white/10 bg-white/80 p-6 shadow-sm backdrop-blur">
       <div className="grid gap-3">
-        <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Guard access</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-xl font-extrabold tracking-tight text-white">Guard access</h2>
+        <p className="text-sm text-white/60">
           Guards validate visitor codes in the Security PWA so every attempt is logged (including failures) with the selected gate.
         </p>
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
           Install the Security PWA using the link shared by your estate admin.
         </div>
       </div>

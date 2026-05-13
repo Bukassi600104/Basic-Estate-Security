@@ -21,9 +21,9 @@ export default async function EstateAdminLayout({
   if (estate && estate.status !== "ACTIVE") {
     return (
       <AppShell title="Estate Admin" nav={[]}>
-        <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
-          <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Access revoked</h2>
-          <p className="mt-2 text-sm text-slate-600">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+          <h2 className="text-xl font-extrabold tracking-tight text-white">Access revoked</h2>
+          <p className="mt-2 text-sm text-white/60">
             This estate is <span className="font-semibold">{estate.status}</span>. Portal access is blocked.
           </p>
         </div>

@@ -54,7 +54,7 @@ export default function SubscriptionPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="h-8 w-8 text-brand-navy" />
+        <Spinner className="h-8 w-8 text-brand-green" />
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function SubscriptionPage() {
   if (!estate) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <p className="text-slate-600">Unable to load subscription details.</p>
+        <p className="text-white/60">Unable to load subscription details.</p>
       </div>
     );
   }
@@ -83,12 +83,12 @@ export default function SubscriptionPage() {
       border: "border-brand-green/30",
     },
     warning: {
-      badge: "bg-amber-100 text-amber-700",
-      border: "border-amber-200",
+      badge: "bg-amber-500/15 text-amber-400",
+      border: "border-amber-500/20",
     },
     critical: {
-      badge: "bg-rose-100 text-rose-700",
-      border: "border-rose-200",
+      badge: "bg-rose-500/15 text-rose-400",
+      border: "border-rose-500/20",
     },
   }[urgency];
 
@@ -96,29 +96,29 @@ export default function SubscriptionPage() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <Link
         href="/estate-admin/settings"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900"
+        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Settings
       </Link>
 
-      <h1 className="text-2xl font-bold text-slate-900">Subscription</h1>
-      <p className="mt-1 text-sm text-slate-600">
+      <h1 className="text-2xl font-bold text-white">Subscription</h1>
+      <p className="mt-1 text-sm text-white/60">
         Manage your estate&apos;s subscription plan and billing.
       </p>
 
       {/* Current Plan */}
-      <div className={`mt-8 rounded-2xl border bg-white p-6 ${urgencyStyles.border}`}>
+      <div className={`mt-8 rounded-2xl border bg-white/5 p-6 ${urgencyStyles.border}`}>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-navy/10 text-brand-navy">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
               <Shield className="h-7 w-7" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-white">
                 {tierConfig.name} Plan
               </h2>
-              <p className="text-sm text-slate-600">{tierConfig.description}</p>
+              <p className="text-sm text-white/60">{tierConfig.description}</p>
             </div>
           </div>
           <span className={`rounded-full px-3 py-1 text-xs font-bold ${urgencyStyles.badge}`}>
@@ -128,17 +128,17 @@ export default function SubscriptionPage() {
 
         {/* Trial info */}
         {trialStatus.isTrialing && (
-          <div className="mt-6 flex items-center gap-3 rounded-xl bg-slate-50 p-4">
-            <Clock className="h-5 w-5 text-slate-400" />
+          <div className="mt-6 flex items-center gap-3 rounded-xl bg-white/5 p-4">
+            <Clock className="h-5 w-5 text-white/40" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-sm font-medium text-white">
                 {trialStatus.isExpired
                   ? "Your trial has expired"
                   : trialStatus.daysRemaining === 1
                     ? "Your trial ends tomorrow"
                     : `${trialStatus.daysRemaining} days remaining in your trial`}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-white/50">
                 {trialStatus.trialEndsAt &&
                   `Ends ${trialStatus.trialEndsAt.toLocaleDateString("en-NG", {
                     month: "long",
@@ -154,13 +154,13 @@ export default function SubscriptionPage() {
         )}
 
         {/* Pricing */}
-        <div className="mt-6 border-t border-slate-100 pt-6">
+        <div className="mt-6 border-t border-white/5 pt-6">
           {price !== null ? (
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-slate-900">
+              <span className="text-3xl font-extrabold text-white">
                 {formatNaira(price)}
               </span>
-              <span className="text-slate-500">/month</span>
+              <span className="text-white/50">/month</span>
               {estate.billingCycle === "YEARLY" && (
                 <span className="ml-2 rounded-full bg-brand-green/10 px-2 py-0.5 text-xs font-semibold text-brand-green-700">
                   Yearly (save 5%)
@@ -168,7 +168,7 @@ export default function SubscriptionPage() {
               )}
             </div>
           ) : (
-            <span className="text-xl font-bold text-slate-900">Custom Pricing</span>
+            <span className="text-xl font-bold text-white">Custom Pricing</span>
           )}
         </div>
 
@@ -176,7 +176,7 @@ export default function SubscriptionPage() {
         <div className="mt-6">
           <button
             onClick={() => setShowUpgradeModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-bold text-white hover:bg-brand-navy-700"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-bold text-white hover:shadow-brand-green/40"
           >
             {estate.subscriptionTier === "PREMIUM" ? "View Plans" : "Upgrade Plan"}
             <ArrowRight className="h-4 w-4" />
@@ -187,16 +187,16 @@ export default function SubscriptionPage() {
       {/* Usage Stats */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {/* Houses */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-              <Building2 className="h-5 w-5 text-slate-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+              <Building2 className="h-5 w-5 text-white/60" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Houses</p>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-sm font-medium text-white/60">Houses</p>
+              <p className="text-2xl font-bold text-white">
                 {stats?.houses ?? 0}
-                <span className="text-lg text-slate-400">
+                <span className="text-lg text-white/40">
                   {" / "}
                   {estate.maxHouses === Infinity ? "Unlimited" : estate.maxHouses}
                 </span>
@@ -205,7 +205,7 @@ export default function SubscriptionPage() {
           </div>
           {estate.maxHouses !== Infinity && stats && (
             <div className="mt-4">
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-brand-navy transition-all"
                   style={{
@@ -213,7 +213,7 @@ export default function SubscriptionPage() {
                   }}
                 />
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-white/50">
                 {Math.round((stats.houses / estate.maxHouses) * 100)}% used
               </p>
             </div>
@@ -221,16 +221,16 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Admins */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-              <Users className="h-5 w-5 text-slate-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
+              <Users className="h-5 w-5 text-white/60" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Admin Accounts</p>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-sm font-medium text-white/60">Admin Accounts</p>
+              <p className="text-2xl font-bold text-white">
                 {stats?.admins ?? 1}
-                <span className="text-lg text-slate-400">
+                <span className="text-lg text-white/40">
                   {" / "}
                   {estate.maxAdmins === Infinity ? "Unlimited" : estate.maxAdmins}
                 </span>
@@ -239,7 +239,7 @@ export default function SubscriptionPage() {
           </div>
           {estate.maxAdmins !== Infinity && stats && (
             <div className="mt-4">
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-brand-navy transition-all"
                   style={{
@@ -247,7 +247,7 @@ export default function SubscriptionPage() {
                   }}
                 />
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-white/50">
                 {Math.round((stats.admins / estate.maxAdmins) * 100)}% used
               </p>
             </div>
@@ -256,32 +256,32 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Features */}
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
-        <h3 className="text-lg font-semibold text-slate-900">Plan Features</h3>
+      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h3 className="text-lg font-semibold text-white">Plan Features</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="flex items-center gap-3">
             <Check className="h-5 w-5 text-brand-green" />
-            <span className="text-sm text-slate-700">Unlimited guards</span>
+            <span className="text-sm text-white/70">Unlimited guards</span>
           </div>
           <div className="flex items-center gap-3">
             <Check className="h-5 w-5 text-brand-green" />
-            <span className="text-sm text-slate-700">Unlimited gates</span>
+            <span className="text-sm text-white/70">Unlimited gates</span>
           </div>
           <div className="flex items-center gap-3">
             <Check className="h-5 w-5 text-brand-green" />
-            <span className="text-sm text-slate-700">Unlimited access codes</span>
+            <span className="text-sm text-white/70">Unlimited access codes</span>
           </div>
           <div className="flex items-center gap-3">
             <Check className="h-5 w-5 text-brand-green" />
-            <span className="text-sm text-slate-700">Validation logs</span>
+            <span className="text-sm text-white/70">Validation logs</span>
           </div>
           <div className="flex items-center gap-3">
             {estate.features?.exportEnabled ? (
               <Check className="h-5 w-5 text-brand-green" />
             ) : (
-              <span className="h-5 w-5 text-center text-slate-300">-</span>
+              <span className="h-5 w-5 text-center text-white/20">-</span>
             )}
-            <span className={estate.features?.exportEnabled ? "text-sm text-slate-700" : "text-sm text-slate-400"}>
+            <span className={estate.features?.exportEnabled ? "text-sm text-white/70" : "text-sm text-white/40"}>
               Export to Excel
             </span>
           </div>
@@ -289,9 +289,9 @@ export default function SubscriptionPage() {
             {estate.features?.advancedAnalytics ? (
               <Check className="h-5 w-5 text-brand-green" />
             ) : (
-              <span className="h-5 w-5 text-center text-slate-300">-</span>
+              <span className="h-5 w-5 text-center text-white/20">-</span>
             )}
-            <span className={estate.features?.advancedAnalytics ? "text-sm text-slate-700" : "text-sm text-slate-400"}>
+            <span className={estate.features?.advancedAnalytics ? "text-sm text-white/70" : "text-sm text-white/40"}>
               Advanced analytics
             </span>
           </div>
@@ -299,9 +299,9 @@ export default function SubscriptionPage() {
             {estate.features?.subAdminEnabled ? (
               <Check className="h-5 w-5 text-brand-green" />
             ) : (
-              <span className="h-5 w-5 text-center text-slate-300">-</span>
+              <span className="h-5 w-5 text-center text-white/20">-</span>
             )}
-            <span className={estate.features?.subAdminEnabled ? "text-sm text-slate-700" : "text-sm text-slate-400"}>
+            <span className={estate.features?.subAdminEnabled ? "text-sm text-white/70" : "text-sm text-white/40"}>
               Sub-admin accounts
             </span>
           </div>
@@ -309,12 +309,12 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Help section */}
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
-        <p className="text-sm text-slate-600">
+      <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
+        <p className="text-sm text-white/60">
           Need help with your subscription?{" "}
           <a
             href="mailto:support@basicsecurity.ng"
-            className="font-semibold text-brand-navy hover:underline"
+            className="font-semibold text-brand-green hover:underline"
           >
             Contact support
           </a>

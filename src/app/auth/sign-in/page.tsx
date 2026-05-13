@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Eye, EyeOff, Globe, Info, Lock, Shield, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Globe, Info, Lock, Shield, User } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 
 function SignInForm() {
@@ -98,6 +98,10 @@ function SignInForm() {
       <div className="relative z-10 flex min-h-[100dvh] flex-col">
         {/* Top bar */}
         <header className="flex items-center justify-between px-6 py-5 lg:px-10">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand-green/30 bg-brand-green/10">
               <Shield className="h-5 w-5 text-brand-green" />
@@ -107,6 +111,7 @@ function SignInForm() {
               <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
             </div>
           </Link>
+          </div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-white/60">
             <Globe className="h-3.5 w-3.5" />
             EN

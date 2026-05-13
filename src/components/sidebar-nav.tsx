@@ -28,12 +28,12 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
             href={item.href}
             className={
               active
-                ? "flex items-center gap-3 rounded-xl bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-700 ring-1 ring-blue-100"
-                : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                ? "flex items-center gap-3 rounded-xl bg-brand-green/15 px-3 py-2.5 text-sm font-semibold text-brand-green ring-1 ring-brand-green/20"
+                : "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-white/60 hover:bg-white/5 hover:text-white transition-colors"
             }
           >
             {item.icon ? (
-              <span className={active ? "text-blue-700" : "text-slate-500"}>
+              <span className={active ? "text-brand-green" : "text-white/40"}>
                 {item.icon}
               </span>
             ) : null}

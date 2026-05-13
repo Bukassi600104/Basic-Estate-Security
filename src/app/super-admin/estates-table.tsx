@@ -93,30 +93,30 @@ export function SuperAdminEstatesTable({
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-sm backdrop-blur">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Estates</h2>
-          <p className="mt-1 text-sm text-slate-600">Manage tenants, lifecycle, and access.</p>
+          <h2 className="text-xl font-extrabold tracking-tight text-white">Estates</h2>
+          <p className="mt-1 text-sm text-white/60">Manage tenants, lifecycle, and access.</p>
         </div>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search name, id, status…"
-          className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none ring-blue-600/20 focus:ring-4 md:w-80"
+          className="h-11 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-brand-green/20 focus:ring-4 md:w-80"
         />
       </div>
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+        <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
           {error}
         </div>
       ) : null}
 
       <div className="mt-6 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="text-slate-600">
-            <tr className="border-b border-slate-200">
+          <thead className="text-white/60">
+            <tr className="border-b border-white/10">
               <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Estate</th>
               <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Status</th>
               <th className="py-3 pr-4 text-xs font-extrabold uppercase tracking-widest">Created</th>
@@ -127,15 +127,15 @@ export function SuperAdminEstatesTable({
             {filtered.map((e) => {
               const busy = busyId === e.id;
               return (
-                <tr key={e.id} className="border-b border-slate-100">
-                  <td className="py-3 pr-4 font-extrabold text-slate-900">{e.name}</td>
-                  <td className="py-3 pr-4 text-slate-700">{e.status}</td>
-                  <td className="py-3 pr-4 text-slate-700">{new Date(e.createdAt).toLocaleDateString()}</td>
+                <tr key={e.id} className="border-b border-white/5">
+                  <td className="py-3 pr-4 font-extrabold text-white">{e.name}</td>
+                  <td className="py-3 pr-4 text-white/70">{e.status}</td>
+                  <td className="py-3 pr-4 text-white/70">{new Date(e.createdAt).toLocaleDateString()}</td>
                   <td className="py-3 pr-4">
                     <div className="flex flex-wrap gap-2">
                       <Link
                         href={`/super-admin/estates/${e.id}`}
-                        className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50"
+                        className="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-extrabold text-white hover:bg-white/5"
                       >
                         View
                       </Link>
@@ -144,7 +144,7 @@ export function SuperAdminEstatesTable({
                           type="button"
                           disabled={busy}
                           onClick={() => setStatus(e.id, "SUSPENDED")}
-                          className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+                          className="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
                         >
                           Suspend
                         </button>
@@ -155,7 +155,7 @@ export function SuperAdminEstatesTable({
                           type="button"
                           disabled={busy}
                           onClick={() => setStatus(e.id, "ACTIVE")}
-                          className="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-xs font-extrabold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+                          className="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
                         >
                           Reactivate
                         </button>
@@ -166,12 +166,12 @@ export function SuperAdminEstatesTable({
                           type="button"
                           disabled={busy}
                           onClick={() => terminate(e.id)}
-                          className="inline-flex h-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 text-xs font-extrabold text-rose-800 hover:bg-rose-100 disabled:opacity-60"
+                          className="inline-flex h-9 items-center justify-center rounded-full border border-rose-500/20 bg-rose-500/10 px-4 text-xs font-extrabold text-rose-300 hover:bg-rose-500/150/15 disabled:opacity-60"
                         >
                           Terminate
                         </button>
                       ) : (
-                        <span className="inline-flex h-9 items-center rounded-full border border-slate-200 bg-slate-50 px-4 text-xs font-extrabold text-slate-700">
+                        <span className="inline-flex h-9 items-center rounded-full border border-white/10 bg-white/5 px-4 text-xs font-extrabold text-white/70">
                           Terminated
                         </span>
                       )}
@@ -183,7 +183,7 @@ export function SuperAdminEstatesTable({
 
             {filtered.length === 0 ? (
               <tr>
-                <td className="py-4 text-slate-600" colSpan={4}>
+                <td className="py-4 text-white/60" colSpan={4}>
                   No estates found.
                 </td>
               </tr>
@@ -198,7 +198,7 @@ export function SuperAdminEstatesTable({
             type="button"
             onClick={loadMore}
             disabled={loadingMore}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-xs font-extrabold text-slate-900 hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
           >
             {loadingMore ? "Loading…" : "Load more"}
           </button>

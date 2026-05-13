@@ -32,7 +32,7 @@ export function Logo({ size = "md", showText = true, className = "" }: LogoProps
       />
       {showText && (
         <div className="flex flex-col">
-          <span className={`font-bold tracking-tight text-brand-navy ${text}`}>
+          <span className={`font-bold tracking-tight text-brand-green ${text}`}>
             Basic
           </span>
           <span className={`-mt-1 font-bold tracking-tight text-brand-green ${text}`}>

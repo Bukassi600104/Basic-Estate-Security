@@ -124,13 +124,13 @@ export default function EstateLogsPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/estate-admin"
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/60 hover:bg-white/5"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Validation Logs</h1>
-            <p className="text-sm text-slate-600">
+            <h1 className="text-2xl font-bold text-white">Validation Logs</h1>
+            <p className="text-sm text-white/60">
               {loading ? "Loading..." : `${total} records found`}
             </p>
           </div>
@@ -140,8 +140,8 @@ export default function EstateLogsPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
               hasActiveFilters
-                ? "border-brand-navy bg-brand-navy/5 text-brand-navy"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                ? "border-brand-navy bg-brand-navy/5 text-brand-green"
+                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/5"
             }`}
           >
             <Filter className="h-4 w-4" />
@@ -154,7 +154,7 @@ export default function EstateLogsPage() {
           </button>
           <a
             href={`/api/estate-admin/logs/export${exportBase ? `?${exportBase}` : ""}`}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white/70 hover:bg-white/5"
           >
             <FileText className="h-4 w-4" />
             CSV
@@ -171,13 +171,13 @@ export default function EstateLogsPage() {
 
       {/* Filter Bar */}
       {showFilters && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900">Filter Results</h3>
+            <h3 className="text-sm font-bold text-white">Filter Results</h3>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-400"
               >
                 <X className="h-3 w-3" />
                 Clear all
@@ -186,29 +186,29 @@ export default function EstateLogsPage() {
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">Date From</span>
+              <span className="font-semibold text-white/60">Date From</span>
               <input
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))}
-                className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
               />
             </label>
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">Date To</span>
+              <span className="font-semibold text-white/60">Date To</span>
               <input
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))}
-                className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
               />
             </label>
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">Outcome</span>
+              <span className="font-semibold text-white/60">Outcome</span>
               <select
                 value={filters.outcome}
                 onChange={(e) => setFilters((f) => ({ ...f, outcome: e.target.value }))}
-                className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
               >
                 <option value="">All</option>
                 <option value="SUCCESS">Success</option>
@@ -216,11 +216,11 @@ export default function EstateLogsPage() {
               </select>
             </label>
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">Event Type</span>
+              <span className="font-semibold text-white/60">Event Type</span>
               <select
                 value={filters.eventType}
                 onChange={(e) => setFilters((f) => ({ ...f, eventType: e.target.value }))}
-                className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
               >
                 <option value="">All</option>
                 <option value="ENTRY">Entry</option>
@@ -228,11 +228,11 @@ export default function EstateLogsPage() {
               </select>
             </label>
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">Shift</span>
+              <span className="font-semibold text-white/60">Shift</span>
               <select
                 value={filters.shiftType}
                 onChange={(e) => setFilters((f) => ({ ...f, shiftType: e.target.value }))}
-                className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
               >
                 <option value="">All</option>
                 <option value="DAY">Day</option>
@@ -240,11 +240,11 @@ export default function EstateLogsPage() {
               </select>
             </label>
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">Pass Type</span>
+              <span className="font-semibold text-white/60">Pass Type</span>
               <select
                 value={filters.passType}
                 onChange={(e) => setFilters((f) => ({ ...f, passType: e.target.value }))}
-                className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
               >
                 <option value="">All</option>
                 <option value="GUEST">Guest</option>
@@ -252,15 +252,15 @@ export default function EstateLogsPage() {
               </select>
             </label>
             <label className="grid gap-1.5 text-sm">
-              <span className="font-semibold text-slate-600">House Number</span>
+              <span className="font-semibold text-white/60">House Number</span>
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                 <input
                   type="text"
                   placeholder="e.g. A-101"
                   value={filters.houseNumber}
                   onChange={(e) => setFilters((f) => ({ ...f, houseNumber: e.target.value }))}
-                  className="h-10 w-full rounded-lg border border-slate-200 pl-9 pr-3 text-sm outline-none focus:border-brand-navy focus:ring-2 focus:ring-brand-navy/20"
+                  className="h-10 w-full rounded-lg border border-white/10 pl-9 pr-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
                 />
               </div>
             </label>
@@ -269,40 +269,40 @@ export default function EstateLogsPage() {
       )}
 
       {/* Table */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-white/40" />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-100 bg-slate-50">
+              <thead className="border-b border-white/5 bg-white/5">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Date</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Time</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Event</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Gate</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Shift</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">House</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Resident</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Type</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Guests</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Outcome</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Guard</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">Code</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Date</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Time</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Event</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Gate</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Shift</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">House</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Resident</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Type</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Guests</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Outcome</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Guard</th>
+                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-white/50">Code</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((v, idx) => (
-                  <tr key={v.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
-                    <td className="px-4 py-3 text-slate-700 whitespace-nowrap">{v.date}</td>
-                    <td className="px-4 py-3 text-slate-700 whitespace-nowrap font-medium">{v.time}</td>
+                  <tr key={v.id} className={idx % 2 === 0 ? "bg-white/5" : "bg-white/5/50"}>
+                    <td className="px-4 py-3 text-white/70 whitespace-nowrap">{v.date}</td>
+                    <td className="px-4 py-3 text-white/70 whitespace-nowrap font-medium">{v.time}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
                           v.eventType === "EXIT"
-                            ? "bg-amber-100 text-amber-700"
+                            ? "bg-amber-500/15 text-amber-400"
                             : "bg-sky-100 text-sky-700"
                         }`}
                       >
@@ -314,7 +314,7 @@ export default function EstateLogsPage() {
                         {v.eventType}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{v.gateName ?? "—"}</td>
+                    <td className="px-4 py-3 text-white/70">{v.gateName ?? "—"}</td>
                     <td className="px-4 py-3">
                       {v.shiftType ? (
                         <span
@@ -330,15 +330,15 @@ export default function EstateLogsPage() {
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-900 font-semibold">{v.houseNumber ?? "—"}</td>
-                    <td className="px-4 py-3 text-slate-700">{v.residentName ?? "—"}</td>
+                    <td className="px-4 py-3 text-white font-semibold">{v.houseNumber ?? "—"}</td>
+                    <td className="px-4 py-3 text-white/70">{v.residentName ?? "—"}</td>
                     <td className="px-4 py-3">
                       {v.passType ? (
                         <span
                           className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
                             v.passType === "GUEST"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-purple-100 text-purple-700"
+                              ? "bg-brand-green/15 text-brand-green"
+                              : "bg-purple-500/15 text-purple-700"
                           }`}
                         >
                           {v.passType}
@@ -347,26 +347,26 @@ export default function EstateLogsPage() {
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 text-center font-semibold text-slate-900">
+                    <td className="px-4 py-3 text-center font-semibold text-white">
                       {v.guestCount > 1 ? v.guestCount : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
                           v.outcome === "SUCCESS"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-rose-100 text-rose-700"
+                            ? "bg-emerald-500/15 text-emerald-400"
+                            : "bg-rose-500/15 text-rose-400"
                         }`}
                       >
                         {v.outcome === "SUCCESS" ? "✓" : "✕"} {v.outcome}
                       </span>
                       {v.failureReason && (
-                        <p className="mt-1 text-xs text-rose-600">{v.failureReason}</p>
+                        <p className="mt-1 text-xs text-rose-400">{v.failureReason}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{v.guardName ?? "—"}</td>
+                    <td className="px-4 py-3 text-white/70">{v.guardName ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <code className="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700">
+                      <code className="rounded bg-white/10 px-2 py-1 font-mono text-xs text-white/70">
                         {v.codeValue}
                       </code>
                     </td>
@@ -374,8 +374,8 @@ export default function EstateLogsPage() {
                 ))}
                 {logs.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={12} className="px-4 py-12 text-center text-slate-500">
-                      <Download className="mx-auto h-8 w-8 text-slate-300" />
+                    <td colSpan={12} className="px-4 py-12 text-center text-white/50">
+                      <Download className="mx-auto h-8 w-8 text-white/20" />
                       <p className="mt-2 font-medium">No validations found</p>
                       <p className="text-sm">
                         {hasActiveFilters
