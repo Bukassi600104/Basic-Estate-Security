@@ -98,6 +98,7 @@ async function createAuthAndProfile(params: {
       estateId: params.estateId,
       role: params.role,
       name: params.name,
+      authEmail,
       email: params.email,
       phone: params.phone,
       residentId: params.residentId,

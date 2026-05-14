@@ -26,7 +26,7 @@ export type TierConfig = {
   popular?: boolean;
 };
 
-export const TRIAL_DURATION_DAYS = 90;
+export const TRIAL_DURATION_DAYS = 30;
 export const YEARLY_DISCOUNT = 0.05; // 5% discount
 
 /**

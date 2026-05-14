@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/client";
-import { getUserById } from "@/lib/repos/users";
+import { cookies } from "next/headers";
+import { getUserById, listAdminEstateAccess } from "@/lib/repos/users";
 
 export type SessionClaims = {
   userId: string;
@@ -18,10 +19,28 @@ export async function getSession(): Promise<SessionClaims | null> {
     const profile = await getUserById(user.id);
     if (!profile) return null;
 
+    let estateId = profile.estateId ?? undefined;
+    let role = profile.role;
+
+    if (profile.role === "ESTATE_ADMIN" || profile.role === "SUB_ADMIN") {
+      const selectedEstateId = cookies().get("gatepilot_estate_id")?.value;
+      const access = await listAdminEstateAccess({ userId: user.id });
+      const selectedAccess = selectedEstateId
+        ? access.find((item) => item.estateId === selectedEstateId)
+        : null;
+
+      if (selectedAccess) {
+        estateId = selectedAccess.estateId;
+        role = selectedAccess.role;
+      } else if (estateId && !access.some((item) => item.estateId === estateId)) {
+        estateId = profile.estateId ?? undefined;
+      }
+    }
+
     return {
       userId: user.id,
-      role: profile.role,
-      estateId: profile.estateId ?? undefined,
+      role,
+      estateId,
       name: profile.name,
       mfaEnabled: false,
     };

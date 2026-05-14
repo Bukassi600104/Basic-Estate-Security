@@ -55,12 +55,12 @@ export function SuperAdminActivitySection({
   }
 
   return (
-    <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
+    <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-base font-semibold">Activity</h2>
-      <div className="mt-2 text-sm text-white/60">Latest events.</div>
+      <div className="mt-2 text-sm text-slate-600">Latest events.</div>
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
+        <div className="mt-4 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
           {error}
         </div>
       ) : null}
@@ -69,15 +69,15 @@ export function SuperAdminActivitySection({
         {rows.map((a) => (
           <div
             key={a.activityId}
-            className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+            className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3"
           >
-            <div className="text-sm text-white/90">
+            <div className="text-sm text-slate-950/90">
               <span className="font-semibold">{a.type}</span> — {a.message}
             </div>
-            <div className="text-xs text-white/60">{new Date(a.createdAt).toLocaleString()}</div>
+            <div className="text-xs text-slate-600">{new Date(a.createdAt).toLocaleString()}</div>
           </div>
         ))}
-        {rows.length === 0 ? <div className="text-sm text-white/60">No activity yet.</div> : null}
+        {rows.length === 0 ? <div className="text-sm text-slate-600">No activity yet.</div> : null}
       </div>
 
       {nextCursor ? (
@@ -86,7 +86,7 @@ export function SuperAdminActivitySection({
             type="button"
             onClick={loadMore}
             disabled={loadingMore}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-xs font-extrabold text-slate-950 hover:bg-white disabled:opacity-60"
           >
             {loadingMore ? "Loading…" : "Load more"}
           </button>

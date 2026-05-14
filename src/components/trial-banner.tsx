@@ -28,17 +28,17 @@ export function TrialBanner({ estate }: TrialBannerProps) {
   // Determine styling based on urgency
   const styles = {
     normal: {
-      container: "bg-brand-green/10 border-brand-navy/20 text-brand-green",
+      container: "bg-emerald-50 border-emerald-200 text-emerald-800",
       icon: <Clock className="h-4 w-4" />,
-      button: "bg-gradient-to-r from-brand-green to-brand-green-600 text-white hover:bg-brand-navy-700",
+      button: "bg-emerald-700 text-white hover:bg-emerald-800",
     },
     warning: {
-      container: "bg-amber-500/10 border-amber-500/20 text-amber-300",
+      container: "bg-amber-50 border-amber-200 text-amber-800",
       icon: <AlertTriangle className="h-4 w-4" />,
       button: "bg-amber-600 text-white hover:bg-amber-700",
     },
     critical: {
-      container: "bg-rose-500/10 border-rose-500/20 text-rose-300",
+      container: "bg-rose-50 border-rose-200 text-rose-800",
       icon: <XCircle className="h-4 w-4" />,
       button: "bg-rose-600 text-white hover:bg-rose-700",
     },
@@ -46,7 +46,7 @@ export function TrialBanner({ estate }: TrialBannerProps) {
 
   return (
     <>
-      <div className={`border-b px-4 py-3 ${styles.container}`}>
+      <div className={`mb-4 rounded-lg border px-4 py-3 shadow-sm ${styles.container}`}>
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold">
             {styles.icon}
@@ -64,7 +64,7 @@ export function TrialBanner({ estate }: TrialBannerProps) {
 
           <button
             onClick={() => setShowUpgradeModal(true)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${styles.button}`}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-bold transition-colors ${styles.button}`}
           >
             {trialStatus.isExpired ? "Choose a Plan" : "Upgrade Now"}
             <ArrowRight className="h-3 w-3" />

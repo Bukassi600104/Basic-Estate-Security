@@ -4,14 +4,14 @@ import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { headers } from "next/headers";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { requireEstateExists, requireRoleSession } from "@/lib/auth/guards";
-import { updateEstate, deleteEstateById, endEstateTrial } from "@/lib/repos/estates";
-import { listUsersForEstate } from "@/lib/repos/users";
+import { endEstateTrial, extendEstateTrial, terminateEstateById, updateEstate } from "@/lib/repos/estates";
 import { putActivityLog } from "@/lib/repos/activity-logs";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 const patchSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("set_status"), status: z.enum(["ACTIVE", "SUSPENDED", "TERMINATED"]) }),
   z.object({ action: z.literal("end_trial") }),
+  z.object({ action: z.literal("extend_trial"), days: z.number().int().min(1).max(365).default(90) }),
+  z.object({ action: z.literal("mark_pilot"), pilot: z.boolean() }),
 ]);
 
 // Backwards-compatible: if no action field, treat as set_status
@@ -46,10 +46,6 @@ export async function PATCH(req: Request, { params }: { params: { estateId: stri
 
   const json = await req.json().catch(() => null);
 
-  // Try new discriminated schema first, fall back to legacy
-  const parsed = patchSchema.safeParse(json) || legacyPatchSchema.safeParse(json);
-  const legacy = !patchSchema.safeParse(json).success ? legacyPatchSchema.safeParse(json) : null;
-
   const existingRes = await requireEstateExists(params.estateId);
   if (!existingRes.ok) return existingRes.response;
   const existing = existingRes.value;
@@ -61,6 +57,43 @@ export async function PATCH(req: Request, { params }: { params: { estateId: stri
     if (!updated) return NextResponse.json({ error: "Failed to end trial" }, { status: 500 });
     await putActivityLog({ estateId: params.estateId, type: "ESTATE_STATUS_UPDATED", message: `Trial ended early by super admin` });
     return NextResponse.json({ ok: true, estate: { id: updated.estateId, subscriptionStatus: updated.subscriptionStatus } });
+  }
+
+  if (newParsed.success && newParsed.data.action === "extend_trial") {
+    const updated = await extendEstateTrial({
+      estateId: params.estateId,
+      days: newParsed.data.days,
+      trialType: "PILOT",
+    });
+    if (!updated) return NextResponse.json({ error: "Failed to extend trial" }, { status: 500 });
+    await putActivityLog({
+      estateId: params.estateId,
+      type: "ESTATE_STATUS_UPDATED",
+      message: `Pilot trial extended by ${newParsed.data.days} days by super admin`,
+    });
+    return NextResponse.json({
+      ok: true,
+      estate: {
+        id: updated.estateId,
+        subscriptionStatus: updated.subscriptionStatus,
+        trialEndsAt: updated.trialEndsAt,
+        trialType: updated.trialType,
+      },
+    });
+  }
+
+  if (newParsed.success && newParsed.data.action === "mark_pilot") {
+    const updated = await updateEstate({
+      estateId: params.estateId,
+      trialType: newParsed.data.pilot ? "PILOT" : "STANDARD",
+    });
+    if (!updated) return NextResponse.json({ error: "Failed to update pilot status" }, { status: 500 });
+    await putActivityLog({
+      estateId: params.estateId,
+      type: "ESTATE_STATUS_UPDATED",
+      message: newParsed.data.pilot ? "Marked as pilot estate" : "Removed pilot estate mark",
+    });
+    return NextResponse.json({ ok: true, estate: { id: updated.estateId, trialType: updated.trialType } });
   }
 
   // Handle set_status or legacy status update
@@ -107,15 +140,16 @@ export async function DELETE(req: Request, { params }: { params: { estateId: str
   const existingRes = await requireEstateExists(params.estateId);
   if (!existingRes.ok) return existingRes.response;
 
-  // Delete all Supabase Auth users belonging to this estate
-  const users = await listUsersForEstate({ estateId: params.estateId, limit: 500 });
-  const sb = getSupabaseAdmin();
-  await Promise.allSettled(
-    users.map((u) => sb.auth.admin.deleteUser(u.userId))
-  );
+  const updated = await terminateEstateById(params.estateId);
+  if (!updated) {
+    return NextResponse.json({ error: "Unable to terminate estate" }, { status: 409 });
+  }
 
-  // Delete the estate record (cascades to all related DB rows)
-  await deleteEstateById(params.estateId);
+  await putActivityLog({
+    estateId: params.estateId,
+    type: "ESTATE_STATUS_UPDATED",
+    message: "Estate terminated by super admin",
+  });
 
   return NextResponse.json({ ok: true });
 }

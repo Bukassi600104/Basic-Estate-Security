@@ -143,13 +143,14 @@ function SignUpPageContent() {
             src="/images/security-guard.png"
             alt="Security Guard"
             fill
-            className="object-cover object-center"
+            className="object-cover object-[95%_center]"
             style={{ filter: "brightness(1.4) contrast(1.05)" }}
             priority
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f2318]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318]/70 via-transparent to-[#0f2318]/30" />
+        <div className="absolute left-0 top-[28%] h-56 w-[52%] bg-gradient-to-r from-[#0f2318] via-[#0f2318]/95 to-[#0f2318]/10" />
 
         {/* Floating info card */}
         <div className="absolute bottom-12 left-10 right-10">
@@ -191,7 +192,7 @@ function SignUpPageContent() {
                 <Shield className="h-5 w-5 text-brand-green" />
               </div>
               <div>
-                <div className="text-sm font-extrabold uppercase tracking-wider text-white">Basic Estate</div>
+                <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
               </div>
             </Link>
@@ -399,7 +400,7 @@ function SignUpPageContent() {
         {/* Bottom bar */}
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.10] px-6 py-4 lg:px-10">
           <p className="text-xs text-white/35">
-            &copy; {new Date().getFullYear()} Basic Estate Security. All rights reserved.
+            &copy; {new Date().getFullYear()} GatePilot. All rights reserved.
           </p>
           <div className="flex gap-4 text-xs text-white/35">
             <span className="cursor-pointer hover:text-white/55">Privacy Policy</span>
@@ -414,7 +415,7 @@ function SignUpPageContent() {
           src="/images/security-guard.png"
           alt=""
           fill
-          className="object-cover object-center"
+          className="object-cover object-[95%_center]"
           style={{ filter: "brightness(1.4)", opacity: 0.08 }}
         />
       </div>

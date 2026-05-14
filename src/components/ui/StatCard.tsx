@@ -22,20 +22,20 @@ interface StatCardProps {
 
 const variantStyles = {
   default: {
-    icon: "bg-brand-green/15 text-brand-green group-hover:bg-brand-green/25",
-    value: "text-white",
+    icon: "bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100",
+    value: "text-slate-950",
   },
   success: {
-    icon: "bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500/25",
-    value: "text-emerald-400",
+    icon: "bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100",
+    value: "text-emerald-700",
   },
   warning: {
-    icon: "bg-amber-500/15 text-amber-400 group-hover:bg-amber-500/25",
-    value: "text-amber-400",
+    icon: "bg-amber-50 text-amber-700 group-hover:bg-amber-100",
+    value: "text-amber-700",
   },
   error: {
-    icon: "bg-rose-500/15 text-rose-400 group-hover:bg-rose-500/25",
-    value: "text-rose-400",
+    icon: "bg-rose-50 text-rose-700 group-hover:bg-rose-100",
+    value: "text-rose-700",
   },
 };
 
@@ -58,11 +58,11 @@ export function StatCard({
       <div className={`stat-card ${className}`}>
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <div className="h-4 w-24 animate-pulse rounded bg-white/10" />
-            <div className="mt-3 h-8 w-20 animate-pulse rounded bg-white/10" />
-            <div className="mt-2 h-3 w-16 animate-pulse rounded bg-white/10" />
+            <div className="h-4 w-24 animate-pulse rounded bg-slate-100" />
+            <div className="mt-3 h-8 w-20 animate-pulse rounded bg-slate-100" />
+            <div className="mt-2 h-3 w-16 animate-pulse rounded bg-slate-100" />
           </div>
-          <div className="h-12 w-12 animate-pulse rounded-xl bg-white/10" />
+          <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100" />
         </div>
       </div>
     );
@@ -72,7 +72,7 @@ export function StatCard({
     <div className={`stat-card group ${className}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-white/50">{title}</p>
+          <p className="text-sm font-medium text-slate-500">{title}</p>
           <p className={`mt-2 text-3xl font-bold ${styles.value}`}>
             <AnimatedCounter
               end={value}
@@ -82,7 +82,7 @@ export function StatCard({
             />
           </p>
           {typeof trend === "string" ? (
-            <p className="mt-1 text-sm text-white/40">{trend}</p>
+            <p className="mt-1 text-sm text-slate-500">{trend}</p>
           ) : trend ? (
             <div className="mt-2 flex items-center gap-1">
               <span
@@ -93,11 +93,11 @@ export function StatCard({
                 {trend.isPositive ? "+" : "-"}
                 {Math.abs(trend.value)}%
               </span>
-              <span className="text-xs text-white/40">vs last period</span>
+              <span className="text-xs text-slate-400">vs last period</span>
             </div>
           ) : null}
           {description && (
-            <p className="mt-1 text-sm text-white/40">{description}</p>
+            <p className="mt-1 text-sm text-slate-500">{description}</p>
           )}
         </div>
         <div

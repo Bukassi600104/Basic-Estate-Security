@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --brand-navy: #1e3a5f;
   --brand-green: #4ade80;
   --brand-navy-dark: #162a40;
@@ -19,7 +19,7 @@ body {
 }
 
 body {
-  @apply bg-[#0f2318] text-white antialiased;
+  @apply bg-slate-50 text-slate-950 antialiased;
 }
 
 ::selection {
@@ -254,7 +254,7 @@ html {
    ======================================== */
 
 .stat-card {
-  @apply relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6;
+  @apply relative overflow-hidden rounded-lg border border-slate-200 bg-white p-6 shadow-sm;
   @apply transition-all duration-300;
 }
 

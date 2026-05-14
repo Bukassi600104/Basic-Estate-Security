@@ -27,6 +27,7 @@ export type EstateRecord = {
   maxHouses: number;
   maxAdmins: number;
   features: TierFeatures;
+  trialType: "STANDARD" | "PILOT";
 };
 
 export type { SubscriptionTier, SubscriptionStatus, BillingCycle, TierFeatures };
@@ -49,6 +50,7 @@ function rowToEstate(row: Record<string, unknown>): EstateRecord {
     maxHouses: row.max_houses as number,
     maxAdmins: row.max_admins as number,
     features: row.features as TierFeatures,
+    trialType: ((row.trial_type as string) ?? "STANDARD") as "STANDARD" | "PILOT",
   };
 }
 
@@ -108,7 +110,8 @@ export async function getEstateById(estateId: string): Promise<EstateRecord | nu
 
 export async function deleteEstateById(estateId: string) {
   const sb = getSupabaseAdmin();
-  await sb.from("estates").delete().eq("estate_id", estateId);
+  const { error } = await sb.from("estates").delete().eq("estate_id", estateId);
+  if (error) throw error;
 }
 
 export async function endEstateTrial(estateId: string): Promise<EstateRecord | null> {
@@ -124,15 +127,41 @@ export async function endEstateTrial(estateId: string): Promise<EstateRecord | n
   return rowToEstate(data);
 }
 
+export async function extendEstateTrial(params: {
+  estateId: string;
+  days: number;
+  trialType?: "STANDARD" | "PILOT";
+}): Promise<EstateRecord | null> {
+  const sb = getSupabaseAdmin();
+  const now = new Date();
+  const trialEndsAt = new Date(now);
+  trialEndsAt.setDate(trialEndsAt.getDate() + params.days);
+  const { data, error } = await sb
+    .from("estates")
+    .update({
+      trial_ends_at: trialEndsAt.toISOString(),
+      subscription_status: "TRIALING",
+      trial_type: params.trialType ?? "PILOT",
+      updated_at: now.toISOString(),
+    })
+    .eq("estate_id", params.estateId)
+    .select()
+    .single();
+  if (error || !data) return null;
+  return rowToEstate(data);
+}
+
 export async function updateEstate(params: {
   estateId: string;
   status?: EstateStatus;
   address?: string | null;
+  trialType?: "STANDARD" | "PILOT";
 }) {
   const sb = getSupabaseAdmin();
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (params.status) updates.status = params.status;
   if (typeof params.address !== "undefined") updates.address = params.address;
+  if (params.trialType) updates.trial_type = params.trialType;
 
   const { data, error } = await sb
     .from("estates")
@@ -143,6 +172,10 @@ export async function updateEstate(params: {
 
   if (error || !data) return null;
   return rowToEstate(data);
+}
+
+export async function terminateEstateById(estateId: string): Promise<EstateRecord | null> {
+  return updateEstate({ estateId, status: "TERMINATED" });
 }
 
 export async function updateEstateSubscription(params: {
@@ -224,4 +257,13 @@ export async function findEstateByName(name: string): Promise<EstateRecord | nul
     );
   }
   return rowToEstate(data);
+}
+
+export async function listEstatesByName(name: string, limit = 10): Promise<EstateRecord[]> {
+  const normalized = name.toLowerCase().replace(/\s+/g, " ").trim();
+  if (!normalized) return [];
+  const estates = await listEstates({ limit: 500 });
+  return estates
+    .filter((e) => e.name.toLowerCase().replace(/\s+/g, " ").trim() === normalized)
+    .slice(0, limit);
 }

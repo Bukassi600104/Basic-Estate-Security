@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -101,7 +100,7 @@ export default function HomePage() {
               <Shield className="h-5 w-5 text-brand-green" />
             </div>
             <div>
-              <div className="text-sm font-extrabold uppercase tracking-wider text-white">Basic Estate</div>
+              <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
               <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
             </div>
           </Link>
@@ -251,50 +250,86 @@ export default function HomePage() {
               {/* Right — Large bright security guard image */}
               <div className="relative lg:h-[620px]">
                 {/* Floating accent icons */}
-                <div className="absolute top-10 -left-4 floating z-20">
+                <div className="absolute top-10 -left-12 floating z-20 hidden xl:block">
                   <div className="rounded-2xl border border-white/15 bg-[#0f2318]/80 backdrop-blur p-4 shadow-xl">
                     <ShieldCheck className="h-8 w-8 text-brand-green" />
                   </div>
                 </div>
-                <div className="absolute top-1/3 -right-4 floating-delayed z-20">
+                <div className="absolute top-1/3 -right-5 floating-delayed z-20 hidden xl:block">
                   <div className="rounded-2xl border border-white/15 bg-[#0f2318]/80 backdrop-blur p-4 shadow-xl">
                     <KeyRound className="h-8 w-8 text-brand-green/80" />
                   </div>
                 </div>
-                <div className="absolute bottom-1/4 -left-4 floating-slow z-20">
+                <div className="absolute bottom-1/4 -left-12 floating-slow z-20 hidden xl:block">
                   <div className="rounded-2xl border border-white/15 bg-[#0f2318]/80 backdrop-blur p-4 shadow-xl">
                     <Users className="h-8 w-8 text-brand-green/80" />
                   </div>
                 </div>
 
                 {/* Main guard image card — bright and prominent */}
-                <div className="relative h-[440px] lg:h-full rounded-3xl overflow-hidden border border-white/20 shadow-2xl shadow-black/40">
-                  <Image
-                    src="/images/security-guard.png"
-                    alt="Professional Security Guard"
-                    fill
-                    className="object-cover object-top"
-                    style={{ filter: 'brightness(1.4) contrast(1.05)', opacity: 0.92 }}
-                    priority
-                  />
-                  {/* Very light gradient only at bottom for the badge */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c1e10] via-transparent to-transparent" style={{ background: 'linear-gradient(to top, rgba(12,30,16,0.95) 0%, rgba(12,30,16,0.1) 35%, transparent 60%)' }} />
+                <div className="relative h-[440px] overflow-hidden rounded-3xl border border-white/20 bg-white/[0.96] p-5 shadow-2xl shadow-black/40 lg:h-full">
+                  <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-r from-emerald-100 via-sky-50 to-white" />
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">Live estate command</p>
+                      <h3 className="mt-2 text-2xl font-extrabold text-slate-950">GatePilot Control</h3>
+                    </div>
+                    <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                      Online
+                    </div>
+                  </div>
 
-                  {/* Access validated badge */}
-                  <div className="absolute bottom-6 left-6 right-6 z-20 rounded-2xl border border-white/15 bg-[#0f2318]/80 backdrop-blur-xl p-4 shadow-xl">
+                  <div className="relative z-10 mt-8 grid gap-4 sm:grid-cols-3">
+                    {[
+                      ["Residents", "248", Users],
+                      ["Gates", "06", Shield],
+                      ["Today", "1,204", KeyRound],
+                    ].map(([label, value, Icon]) => (
+                      <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <Icon className="h-5 w-5 text-emerald-700" />
+                        <div className="mt-4 text-2xl font-extrabold text-slate-950">{String(value)}</div>
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{String(label)}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="relative z-10 mt-5 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">Validation stream</p>
+                        <h4 className="mt-2 text-lg font-bold">Access activity</h4>
+                      </div>
+                      <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-300">Secure</span>
+                    </div>
+                    <div className="mt-5 space-y-3">
+                      {[
+                        ["Main Gate", "Guest entry allowed", "2m ago"],
+                        ["Service Gate", "Staff code renewed", "8m ago"],
+                        ["North Gate", "Exit code verified", "14m ago"],
+                      ].map(([gate, detail, time]) => (
+                        <div key={gate} className="flex items-center justify-between rounded-xl bg-white/10 px-3 py-3">
+                          <div>
+                            <p className="font-semibold">{gate}</p>
+                            <p className="text-sm text-white/55">{detail}</p>
+                          </div>
+                          <p className="text-xs text-white/45">{time}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="absolute bottom-6 left-6 right-6 z-20 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-xl">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green/20">
-                        <ShieldCheck className="h-6 w-6 text-brand-green" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                        <ShieldCheck className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="font-bold text-white">Access Validated</p>
-                        <p className="text-sm text-white/60">Code verified successfully</p>
+                        <p className="font-bold text-slate-950">Access Validated</p>
+                        <p className="text-sm text-slate-500">Code verified successfully</p>
                       </div>
-                      <div className="ml-auto">
-                        <span className="inline-flex items-center rounded-full bg-brand-green/20 px-3 py-1 text-xs font-semibold text-brand-green border border-brand-green/20">
-                          Secure
-                        </span>
-                      </div>
+                      <span className="ml-auto rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-700">
+                        Secure
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -384,7 +419,7 @@ export default function HomePage() {
                   Ready to secure your estate?
                 </h2>
                 <p className="mx-auto mt-4 max-w-2xl text-lg text-white/60">
-                  Join thousands of estates using Basic Security to protect their residents.
+                  Join thousands of estates using GatePilot to protect their residents.
                   Get started in minutes with no technical setup required.
                 </p>
                 <div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -417,7 +452,7 @@ export default function HomePage() {
                 <Shield className="h-5 w-5 text-brand-green" />
               </div>
               <div>
-                <div className="text-sm font-extrabold uppercase tracking-wider text-white">Basic Estate</div>
+                <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
               </div>
             </div>
@@ -434,7 +469,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-8 border-t border-white/[0.08] pt-8 text-center text-sm text-white/35">
-            &copy; {new Date().getFullYear()} Basic Estate Security. All rights reserved.
+            &copy; {new Date().getFullYear()} GatePilot. All rights reserved.
           </div>
           <div className="mt-4 text-center">
             <Link

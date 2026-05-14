@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    const issuer = "BasicEstateSecurity";
+    const issuer = "GatePilot";
     const label = encodeURIComponent(`${issuer}:${session.name || session.userId}`);
     const otpauthUrl = `otpauth://totp/${label}?secret=${encodeURIComponent(data.totp.secret)}&issuer=${encodeURIComponent(issuer)}`;
 

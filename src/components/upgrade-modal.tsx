@@ -257,7 +257,7 @@ export function UpgradeModal({
             Contact us for Enterprise pricing with unlimited houses and dedicated support.
           </p>
           <a
-            href="mailto:sales@basicsecurity.ng"
+            href="mailto:sales@gatepilot.ng"
             className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/5 px-6 py-3 text-sm font-bold text-white hover:bg-white/10"
           >
             Contact Sales

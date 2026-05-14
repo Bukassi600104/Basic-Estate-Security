@@ -4,7 +4,7 @@
  * Example: BS-GW-3453yHGT (for "Gowon" estate)
  *
  * Format breakdown:
- * - BS: Constant prefix (Basic Security)
+ * - BS: Constant prefix (GatePilot)
  * - XX: 2-letter estate initials derived from estate name
  * - 8-char unique ID: 4 digits + 4 uppercase letters (e.g., 3453YHGT)
  */

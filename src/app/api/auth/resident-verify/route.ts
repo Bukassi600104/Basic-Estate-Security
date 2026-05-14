@@ -3,7 +3,7 @@ import { z } from "zod";
 import { headers } from "next/headers";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
-import { findEstateByName } from "@/lib/repos/estates";
+import { findEstateByName, getEstateById } from "@/lib/repos/estates";
 import { findResidentByPhoneInEstate } from "@/lib/repos/residents";
 import { listUsersForResident, getUserById } from "@/lib/repos/users";
 import { createSupabaseServerClient } from "@/lib/supabase/client";
@@ -12,6 +12,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   estateName: z.string().min(2),
+  estateId: z.string().optional(),
   residentName: z.string().min(2),
   phone: z.string().min(6),
   verificationCode: z.string().min(8),
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { estateName, residentName, phone, verificationCode, password } = parsed.data;
+  const { estateName, estateId, residentName, phone, verificationCode, password } = parsed.data;
 
   const h = headers();
   const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? "").trim() || "unknown";
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
   }
 
   // 1. Find estate
-  const estate = await findEstateByName(estateName);
+  const estate = estateId ? await getEstateById(estateId) : await findEstateByName(estateName);
   if (!estate) return NextResponse.json({ error: "Estate not found" }, { status: 404 });
   if (estate.status !== "ACTIVE") return NextResponse.json({ error: "Estate is not active" }, { status: 403 });
 
@@ -104,7 +105,7 @@ export async function POST(req: Request) {
   }
 
   // 6. Authenticate via Supabase
-  const supabaseEmail = residentUser.email || `resident-${phone.replace(/[^0-9]/g, "")}@estate.local`;
+  const supabaseEmail = residentUser.authEmail || residentUser.email || `resident-${phone.replace(/[^0-9]/g, "")}@estate.local`;
 
   try {
     const supabase = createSupabaseServerClient();

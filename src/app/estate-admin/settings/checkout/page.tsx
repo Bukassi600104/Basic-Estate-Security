@@ -199,10 +199,10 @@ function CheckoutPageContent() {
                 <p className="mt-1 text-xs text-white/60">
                   Contact us at{" "}
                   <a
-                    href="mailto:billing@basicsecurity.ng"
+                    href="mailto:billing@gatepilot.ng"
                     className="font-semibold text-brand-green hover:underline"
                   >
-                    billing@basicsecurity.ng
+                    billing@gatepilot.ng
                   </a>{" "}
                   for manual payment processing.
                 </p>

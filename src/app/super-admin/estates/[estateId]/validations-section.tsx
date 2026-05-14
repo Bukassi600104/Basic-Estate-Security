@@ -57,29 +57,29 @@ export function SuperAdminValidationsSection({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
+    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-base font-semibold">Recent validations</h2>
-      <div className="mt-2 text-sm text-white/60">Latest validation attempts.</div>
+      <div className="mt-2 text-sm text-slate-600">Latest validation attempts.</div>
       <div className="mt-3 flex items-center justify-between">
         <a
           href={`/api/super-admin/estates/${estateId}/validations/export`}
-          className="inline-flex rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white hover:bg-white/5"
+          className="inline-flex rounded-xl border border-white/15 bg-white px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-white"
         >
           Export CSV
         </a>
-        <div className="text-xs font-semibold text-white/50">Estate scope</div>
+        <div className="text-xs font-semibold text-slate-500">Estate scope</div>
       </div>
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
+        <div className="mt-4 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300">
           {error}
         </div>
       ) : null}
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="text-white/60">
-            <tr className="border-b border-white/10">
+          <thead className="text-slate-600">
+            <tr className="border-b border-slate-200">
               <th className="py-2 pr-4 font-semibold">Time</th>
               <th className="py-2 pr-4 font-semibold">House</th>
               <th className="py-2 pr-4 font-semibold">Resident</th>
@@ -89,17 +89,17 @@ export function SuperAdminValidationsSection({
           </thead>
           <tbody>
             {rows.map((v) => (
-              <tr key={v.logId} className="border-b border-white/5">
-                <td className="py-3 pr-4 text-white/70">{new Date(v.validatedAt).toLocaleString()}</td>
-                <td className="py-3 pr-4 text-white/70">{v.houseNumber ?? "—"}</td>
-                <td className="py-3 pr-4 text-white/70">{v.residentName ?? "—"}</td>
-                <td className="py-3 pr-4 text-white/70">{v.passType ?? "—"}</td>
-                <td className="py-3 pr-4 text-white/70">{v.decision}</td>
+              <tr key={v.logId} className="border-b border-slate-100">
+                <td className="py-3 pr-4 text-slate-950/70">{new Date(v.validatedAt).toLocaleString()}</td>
+                <td className="py-3 pr-4 text-slate-950/70">{v.houseNumber ?? "—"}</td>
+                <td className="py-3 pr-4 text-slate-950/70">{v.residentName ?? "—"}</td>
+                <td className="py-3 pr-4 text-slate-950/70">{v.passType ?? "—"}</td>
+                <td className="py-3 pr-4 text-slate-950/70">{v.decision}</td>
               </tr>
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td className="py-3 text-white/60" colSpan={5}>
+                <td className="py-3 text-slate-600" colSpan={5}>
                   No data.
                 </td>
               </tr>
@@ -114,7 +114,7 @@ export function SuperAdminValidationsSection({
             type="button"
             onClick={loadMore}
             disabled={loadingMore}
-            className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-xs font-extrabold text-white hover:bg-white/5 disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-xs font-extrabold text-slate-950 hover:bg-white disabled:opacity-60"
           >
             {loadingMore ? "Loading…" : "Load more"}
           </button>

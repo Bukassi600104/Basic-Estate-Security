@@ -180,7 +180,7 @@ function PricingCard({
       <div className="mt-8">
         {isEnterprise ? (
           <Link
-            href="mailto:support@basicsecurity.ng?subject=Enterprise%20Plan%20Inquiry"
+            href="mailto:support@gatepilot.ng?subject=Enterprise%20Plan%20Inquiry"
             className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-white/20 bg-white/[0.07] px-6 py-3 text-base font-bold text-white transition-all hover:bg-white/[0.12] hover:border-white/35"
           >
             Contact Sales
@@ -414,7 +414,7 @@ export default function PricingPage() {
             </div>
           </div>
           <div className="mt-8 border-t border-white/[0.08] pt-8 text-center text-sm text-white/35">
-            © {new Date().getFullYear()} Basic Security. All rights reserved.
+            © {new Date().getFullYear()} GatePilot. All rights reserved.
           </div>
         </div>
       </footer>

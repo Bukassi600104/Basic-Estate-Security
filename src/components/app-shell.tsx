@@ -2,7 +2,9 @@ import Link from "next/link";
 import { LogOut, ShieldCheck } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/client";
-import { getUserById } from "@/lib/repos/users";
+import { getUserById, listAdminEstateAccess } from "@/lib/repos/users";
+import { getEstateById } from "@/lib/repos/estates";
+import { EstateSwitcher, type EstateSwitchOption } from "@/components/estate-switcher";
 import type { NavItem } from "@/components/sidebar-nav";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { MobileNav } from "@/components/mobile-nav";
@@ -34,7 +36,7 @@ async function SignOutButton({ className }: { className?: string }) {
       }}
     >
       <button
-        className={className || "inline-flex w-full items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 hover:text-white transition-colors"}
+        className={className || "inline-flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"}
         type="submit"
       >
         <LogOut className="h-4 w-4" />
@@ -58,30 +60,33 @@ export async function AppShell({
   const session = await getSession();
 
   const dbUser = session?.userId ? await getUserById(session.userId) : null;
+  const estate = session?.estateId ? await getEstateById(session.estateId) : null;
+  const estateOptionsRaw = session?.userId && (session.role === "ESTATE_ADMIN" || session.role === "SUB_ADMIN")
+    ? await Promise.all(
+        (await listAdminEstateAccess({ userId: session.userId })).map(async (access): Promise<EstateSwitchOption | null> => {
+          const item = await getEstateById(access.estateId);
+          return item ? { id: item.estateId, name: item.name, address: item.address } : null;
+        }),
+      )
+    : [];
+  const estateOptions = estateOptionsRaw.filter((item): item is EstateSwitchOption => item !== null);
   const displayName = dbUser?.name || session?.name || "User";
 
   const allNavItems = [...(nav || []), ...(bottomNav || [])];
 
   return (
-    <div className="min-h-screen bg-[#0f2318] pb-20 md:pb-0">
-      {/* Dynamic background */}
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute -top-24 left-1/4 h-96 w-96 rounded-full bg-brand-green/8 blur-[120px] animate-pulse-soft" />
-        <div className="absolute -bottom-24 right-1/4 h-96 w-96 rounded-full bg-brand-green/10 blur-[120px] animate-pulse-soft" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-navy/10 blur-[100px]" />
-      </div>
-
-      <div className="mx-auto flex min-h-screen max-w-7xl">
+    <div className="min-h-screen bg-slate-50 pb-20 text-slate-950 md:pb-0">
+      <div className="mx-auto flex min-h-screen max-w-[1500px]">
         {/* Fixed sidebar - desktop only */}
         <aside className="hidden w-72 flex-shrink-0 md:block">
-          <div className="fixed top-0 h-screen w-72 flex-col border-r border-white/[0.12] bg-[#0f2318]/90 px-5 py-6 backdrop-blur-xl flex">
+          <div className="fixed top-0 flex h-screen w-72 flex-col border-r border-slate-200 bg-white px-5 py-6 shadow-sm">
             <Link href="/dashboard" className="flex items-center gap-3 px-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-green/30 bg-brand-green/10 shadow-sm">
-                <ShieldCheck className="h-5 w-5 text-brand-green" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm">
+                <ShieldCheck className="h-5 w-5 text-emerald-700" />
               </div>
               <div className="leading-tight">
-                <div className="text-sm font-extrabold tracking-tight text-white">Basic Security</div>
-                <div className="text-xs font-semibold tracking-wide text-brand-green/70">
+                <div className="text-sm font-extrabold tracking-tight text-slate-950">GatePilot</div>
+                <div className="text-xs font-semibold tracking-wide text-slate-500">
                   {session?.role ? formatRoleLabel(session.role) : "Portal"}
                 </div>
               </div>
@@ -95,14 +100,22 @@ export async function AppShell({
 
             <div className="mt-auto pt-6">
               {session ? (
-                <div className="rounded-2xl border border-white/[0.12] bg-white/[0.07] p-4">
-                  <div className="text-sm font-semibold text-white">{displayName}</div>
-                  <div className="mt-1 text-xs font-semibold tracking-wide text-brand-green/60">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  {estate ? (
+                    <div className="mb-4 rounded-md border border-emerald-100 bg-white p-3">
+                      <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Active estate</div>
+                      <div className="mt-1 truncate text-sm font-bold text-slate-950">{estate.name}</div>
+                      <div className="truncate text-xs text-slate-500">{estate.address || estate.estateId}</div>
+                      <EstateSwitcher estates={estateOptions} activeEstateId={estate.estateId} />
+                    </div>
+                  ) : null}
+                  <div className="text-sm font-semibold text-slate-950">{displayName}</div>
+                  <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500">
                     {formatRoleLabel(session.role)}
                   </div>
 
                   {bottomNav?.length ? (
-                    <div className="mt-4 border-t border-white/10 pt-4">
+                    <div className="mt-4 border-t border-slate-200 pt-4">
                       <SidebarNav items={bottomNav} />
                     </div>
                   ) : null}
@@ -118,36 +131,41 @@ export async function AppShell({
 
         <div className="min-w-0 flex-1">
           {/* Mobile header */}
-          <header className="sticky top-0 z-20 border-b border-white/[0.12] bg-[#0f2318]/95 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
             <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
               <div className="flex items-center gap-3 md:hidden">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand-green/30 bg-brand-green/10 shadow-sm">
-                  <ShieldCheck className="h-4 w-4 text-brand-green" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm">
+                  <ShieldCheck className="h-4 w-4 text-emerald-700" />
                 </div>
                 <div className="leading-tight">
-                  <div className="text-xs font-bold text-white">Basic Security</div>
+                  <div className="text-xs font-bold text-slate-950">GatePilot</div>
                   {title && (
-                    <div className="text-xs font-semibold text-brand-green/60">{title}</div>
+                    <div className="text-xs font-semibold text-slate-500">{title}</div>
                   )}
                 </div>
               </div>
               <div className="hidden min-w-0 md:block">
                 {title ? (
-                  <h1 className="truncate text-lg font-extrabold tracking-tight text-white">
+                  <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-950">
                     {title}
                   </h1>
+                ) : null}
+                {estate ? (
+                  <p className="mt-0.5 text-xs font-medium text-slate-500">
+                    {estate.name} {estate.address ? `- ${estate.address}` : ""}
+                  </p>
                 ) : null}
               </div>
 
               <div className="flex items-center gap-2">
                 {session ? (
-                  <div className="hidden text-sm font-medium text-white/70 lg:block">
+                  <div className="hidden text-sm font-medium text-slate-600 lg:block">
                     {displayName}
                   </div>
                 ) : null}
                 {session ? (
                   <div className="md:hidden">
-                    <SignOutButton className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white" />
+                    <SignOutButton className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-950" />
                   </div>
                 ) : null}
               </div>

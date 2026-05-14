@@ -9,12 +9,12 @@ export async function requireCurrentUser() {
   const user = await getUserById(session.userId);
   if (!user) return null;
 
-  const estate = user.estateId ? await getEstateById(user.estateId) : null;
+  const estate = session.estateId ? await getEstateById(session.estateId) : null;
 
   return {
     id: user.userId,
-    role: user.role,
-    estateId: user.estateId ?? null,
+    role: session.role,
+    estateId: session.estateId ?? null,
     name: user.name,
     email: user.email ?? null,
     phone: user.phone ?? null,

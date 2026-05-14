@@ -30,6 +30,7 @@ export type UserRecord = {
   estateId?: string;
   role: UserRole;
   name: string;
+  authEmail?: string;
   email?: string;
   phone?: string;
   residentId?: string;
@@ -47,6 +48,7 @@ function rowToUser(row: Record<string, unknown>): UserRecord {
     estateId: (row.estate_id as string) ?? undefined,
     role: row.role as UserRole,
     name: row.name as string,
+    authEmail: (row.auth_email as string) ?? undefined,
     email: (row.email as string) ?? undefined,
     phone: (row.phone as string) ?? undefined,
     residentId: (row.resident_id as string) ?? undefined,
@@ -65,6 +67,7 @@ function userToRow(user: UserRecord): Record<string, unknown> {
     estate_id: user.estateId ?? null,
     role: user.role,
     name: user.name,
+    auth_email: user.authEmail ?? user.email ?? null,
     email: user.email ?? null,
     phone: user.phone ?? null,
     resident_id: user.residentId ?? null,
@@ -101,6 +104,20 @@ export async function getUserById(userId: string): Promise<UserRecord | null> {
   return rowToUser(data);
 }
 
+export async function findUserByEmail(email: string): Promise<UserRecord | null> {
+  const sb = getSupabaseAdmin();
+  const normalized = email.trim().toLowerCase();
+  const { data, error } = await sb
+    .from("users")
+    .select()
+    .or(`email.eq.${normalized},auth_email.eq.${normalized}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return rowToUser(data);
+}
+
 export async function listUsersForEstate(params: { estateId: string; limit?: number }): Promise<UserRecord[]> {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -112,6 +129,37 @@ export async function listUsersForEstate(params: { estateId: string; limit?: num
 
   if (error || !data) return [];
   return data.map(rowToUser);
+}
+
+export async function grantAdminEstateAccess(params: {
+  userId: string;
+  estateId: string;
+  role: "ESTATE_ADMIN" | "SUB_ADMIN";
+}) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from("admin_estate_access").upsert({
+    user_id: params.userId,
+    estate_id: params.estateId,
+    role: params.role,
+  });
+  if (error) throw error;
+}
+
+export async function listAdminEstateAccess(params: { userId: string }): Promise<Array<{
+  estateId: string;
+  role: "ESTATE_ADMIN" | "SUB_ADMIN";
+}>> {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from("admin_estate_access")
+    .select("estate_id, role")
+    .eq("user_id", params.userId);
+
+  if (error || !data) return [];
+  return data.map((row) => ({
+    estateId: row.estate_id as string,
+    role: row.role as "ESTATE_ADMIN" | "SUB_ADMIN",
+  }));
 }
 
 export async function listGuardsForEstatePage(params: {

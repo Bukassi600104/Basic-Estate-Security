@@ -145,6 +145,7 @@ export async function POST(req: Request) {
       estateId,
       role: "GUARD",
       name,
+      authEmail: guardEmail,
       email: guardEmail,
       phone: !isEmail ? identifier : undefined,
       verificationCode,

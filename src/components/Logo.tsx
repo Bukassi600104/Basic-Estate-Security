@@ -24,7 +24,7 @@ export function Logo({ size = "md", showText = true, className = "" }: LogoProps
     <div className={`flex items-center gap-3 ${className}`}>
       <Image
         src="/images/logo.jpg"
-        alt="Basic Security Logo"
+        alt="GatePilot Logo"
         width={width}
         height={height}
         className="rounded-xl"
@@ -33,10 +33,7 @@ export function Logo({ size = "md", showText = true, className = "" }: LogoProps
       {showText && (
         <div className="flex flex-col">
           <span className={`font-bold tracking-tight text-brand-green ${text}`}>
-            Basic
-          </span>
-          <span className={`-mt-1 font-bold tracking-tight text-brand-green ${text}`}>
-            Security
+            GatePilot
           </span>
         </div>
       )}

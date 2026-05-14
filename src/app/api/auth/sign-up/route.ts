@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { enforceSameOriginForMutations } from "@/lib/security/same-origin";
 import { createSupabaseServerClient } from "@/lib/supabase/client";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { createEstate, deleteEstateById } from "@/lib/repos/estates";
-import { putUser } from "@/lib/repos/users";
+import { findUserByEmail, grantAdminEstateAccess, putUser } from "@/lib/repos/users";
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 
 export const runtime = "nodejs";
@@ -60,6 +60,37 @@ export async function POST(req: Request) {
 
     const { estateName, estateAddress, adminName, email, password, tier, billingCycle } = parsed.data;
 
+    const existingProfile = await findUserByEmail(email);
+    if (existingProfile) {
+      if (existingProfile.role !== "ESTATE_ADMIN" && existingProfile.role !== "SUB_ADMIN") {
+        return NextResponse.json(
+          { error: "This email already belongs to another account type.", code: "ACCOUNT_EXISTS" },
+          { status: 409 },
+        );
+      }
+
+      const supabase = createSupabaseServerClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        return NextResponse.json(
+          { error: "This email already has an account. Sign in with the correct password to add another estate.", code: "ACCOUNT_EXISTS" },
+          { status: 409 },
+        );
+      }
+
+      const estate = await createEstate({ name: estateName, address: estateAddress, tier, billingCycle });
+      createdEstateId = estate.estateId;
+      await grantAdminEstateAccess({ userId: existingProfile.userId, estateId: estate.estateId, role: "ESTATE_ADMIN" });
+      cookies().set("gatepilot_estate_id", estate.estateId, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+      return NextResponse.json({ ok: true });
+    }
+
     // 1) Create estate record
     const estate = await createEstate({ name: estateName, address: estateAddress, tier, billingCycle });
     createdEstateId = estate.estateId;
@@ -93,10 +124,12 @@ export async function POST(req: Request) {
       estateId: estate.estateId,
       role: "ESTATE_ADMIN",
       name: adminName,
+      authEmail: email,
       email,
       createdAt: now,
       updatedAt: now,
     });
+    await grantAdminEstateAccess({ userId: authData.user.id, estateId: estate.estateId, role: "ESTATE_ADMIN" });
 
     // 4) Sign in the user to set session cookies
     const supabase = createSupabaseServerClient();
@@ -104,6 +137,14 @@ export async function POST(req: Request) {
     if (signInError) {
       return NextResponse.json({ error: "Account created but sign-in failed. Please sign in manually." }, { status: 201 });
     }
+
+    cookies().set("gatepilot_estate_id", estate.estateId, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

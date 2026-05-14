@@ -19,10 +19,18 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
 
+type EstateOption = {
+  id: string;
+  name: string;
+  address?: string | null;
+};
+
 export default function GuardVerifyPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [estateName, setEstateName] = useState("");
+  const [estateId, setEstateId] = useState("");
+  const [estateOptions, setEstateOptions] = useState<EstateOption[]>([]);
   const [guardName, setGuardName] = useState("");
   const [phone, setPhone] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -42,6 +50,7 @@ export default function GuardVerifyPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           estateName,
+          estateId,
           guardName,
           phone,
           verificationCode,
@@ -61,11 +70,36 @@ export default function GuardVerifyPage() {
     }
   }
 
+  async function continueToVerification() {
+    setError(null);
+    if (!estateName.trim().length || !guardName.trim().length) return;
+
+    const res = await fetch(`/api/auth/estates/lookup?name=${encodeURIComponent(estateName.trim())}`);
+    const data = await res.json().catch(() => ({ estates: [] }));
+    const estates = (data.estates || []) as EstateOption[];
+    setEstateOptions(estates);
+
+    if (estates.length === 0) {
+      setError("Estate not found. Check the estate name or ask your supervisor.");
+      return;
+    }
+    if (estates.length === 1) {
+      setEstateId(estates[0].id);
+      setStep(2);
+      return;
+    }
+    if (estateId && estates.some((estate) => estate.id === estateId)) {
+      setStep(2);
+      return;
+    }
+    setError("Select the correct estate branch before continuing.");
+  }
+
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-[#0f2318]">
       {/* Background — brighter image, lighter overlays */}
       <div className="absolute inset-0">
-        <Image src="/images/security-guard.png" alt="" fill className="object-cover object-center" style={{ filter: 'brightness(1.4)', opacity: 0.22 }} priority />
+        <Image src="/images/security-guard.png" alt="" fill className="object-cover object-[95%_center]" style={{ filter: 'brightness(1.4)', opacity: 0.22 }} priority />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0f2318] via-[#0f2318]/90 to-[#0f2318]/55" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318] via-transparent to-[#0f2318]/70" />
       </div>
@@ -82,7 +116,7 @@ export default function GuardVerifyPage() {
                 <Shield className="h-5 w-5 text-brand-green" />
               </div>
               <div>
-                <div className="text-sm font-extrabold uppercase tracking-wider text-white">Basic Estate</div>
+                <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
                 <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
               </div>
             </Link>
@@ -129,12 +163,47 @@ export default function GuardVerifyPage() {
                       <input
                         className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={estateName}
-                        onChange={(e) => setEstateName(e.target.value)}
+                        onChange={(e) => {
+                          setEstateName(e.target.value);
+                          setEstateId("");
+                          setEstateOptions([]);
+                        }}
                         placeholder="Blue Gardens Estate"
                         required
                       />
                     </div>
                   </div>
+
+                  {estateOptions.length > 1 && (
+                    <div className="rounded-lg border border-brand-green/30 bg-brand-green/10 p-3">
+                      <div className="mb-2 text-xs font-bold uppercase tracking-wider text-brand-green">
+                        Select estate branch
+                      </div>
+                      <div className="grid gap-2">
+                        {estateOptions.map((estate) => (
+                          <button
+                            type="button"
+                            key={estate.id}
+                            onClick={() => setEstateId(estate.id)}
+                            className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+                              estateId === estate.id
+                                ? "border-brand-green bg-brand-green/15 text-white"
+                                : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
+                            }`}
+                          >
+                            <div className="font-bold">{estate.name}</div>
+                            <div className="text-xs opacity-70">{estate.address || estate.id}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300">
+                      {error}
+                    </div>
+                  )}
 
                   <div>
                     <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/70">Your name</label>
@@ -153,9 +222,7 @@ export default function GuardVerifyPage() {
                   <button
                     type="button"
                     className="group mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 px-6 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40"
-                    onClick={() => {
-                      if (estateName.trim().length && guardName.trim().length) setStep(2);
-                    }}
+                    onClick={continueToVerification}
                   >
                     Continue
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -267,7 +334,7 @@ export default function GuardVerifyPage() {
         {/* Bottom bar */}
         <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.10] px-6 py-4 lg:px-10">
           <p className="text-xs text-white/35">
-            &copy; {new Date().getFullYear()} Basic Estate Security. All rights reserved.
+            &copy; {new Date().getFullYear()} GatePilot. All rights reserved.
           </p>
           <div className="flex gap-4 text-xs text-white/35">
             <span className="cursor-pointer hover:text-white/55">Privacy Policy</span>

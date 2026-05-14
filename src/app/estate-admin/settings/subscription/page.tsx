@@ -313,7 +313,7 @@ export default function SubscriptionPage() {
         <p className="text-sm text-white/60">
           Need help with your subscription?{" "}
           <a
-            href="mailto:support@basicsecurity.ng"
+            href="mailto:support@gatepilot.ng"
             className="font-semibold text-brand-green hover:underline"
           >
             Contact support
