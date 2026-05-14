@@ -10,6 +10,7 @@ import { SuperAdminValidationsSection } from "@/app/super-admin/estates/[estateI
 import { SuperAdminActivitySection } from "@/app/super-admin/estates/[estateId]/activity-section";
 import { SuperAdminGuardsSection } from "@/app/super-admin/estates/[estateId]/guards-section";
 import { SuperAdminResidentsSection } from "@/app/super-admin/estates/[estateId]/residents-section";
+import { EstateActions } from "@/app/super-admin/estates/[estateId]/estate-actions";
 
 function base64UrlEncode(input: string) {
   return Buffer.from(input, "utf8")
@@ -71,6 +72,18 @@ export default async function SuperAdminEstatePage({
               <span className="text-xs text-white/50">ID: {estateId}</span>
             </div>
           </div>
+        </div>
+
+        {/* Subscription status pill */}
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <span className="rounded-full border border-white/[0.12] bg-white/[0.06] px-3 py-1 font-semibold text-white/60">
+            {estate?.subscriptionTier} · {estate?.subscriptionStatus}
+          </span>
+          {estate?.trialEndsAt && (
+            <span className="rounded-full border border-white/[0.12] bg-white/[0.06] px-3 py-1 font-semibold text-white/60">
+              Trial ends {new Date(estate.trialEndsAt).toLocaleDateString()}
+            </span>
+          )}
         </div>
 
         {/* Estate Admin Contact */}
@@ -136,6 +149,12 @@ export default async function SuperAdminEstatePage({
         estateId={estateId}
         initialActivity={activityPage.items}
         initialNextCursor={activityPage.nextCursor ? base64UrlEncode(JSON.stringify(activityPage.nextCursor)) : null}
+      />
+
+      <EstateActions
+        estateId={estateId}
+        estateName={estate?.name ?? "this estate"}
+        subscriptionStatus={estate?.subscriptionStatus ?? ""}
       />
     </div>
   );

@@ -111,6 +111,19 @@ export async function deleteEstateById(estateId: string) {
   await sb.from("estates").delete().eq("estate_id", estateId);
 }
 
+export async function endEstateTrial(estateId: string): Promise<EstateRecord | null> {
+  const sb = getSupabaseAdmin();
+  const now = new Date().toISOString();
+  const { data, error } = await sb
+    .from("estates")
+    .update({ trial_ends_at: now, subscription_status: "EXPIRED", updated_at: now })
+    .eq("estate_id", estateId)
+    .select()
+    .single();
+  if (error || !data) return null;
+  return rowToEstate(data);
+}
+
 export async function updateEstate(params: {
   estateId: string;
   status?: EstateStatus;
