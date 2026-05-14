@@ -77,7 +77,7 @@ async function createAuthAndProfile(params: {
 }) {
   const password = generatePassword();
   const friendlyUsername = generateUsername(params.name, params.estateName);
-  const authEmail = params.email || `${friendlyUsername}@estate.local`;
+  const authEmail = params.email || `${friendlyUsername}.${Date.now().toString(36)}@estate.local`;
 
   const sbAdmin = getSupabaseAdmin();
   const { data: authData, error: authError } = await sbAdmin.auth.admin.createUser({
@@ -222,8 +222,8 @@ export async function POST(req: Request) {
       },
     });
   } catch (err) {
-    const e = err as Error & { message?: string };
-    console.error("resident_onboard_failed", e?.message);
+    const e = err as Error & { message?: string; code?: string; status?: number };
+    console.error("resident_onboard_failed", { message: e?.message, code: e?.code, status: e?.status });
 
     try {
       await deleteResident(resident.residentId);
@@ -231,7 +231,7 @@ export async function POST(req: Request) {
       console.error("resident_onboard_rollback_failed", (rollbackErr as Error)?.message);
     }
 
-    if (e?.message?.includes("already been registered")) {
+    if (e?.message?.includes("already been registered") || e?.message?.includes("already exists")) {
       return NextResponse.json({ error: "A user with this phone number already exists" }, { status: 409 });
     }
     return NextResponse.json({ error: "Unable to create resident accounts. Please try again." }, { status: 409 });
