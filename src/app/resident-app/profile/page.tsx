@@ -53,10 +53,10 @@ export default function ResidentProfilePage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-lg px-5 py-6">
-        <div className="h-8 w-32 animate-pulse rounded-lg bg-white/10" />
+        <div className="h-8 w-32 animate-pulse rounded-lg bg-white" />
         <div className="mt-6 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-2xl bg-white/10" />
+            <div key={i} className="h-20 animate-pulse rounded-2xl bg-white" />
           ))}
         </div>
       </div>
@@ -66,25 +66,25 @@ export default function ResidentProfilePage() {
   if (!profile) {
     return (
       <div className="mx-auto max-w-lg px-5 py-6">
-        <p className="text-sm text-white/50">Unable to load profile.</p>
+        <p className="text-sm text-slate-500">Unable to load profile.</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-lg px-5 py-6">
+    <div className="mx-auto max-w-lg px-5 py-6 text-slate-950">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Profile</h1>
-        <p className="mt-1 text-sm text-white/50">Your account details</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-950">Profile</h1>
+        <p className="mt-1 text-sm text-slate-500">Your account details</p>
       </header>
 
       {/* Avatar + Name */}
-      <div className="mt-6 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-600 text-white">
+      <div className="mt-6 flex items-center gap-4 rounded-2xl border border-violet-100 bg-white p-5 shadow-sm">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-700 text-white">
           <User className="h-8 w-8" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-white">{profile.name}</h2>
+          <h2 className="text-xl font-bold text-slate-950">{profile.name}</h2>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
             <Shield className="h-3 w-3" />
             {roleLabel(profile.role)}
@@ -109,12 +109,12 @@ export default function ResidentProfilePage() {
       </div>
 
       {/* Phone change notice */}
-      <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+      <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
           <div>
-            <p className="font-bold text-amber-200">Phone Number Changes</p>
-            <p className="mt-1 text-sm text-amber-300">
+            <p className="font-bold text-amber-900">Phone Number Changes</p>
+            <p className="mt-1 text-sm text-amber-800">
               To change your registered phone number or delegate numbers, contact your estate administrator.
             </p>
           </div>
@@ -125,14 +125,14 @@ export default function ResidentProfilePage() {
       <div className="mt-6 space-y-3">
         <Link
           href="/resident-app/settings"
-          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-semibold text-white/70 shadow-sm transition-all hover:bg-white/5"
+          className="flex items-center gap-3 rounded-2xl border border-violet-100 bg-white px-5 py-4 font-semibold text-slate-700 shadow-sm transition-all hover:bg-violet-50 hover:text-violet-700"
         >
-          <Settings className="h-5 w-5 text-white/40" />
+          <Settings className="h-5 w-5 text-violet-700" />
           Change Password
         </Link>
         <Link
           href="/auth/sign-in"
-          className="flex items-center gap-3 rounded-2xl border border-rose-500/20 bg-white/5 px-5 py-4 font-semibold text-rose-400 shadow-sm transition-all hover:bg-rose-500/150/10"
+          className="flex items-center gap-3 rounded-2xl border border-rose-200 bg-white px-5 py-4 font-semibold text-rose-600 shadow-sm transition-all hover:bg-rose-50"
         >
           <LogOut className="h-5 w-5" />
           Sign Out
@@ -144,13 +144,13 @@ export default function ResidentProfilePage() {
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 shadow-sm">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white/50">
+    <div className="flex items-center gap-4 rounded-2xl border border-violet-100 bg-white px-5 py-4 shadow-sm">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700">
         {icon}
       </div>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/40">{label}</p>
-        <p className="mt-0.5 font-bold text-white">{value}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="mt-0.5 break-words font-bold text-slate-950">{value}</p>
       </div>
     </div>
   );
