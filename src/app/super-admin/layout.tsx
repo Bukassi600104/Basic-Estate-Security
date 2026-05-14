@@ -25,10 +25,10 @@ export default async function SuperAdminLayout({
       nav={[
         { href: "/super-admin", label: "Overview", icon: <BarChart3 className="h-4 w-4" /> },
         { href: "/super-admin/estates", label: "Estates", icon: <Building2 className="h-4 w-4" /> },
-        { href: "/super-admin#trial-monitor", label: "Trials", icon: <Clock3 className="h-4 w-4" /> },
-        { href: "/super-admin#security-monitor", label: "Security", icon: <AlertTriangle className="h-4 w-4" /> },
-        { href: "/super-admin#operations-monitor", label: "Operations", icon: <DoorOpen className="h-4 w-4" /> },
-        { href: "/super-admin#business-monitor", label: "Business", icon: <CreditCard className="h-4 w-4" /> },
+        { href: "/super-admin/trials", label: "Trials", icon: <Clock3 className="h-4 w-4" /> },
+        { href: "/super-admin/operations", label: "Operations", icon: <DoorOpen className="h-4 w-4" /> },
+        { href: "/super-admin/security", label: "Security", icon: <AlertTriangle className="h-4 w-4" /> },
+        { href: "/super-admin/subscriptions", label: "Subscriptions", icon: <CreditCard className="h-4 w-4" /> },
       ]}
       bottomNav={[
         { href: "/super-admin/settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
