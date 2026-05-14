@@ -7,13 +7,13 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 **IMPORTANT**: This project is deployed to Vercel and tested in production (not locally).
 
 1. After making changes, **always commit and push to GitHub**
-2. **Always ask the user before pushing** - never push without confirmation
+2. The user has approved automatic pushes after completed work; push without asking again unless the user explicitly says not to push
 3. Vercel auto-deploys from the `main` branch
 4. Test changes on the live production site after deployment
 
 ```bash
 git add -A && git commit -m "message"
-git push origin main  # Ask user before running this
+git push origin main
 ```
 
 ## Build & Development Commands
