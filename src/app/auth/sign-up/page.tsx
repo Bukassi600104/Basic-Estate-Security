@@ -8,8 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Building2,
-  Check,
-  Clock,
+  CheckCircle,
   Eye,
   EyeOff,
   Globe,
@@ -20,27 +19,57 @@ import {
   User,
 } from "lucide-react";
 import { Spinner } from "@/components/Spinner";
-import {
-  TIER_CONFIG,
-  type SubscriptionTier,
-  type BillingCycle,
-  formatNaira,
-  TRIAL_DURATION_DAYS,
-} from "@/lib/subscription/tiers";
+
+const DEFAULT_TIER = "STANDARD";
+const DEFAULT_BILLING = "MONTHLY";
+
+function StepIndicator({ step }: { step: 1 | 2 }) {
+  return (
+    <div className="flex items-center gap-3">
+      {/* Step 1 */}
+      <div className="flex items-center gap-2">
+        <div
+          className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
+            step === 1
+              ? "bg-brand-green text-white shadow-md shadow-brand-green/30"
+              : "bg-brand-green/20 text-brand-green"
+          }`}
+        >
+          {step > 1 ? <CheckCircle className="h-4 w-4" /> : "1"}
+        </div>
+        <span className={`text-xs font-semibold ${step === 1 ? "text-white" : "text-brand-green"}`}>
+          Estate Details
+        </span>
+      </div>
+
+      <div className="h-px flex-1 bg-white/[0.12]" />
+
+      {/* Step 2 */}
+      <div className="flex items-center gap-2">
+        <div
+          className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
+            step === 2
+              ? "bg-brand-green text-white shadow-md shadow-brand-green/30"
+              : "bg-white/[0.10] text-white/40"
+          }`}
+        >
+          2
+        </div>
+        <span className={`text-xs font-semibold ${step === 2 ? "text-white" : "text-white/40"}`}>
+          Your Account
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function SignUpPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const tierParam = searchParams.get("tier") as SubscriptionTier | null;
-  const billingParam = searchParams.get("billing") as BillingCycle | null;
-
-  const tier: SubscriptionTier = ["BASIC", "STANDARD", "PREMIUM"].includes(tierParam as SubscriptionTier)
-    ? (tierParam as SubscriptionTier)
-    : "BASIC";
-  const billingCycle: BillingCycle = billingParam === "YEARLY" ? "YEARLY" : "MONTHLY";
-
-  const tierConfig = TIER_CONFIG[tier];
+  // Honour tier/billing params if present (from pricing page), otherwise use defaults
+  const tierParam = searchParams.get("tier") ?? DEFAULT_TIER;
+  const billingParam = searchParams.get("billing") ?? DEFAULT_BILLING;
 
   const [step, setStep] = useState<1 | 2>(1);
   const [estateName, setEstateName] = useState("");
@@ -52,13 +81,6 @@ function SignUpPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const validTiers = ["BASIC", "STANDARD", "PREMIUM"];
-    if (!tierParam || !validTiers.includes(tierParam)) {
-      router.replace("/pricing");
-    }
-  }, [tierParam, router]);
 
   useEffect(() => {
     function handleScroll() {
@@ -82,8 +104,8 @@ function SignUpPageContent() {
           adminName,
           email,
           password,
-          tier,
-          billingCycle,
+          tier: tierParam,
+          billingCycle: billingParam,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -103,19 +125,11 @@ function SignUpPageContent() {
     }
   }
 
-  if (!tierParam || !["BASIC", "STANDARD", "PREMIUM"].includes(tierParam as SubscriptionTier)) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0f2318]">
-        <Spinner className="h-8 w-8 text-brand-green" />
-      </div>
-    );
+  function goToStep2() {
+    if (estateName.trim().length && estateAddress.trim().length) {
+      setStep(2);
+    }
   }
-
-  const price = tierConfig.price
-    ? billingCycle === "MONTHLY"
-      ? tierConfig.price.monthly
-      : Math.round(tierConfig.price.yearly / 12)
-    : 0;
 
   return (
     <div className="flex min-h-[100dvh] bg-[#0f2318]">
@@ -130,55 +144,44 @@ function SignUpPageContent() {
             alt="Security Guard"
             fill
             className="object-cover object-center"
-            style={{ filter: 'brightness(1.4) contrast(1.05)' }}
+            style={{ filter: "brightness(1.4) contrast(1.05)" }}
             priority
           />
         </div>
-        {/* Light gradient on right edge only */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f2318]" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318]/70 via-transparent to-[#0f2318]/30" />
 
-        {/* Floating plan info card */}
+        {/* Floating info card */}
         <div className="absolute bottom-12 left-10 right-10">
           <div className="rounded-2xl border border-white/15 bg-[#0f2318]/75 p-6 backdrop-blur-xl shadow-xl">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/20">
-                <Clock className="h-5 w-5 text-brand-green" />
+                <Shield className="h-5 w-5 text-brand-green" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">{TRIAL_DURATION_DAYS}-day free trial</p>
-                <p className="text-xs text-white/60">No credit card required to start</p>
+                <p className="text-sm font-bold text-white">Start protecting your estate</p>
+                <p className="text-xs text-white/60">No credit card · Setup in 5 minutes</p>
               </div>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2 text-xs text-white/65">
-                <Check className="h-3.5 w-3.5 text-brand-green" />
-                Up to {tierConfig.maxHouses} houses
-              </div>
-              <div className="flex items-center gap-2 text-xs text-white/65">
-                <Check className="h-3.5 w-3.5 text-brand-green" />
-                Unlimited guards
-              </div>
-              <div className="flex items-center gap-2 text-xs text-white/65">
-                <Check className="h-3.5 w-3.5 text-brand-green" />
-                Unlimited codes
-              </div>
-              <div className="flex items-center gap-2 text-xs text-white/65">
-                <Check className="h-3.5 w-3.5 text-brand-green" />
-                Full access
-              </div>
+            <div className="grid grid-cols-2 gap-2">
+              {["Guest & staff codes", "Real-time validation", "Multi-gate support", "Full audit trail"].map((f) => (
+                <div key={f} className="flex items-center gap-2 text-xs text-white/65">
+                  <CheckCircle className="h-3.5 w-3.5 text-brand-green flex-shrink-0" />
+                  {f}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right side — Form */}
+      {/* Right side — Onboarding Wizard */}
       <div className="relative z-10 flex w-full flex-col lg:w-1/2">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-5 lg:px-10">
           <div className="flex items-center gap-4">
             <Link
-              href="/pricing"
+              href="/"
               className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.07] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -199,60 +202,50 @@ function SignUpPageContent() {
           </div>
         </header>
 
-        {/* Form area */}
+        {/* Wizard content */}
         <div className="flex flex-1 items-center px-6 pb-10 lg:px-12">
           <div className="w-full max-w-md mx-auto lg:mx-0">
-            {/* Plan badge */}
-            <div className="flex items-center gap-3 rounded-lg border border-brand-green/20 bg-brand-green/[0.07] p-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-green/15">
-                <Shield className="h-4 w-4 text-brand-green" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-white">{tierConfig.name} Plan</p>
-                <p className="text-xs text-white/55">
-                  {formatNaira(price)}/month &middot; {TRIAL_DURATION_DAYS}-day free trial
-                </p>
-              </div>
-              <Link href="/pricing" className="text-xs font-semibold text-brand-green hover:text-brand-green-300">
-                Change
-              </Link>
-            </div>
 
-            <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            {/* Heading */}
+            <div className="text-xs font-bold uppercase tracking-[0.25em] text-brand-green">
+              Get Started
+            </div>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Create your estate
             </h1>
             <p className="mt-2 text-sm text-white/60">
-              Set up your estate admin account to get started.
+              Set up your estate in 2 quick steps — no credit card needed.
             </p>
 
             {/* Step indicator */}
-            <div className="mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/45">
-              <div className={`h-2 w-2 rounded-full ${step === 1 ? "bg-brand-green" : "bg-white/25"}`} />
-              <span className={step === 1 ? "text-brand-green" : ""}>Estate details</span>
-              <div className="mx-2 h-px flex-1 bg-white/[0.12]" />
-              <div className={`h-2 w-2 rounded-full ${step === 2 ? "bg-brand-green" : "bg-white/25"}`} />
-              <span className={step === 2 ? "text-brand-green" : ""}>Admin account</span>
+            <div className="mt-6">
+              <StepIndicator step={step} />
             </div>
 
             <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
               {step === 1 ? (
                 <>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">Estate name</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
+                      Estate name
+                    </label>
                     <div className="relative">
                       <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
                         className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
                         value={estateName}
                         onChange={(e) => setEstateName(e.target.value)}
-                        placeholder="e.g. Jehova Elohim Estate"
+                        placeholder="e.g. Greenville Estate"
                         required
+                        autoFocus
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">Estate address</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
+                      Estate address
+                    </label>
                     <div className="relative">
                       <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
@@ -268,9 +261,7 @@ function SignUpPageContent() {
                   <button
                     type="button"
                     className="group mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5"
-                    onClick={() => {
-                      if (estateName.trim().length && estateAddress.trim().length) setStep(2);
-                    }}
+                    onClick={goToStep2}
                   >
                     Continue
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -279,7 +270,9 @@ function SignUpPageContent() {
               ) : (
                 <>
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">Admin name</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
+                      Your full name
+                    </label>
                     <div className="relative">
                       <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
@@ -287,13 +280,16 @@ function SignUpPageContent() {
                         value={adminName}
                         onChange={(e) => setAdminName(e.target.value)}
                         placeholder="Your full name"
+                        autoFocus
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">Email</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
+                      Email address
+                    </label>
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
@@ -309,7 +305,9 @@ function SignUpPageContent() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">Password</label>
+                    <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/75">
+                      Password
+                    </label>
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
@@ -331,9 +329,15 @@ function SignUpPageContent() {
                       </button>
                     </div>
                     <span className="mt-1.5 block text-xs text-white/45">
-                      Use at least 8 characters with uppercase, lowercase, and numbers.
+                      At least 8 characters with uppercase, lowercase, and numbers.
                     </span>
                   </div>
+
+                  {error && (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300">
+                      {error}
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-3">
                     <button
@@ -353,11 +357,11 @@ function SignUpPageContent() {
                       {loading ? (
                         <>
                           <Spinner className="text-white" />
-                          Creating...
+                          Creating account...
                         </>
                       ) : (
                         <>
-                          Start free trial
+                          Create Account
                           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                         </>
                       )}
@@ -365,13 +369,23 @@ function SignUpPageContent() {
                   </div>
                 </>
               )}
-
-              {error && (
-                <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300">
-                  {error}
-                </div>
-              )}
             </form>
+
+            {/* Trust badges */}
+            <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-white/45">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="h-3.5 w-3.5 text-brand-green" />
+                No credit card required
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="h-3.5 w-3.5 text-brand-green" />
+                Free 30-day trial
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle className="h-3.5 w-3.5 text-brand-green" />
+                Cancel anytime
+              </div>
+            </div>
 
             <div className="mt-6 text-sm text-white/55">
               Already have an account?{" "}
@@ -394,14 +408,14 @@ function SignUpPageContent() {
         </footer>
       </div>
 
-      {/* Mobile background image (faint texture) */}
+      {/* Mobile background texture */}
       <div className="fixed inset-0 -z-10 lg:hidden">
         <Image
           src="/images/security-guard.png"
           alt=""
           fill
           className="object-cover object-center"
-          style={{ filter: 'brightness(1.4)', opacity: 0.08 }}
+          style={{ filter: "brightness(1.4)", opacity: 0.08 }}
         />
       </div>
     </div>

@@ -127,9 +127,9 @@ export default function HomePage() {
             </Link>
             <Link
               className="ml-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-green to-brand-green-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40"
-              href="/pricing"
+              href="/auth/sign-up"
             >
-              Create Estate
+              Create Account
               <ArrowRight className="h-4 w-4" />
             </Link>
           </nav>
@@ -168,10 +168,10 @@ export default function HomePage() {
               </Link>
               <Link
                 className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand-green to-brand-green-600 px-5 py-3 text-sm font-bold text-white"
-                href="/pricing"
+                href="/auth/sign-up"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Create Estate
+                Create Account
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </nav>
@@ -218,10 +218,10 @@ export default function HomePage() {
 
                 <div className="mt-10 flex flex-wrap gap-4">
                   <Link
-                    href="/pricing"
+                    href="/auth/sign-up"
                     className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-brand-green to-brand-green-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5"
                   >
-                    Get Started Free
+                    Create Account Free
                     <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Link>
                   <Link
@@ -389,10 +389,10 @@ export default function HomePage() {
                 </p>
                 <div className="mt-10 flex flex-wrap justify-center gap-4">
                   <Link
-                    href="/pricing"
+                    href="/auth/sign-up"
                     className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-brand-green to-brand-green-600 px-8 py-4 text-base font-bold text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5"
                   >
-                    Create Your Estate
+                    Create Your Account
                     <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Link>
                   <Link
