@@ -1,4 +1,4 @@
--- Estate Security - Supabase go-live hardening
+-- GatePilot - Supabase go-live hardening
 
 CREATE INDEX IF NOT EXISTS idx_users_estate_role ON users(estate_id, role, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(lower(email)) WHERE email IS NOT NULL;

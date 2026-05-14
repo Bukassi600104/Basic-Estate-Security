@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Menu, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 
 const navItems = [
   { href: "/pricing", label: "Pricing" },
@@ -32,12 +33,16 @@ export function MarketingHeader() {
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-700 text-white shadow-[0_14px_30px_rgba(109,40,217,0.25)]">
-            <ShieldCheck className="h-6 w-6" />
-          </span>
+          <Image
+            src="/images/gatepilot-mark.png"
+            alt="GatePilot logo"
+            width={44}
+            height={44}
+            className="rounded-lg bg-white shadow-[0_14px_30px_rgba(109,40,217,0.18)]"
+            priority
+          />
           <span className="leading-none">
             <span className="block text-lg font-black uppercase tracking-normal text-slate-950">GatePilot</span>
-            <span className="block text-[10px] font-black uppercase tracking-[0.32em] text-emerald-600">Estate Security</span>
           </span>
         </Link>
 
@@ -103,9 +108,13 @@ export function MarketingFooter() {
     <footer className="border-t border-violet-100 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-700 text-white">
-            <ShieldCheck className="h-5 w-5" />
-          </span>
+          <Image
+            src="/images/gatepilot-mark.png"
+            alt="GatePilot logo"
+            width={40}
+            height={40}
+            className="rounded-lg bg-white shadow-sm"
+          />
           <div>
             <div className="text-sm font-black uppercase text-slate-950">GatePilot</div>
             <div className="text-xs font-bold text-slate-500">Secure access for modern estates</div>

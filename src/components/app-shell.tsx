@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { LogOut, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import { LogOut } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/client";
 import { getUserById, listAdminEstateAccess } from "@/lib/repos/users";
@@ -81,9 +82,14 @@ export async function AppShell({
         <aside className="hidden w-72 flex-shrink-0 md:block">
           <div className="fixed top-0 flex h-screen w-72 flex-col border-r border-violet-100 bg-white px-5 py-6 shadow-[16px_0_50px_rgba(76,29,149,0.06)]">
             <Link href="/dashboard" className="flex items-center gap-3 px-2">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-700 text-white shadow-[0_14px_30px_rgba(109,40,217,0.25)]">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
+              <Image
+                src="/images/gatepilot-mark.png"
+                alt="GatePilot logo"
+                width={44}
+                height={44}
+                className="rounded-lg bg-white shadow-[0_14px_30px_rgba(109,40,217,0.18)]"
+                priority
+              />
               <div className="leading-tight">
                 <div className="text-base font-black uppercase tracking-normal text-slate-950">GatePilot</div>
                 <div className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-600">
@@ -134,9 +140,14 @@ export async function AppShell({
           <header className="sticky top-0 z-20 border-b border-violet-100 bg-white/90 backdrop-blur-xl">
             <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
               <div className="flex items-center gap-3 md:hidden">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-700 text-white shadow-sm">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
+                <Image
+                  src="/images/gatepilot-mark.png"
+                  alt="GatePilot logo"
+                  width={36}
+                  height={36}
+                  className="rounded-lg bg-white shadow-sm"
+                  priority
+                />
                 <div className="leading-tight">
                   <div className="text-xs font-black uppercase text-slate-950">GatePilot</div>
                   {title && (

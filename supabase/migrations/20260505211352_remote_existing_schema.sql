@@ -1,2 +1,2 @@
 -- Placeholder for an existing remote Supabase migration.
--- This version was already applied before this Estate Security repo was linked.
+-- This version was already applied before this GatePilot repo was linked.

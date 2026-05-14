@@ -14,7 +14,6 @@ import {
   KeyRound,
   Lock,
   Phone,
-  Shield,
   Smartphone,
   User,
 } from "lucide-react";
@@ -155,12 +154,16 @@ export default function ResidentVerifyPage() {
         {/* Top bar */}
         <header className="flex items-center justify-between px-6 py-5 lg:px-10">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-violet-200 bg-white">
-              <Shield className="h-5 w-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400">Security</div>
+            <Image
+              src="/images/gatepilot-mark.png"
+              alt="GatePilot logo"
+              width={40}
+              height={40}
+              className="rounded-lg bg-white"
+              priority
+            />
+            <div className="text-sm font-extrabold tracking-tight text-white">
+              Gate<span className="text-emerald-400">Pilot</span>
             </div>
           </Link>
           <div className="flex items-center gap-1.5 text-xs font-medium text-white/60">
@@ -362,7 +365,7 @@ export default function ResidentVerifyPage() {
                         className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium uppercase tracking-wider text-white outline-none backdrop-blur-sm transition-all placeholder:text-white/30 placeholder:normal-case placeholder:tracking-normal focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
-                        placeholder="BS-XX-2025"
+                        placeholder="GP-XX-2025"
                         required
                       />
                     </div>
