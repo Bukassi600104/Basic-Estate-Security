@@ -218,7 +218,7 @@ export function SuperAdminDashboardClient({
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-lg bg-slate-950 p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+      <section id="platform-overview" className="relative overflow-hidden rounded-lg bg-slate-950 p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
         <div className="absolute inset-y-0 right-0 w-1/2 bg-violet-700" />
         <div className="absolute right-8 top-8 h-48 w-48 rounded-full border-[32px] border-white/10" />
         <div className="relative grid gap-8 xl:grid-cols-[1fr_520px] xl:items-end">
@@ -250,7 +250,7 @@ export function SuperAdminDashboardClient({
         <MetricCard title="Pilot Estates" value={stats?.pilotTrials} icon={Clock3} detail={`${stats?.trialsExpiringSoon ?? 0} trials expiring`} loading={loading} tone="violet" />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+      <section id="operations-monitor" className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <Panel
           title="Validation Activity"
           eyebrow="Last 7 days"
@@ -321,7 +321,7 @@ export function SuperAdminDashboardClient({
           </div>
         </Panel>
 
-        <Panel title="Trial Monitor" eyebrow="Standard vs pilot" icon={Clock3}>
+        <Panel title="Trial Monitor" eyebrow="Standard vs pilot" icon={Clock3} className="scroll-mt-24" panelId="trial-monitor">
           <div className="grid gap-4">
             <DonutMini title="Trial types" data={charts.trialType} />
             <div className="grid grid-cols-2 gap-3">
@@ -332,7 +332,7 @@ export function SuperAdminDashboardClient({
         </Panel>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <section id="security-monitor" className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Panel title="Validation Outcomes" eyebrow="Security signal" icon={KeyRound}>
           <div className="grid gap-4 md:grid-cols-[220px_1fr] md:items-center">
             <div className="h-56">
@@ -371,7 +371,7 @@ export function SuperAdminDashboardClient({
         </Panel>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-3">
+      <section id="business-monitor" className="grid gap-6 xl:grid-cols-3">
         <Panel title="System Alerts" eyebrow={`${alerts.length} recent`} icon={AlertTriangle} className="xl:col-span-2">
           <div className="grid gap-3">
             {loading ? (
@@ -520,6 +520,7 @@ function Panel({
   action,
   children,
   className = "",
+  panelId,
 }: {
   title: string;
   eyebrow: string;
@@ -527,9 +528,10 @@ function Panel({
   action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  panelId?: string;
 }) {
   return (
-    <section className={`rounded-lg border border-slate-200 bg-white p-6 shadow-sm ${className}`}>
+    <section id={panelId} className={`rounded-lg border border-slate-200 bg-white p-6 shadow-sm ${className}`}>
       <div className="mb-5 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-50 text-violet-700">

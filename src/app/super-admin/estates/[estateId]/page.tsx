@@ -45,10 +45,10 @@ export default async function SuperAdminEstatePage({
     <div>
       <div className="mb-6">
         <Link
-          href="/super-admin"
+          href="/super-admin/estates"
           className="inline-flex rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
         >
-          Back to estates
+          Back to all estates
         </Link>
       </div>
 
