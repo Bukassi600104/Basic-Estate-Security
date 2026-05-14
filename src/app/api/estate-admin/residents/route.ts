@@ -10,7 +10,7 @@ import {
 import { rateLimitHybrid } from "@/lib/security/rate-limit-hybrid";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { putUser, listUsersForResident } from "@/lib/repos/users";
-import { createResident, listResidentsForEstate, deleteResident } from "@/lib/repos/residents";
+import { createResident, listResidentsForEstate, deleteResident, findResidentByPhoneInEstate } from "@/lib/repos/residents";
 import { putActivityLog } from "@/lib/repos/activity-logs";
 import { getEstateById, deriveEstateInitials } from "@/lib/repos/estates";
 import { generateVerificationCode } from "@/lib/auth/verification-code";
@@ -77,7 +77,9 @@ async function createAuthAndProfile(params: {
 }) {
   const password = generatePassword();
   const friendlyUsername = generateUsername(params.name, params.estateName);
-  const authEmail = params.email || `${friendlyUsername}.${Date.now().toString(36)}@estate.local`;
+  // Always synthetic — real email is contact info only, so any real email (including the
+  // super admin's own) can be stored without conflicting with existing Supabase Auth accounts.
+  const authEmail = `${friendlyUsername}.${Date.now().toString(36)}@estate.local`;
 
   const sbAdmin = getSupabaseAdmin();
   const { data: authData, error: authError } = await sbAdmin.auth.admin.createUser({
@@ -90,17 +92,23 @@ async function createAuthAndProfile(params: {
   if (authError) throw authError;
 
   const now = new Date().toISOString();
-  await putUser({
-    userId: authData.user.id,
-    estateId: params.estateId,
-    role: params.role,
-    name: params.name,
-    email: params.email,
-    phone: params.phone,
-    residentId: params.residentId,
-    createdAt: now,
-    updatedAt: now,
-  });
+  try {
+    await putUser({
+      userId: authData.user.id,
+      estateId: params.estateId,
+      role: params.role,
+      name: params.name,
+      email: params.email,
+      phone: params.phone,
+      residentId: params.residentId,
+      createdAt: now,
+      updatedAt: now,
+    });
+  } catch (putErr) {
+    // Roll back the auth user so we don't leave a zombie account
+    await sbAdmin.auth.admin.deleteUser(authData.user.id).catch(() => {});
+    throw putErr;
+  }
 
   return { userId: authData.user.id, password, authEmail };
 }
@@ -163,6 +171,16 @@ export async function POST(req: Request) {
   if (!estate) {
     return NextResponse.json({ error: "Estate not found" }, { status: 404 });
   }
+
+  // Per-estate phone uniqueness check — a phone can exist in multiple estates, but not twice in the same one
+  const existingResident = await findResidentByPhoneInEstate({ estateId, phone: residentPhone.trim() });
+  if (existingResident) {
+    return NextResponse.json(
+      { error: "A resident with this phone number already exists in this estate" },
+      { status: 409 }
+    );
+  }
+
   const estateInitials = estate.initials || deriveEstateInitials(estate.name);
   const verificationCode = generateVerificationCode(estateInitials);
 
@@ -176,6 +194,9 @@ export async function POST(req: Request) {
     verificationCode,
   });
 
+  const createdUserIds: string[] = [];
+  const sbAdmin = getSupabaseAdmin();
+
   try {
     const createdResident = await createAuthAndProfile({
       estateId,
@@ -186,6 +207,7 @@ export async function POST(req: Request) {
       phone: resident.phone ?? residentPhone.trim(),
       residentId: resident.residentId,
     });
+    createdUserIds.push(createdResident.userId);
 
     const delegatePasswords: Array<{ phone: string; password: string; username: string }> = [];
     for (const phone of uniqueApprovedPhones) {
@@ -197,6 +219,7 @@ export async function POST(req: Request) {
         phone,
         residentId: resident.residentId,
       });
+      createdUserIds.push(createdDelegate.userId);
       delegatePasswords.push({ phone, password: createdDelegate.password, username: createdDelegate.authEmail });
     }
 
@@ -225,15 +248,12 @@ export async function POST(req: Request) {
     const e = err as Error & { message?: string; code?: string; status?: number };
     console.error("resident_onboard_failed", { message: e?.message, code: e?.code, status: e?.status });
 
-    try {
-      await deleteResident(resident.residentId);
-    } catch (rollbackErr) {
-      console.error("resident_onboard_rollback_failed", (rollbackErr as Error)?.message);
-    }
+    // Roll back: delete resident record and any auth users already created
+    await Promise.allSettled([
+      deleteResident(resident.residentId),
+      ...createdUserIds.map((id) => sbAdmin.auth.admin.deleteUser(id)),
+    ]);
 
-    if (e?.message?.includes("already been registered") || e?.message?.includes("already exists")) {
-      return NextResponse.json({ error: "A user with this phone number already exists" }, { status: 409 });
-    }
     return NextResponse.json({ error: "Unable to create resident accounts. Please try again." }, { status: 409 });
   }
 }
