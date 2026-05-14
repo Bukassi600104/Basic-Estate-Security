@@ -117,6 +117,35 @@ export function SuperAdminDashboardClient({
 
   return (
     <div className="space-y-6">
+      <div className="relative overflow-hidden rounded-lg bg-violet-700 p-6 text-white shadow-[0_24px_80px_rgba(76,29,149,0.18)]">
+        <div className="absolute right-0 top-0 h-full w-1/3 bg-emerald-400/20" />
+        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full border-[28px] border-white/10" />
+        <div className="relative grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-300">Owner command center</p>
+            <h1 className="mt-3 text-4xl font-black uppercase leading-none tracking-normal sm:text-5xl">
+              Platform
+              <span className="block text-emerald-300">Operations</span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-white/70">
+              Monitor estates, usage, validations, pilots, and operational health without exposing resident-level private details.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              ["Estates", stats?.totalEstates ?? 0],
+              ["Users", stats?.totalUsers ?? 0],
+              ["Today", stats?.todayValidations ?? 0],
+            ].map(([label, value]) => (
+              <div key={label as string} className="rounded-lg border border-white/20 bg-white/10 p-3 backdrop-blur">
+                <div className="text-2xl font-black">{loading ? "..." : value}</div>
+                <div className="mt-1 text-[10px] font-black uppercase tracking-wide text-white/50">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Stats Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

@@ -26,38 +26,40 @@ export default async function EstateAdminDashboard() {
 
   return (
     <div className="grid gap-6">
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="overflow-hidden rounded-lg border border-violet-100 bg-white shadow-[0_22px_70px_rgba(76,29,149,0.10)]">
+        <div className="relative overflow-hidden border-b border-violet-100 bg-violet-700 p-6 text-white">
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-emerald-400/20" />
+          <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full border-[28px] border-white/10" />
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white text-violet-700 shadow-xl">
                 <Building2 className="h-7 w-7" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Estate workspace</p>
-                <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-950">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">Estate workspace</p>
+                <h1 className="mt-1 text-4xl font-black uppercase leading-none tracking-normal text-white">
                   {estate?.name || "Estate Dashboard"}
                 </h1>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-3 text-sm font-semibold text-white/70">
                   {estate?.address || "No address saved"} · Admin: {session.name}
                 </p>
               </div>
             </div>
 
             <div className="grid gap-2 text-sm sm:grid-cols-3 lg:min-w-[420px]">
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Plan</div>
-                <div className="mt-1 font-bold text-slate-950">{estate?.subscriptionTier ?? "BASIC"}</div>
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
+                <div className="text-xs font-black uppercase tracking-wide text-white/50">Plan</div>
+                <div className="mt-1 font-black text-white">{estate?.subscriptionTier ?? "BASIC"}</div>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Trial</div>
-                <div className="mt-1 font-bold text-slate-950">
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
+                <div className="text-xs font-black uppercase tracking-wide text-white/50">Trial</div>
+                <div className="mt-1 font-black text-white">
                   {daysRemaining === null ? "Not set" : `${daysRemaining} days`}
                 </div>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-                <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Gates</div>
-                <div className="mt-1 font-bold text-slate-950">{gates.length}</div>
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 backdrop-blur">
+                <div className="text-xs font-black uppercase tracking-wide text-white/50">Gates</div>
+                <div className="mt-1 font-black text-white">{gates.length}</div>
               </div>
             </div>
           </div>
@@ -72,14 +74,14 @@ export default async function EstateAdminDashboard() {
           <div className="flex flex-wrap gap-3 px-6 pb-6 md:pb-0">
             <Link
               href="/estate-admin/onboard"
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800"
+              className="inline-flex items-center gap-2 rounded-lg bg-violet-700 px-5 py-2.5 text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-violet-700/20 transition hover:-translate-y-0.5 hover:bg-violet-800"
             >
               <UserPlus className="h-4 w-4" />
               Onboard Resident
             </Link>
             <Link
               href="/estate-admin/logs"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-950 bg-white px-5 py-2.5 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:bg-slate-950 hover:text-white"
             >
               <ListChecks className="h-4 w-4" />
               View Logs

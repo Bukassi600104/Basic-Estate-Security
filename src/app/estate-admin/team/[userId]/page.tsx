@@ -120,7 +120,7 @@ export default function EditSubAdminPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="h-8 w-8 text-brand-green" />
+        <Spinner className="h-8 w-8 text-emerald-600" />
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function EditSubAdminPage() {
 
       {/* Sub-admin info header */}
       <div className="mb-8 flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-600">
           <Shield className="h-7 w-7" />
         </div>
         <div>
@@ -172,7 +172,7 @@ export default function EditSubAdminPage() {
             <button
               type="button"
               onClick={selectAll}
-              className="text-xs font-semibold text-brand-green hover:underline"
+              className="text-xs font-semibold text-emerald-600 hover:underline"
             >
               Select All
             </button>
@@ -193,7 +193,7 @@ export default function EditSubAdminPage() {
               key={perm.key}
               className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all ${
                 permissions.includes(perm.key)
-                  ? "border-brand-navy bg-brand-navy/5"
+                  ? "border-violet-700 bg-violet-700/5"
                   : "border-white/10 bg-white/5 hover:border-white/15"
               }`}
             >
@@ -201,7 +201,7 @@ export default function EditSubAdminPage() {
                 <div
                   className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all ${
                     permissions.includes(perm.key)
-                      ? "border-brand-navy bg-brand-navy"
+                      ? "border-violet-700 bg-violet-700"
                       : "border-white/15"
                   }`}
                 >
@@ -231,7 +231,7 @@ export default function EditSubAdminPage() {
         )}
 
         {success && (
-          <div className="mt-6 rounded-xl border border-brand-green/30 bg-brand-green/10 p-4 text-sm text-brand-green-700">
+          <div className="mt-6 rounded-xl border border-emerald-600/30 bg-emerald-600/10 p-4 text-sm text-emerald-700">
             Permissions updated successfully!
           </div>
         )}
@@ -246,7 +246,7 @@ export default function EditSubAdminPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:shadow-brand-green/40 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-violet-700 px-5 py-3 text-sm font-bold text-white hover:shadow-emerald-500/30 disabled:opacity-60"
           >
             {saving ? (
               <>

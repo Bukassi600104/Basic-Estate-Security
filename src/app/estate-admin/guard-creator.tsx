@@ -169,18 +169,18 @@ export function GuardCreator() {
             </div>
 
             <div className="mt-6 space-y-4">
-              <div className="rounded-xl border-2 border-brand-green/30 bg-brand-green/10 p-4">
-                <div className="text-sm font-bold text-brand-green">Estate Verification Code</div>
+              <div className="rounded-xl border-2 border-emerald-600/30 bg-emerald-600/10 p-4">
+                <div className="text-sm font-bold text-emerald-600">Estate Verification Code</div>
                 <p className="mt-1 text-xs text-white/50">
                   Guards need this code to sign in to their portal
                 </p>
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-brand-green/20 bg-white/5 px-4 py-3">
-                  <div className="text-2xl font-mono font-bold text-brand-green">
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-emerald-600/20 bg-white/5 px-4 py-3">
+                  <div className="text-2xl font-mono font-bold text-emerald-600">
                     {created.verificationCode}
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-green px-4 py-2 text-sm font-bold text-white hover:bg-brand-green/90"
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-600/90"
                     onClick={() => copy(created.verificationCode)}
                   >
                     <ClipboardCopy className="h-4 w-4" />
@@ -219,7 +219,7 @@ export function GuardCreator() {
 
             <button
               onClick={() => setShowModal(false)}
-              className="mt-6 w-full rounded-xl bg-gradient-to-r from-brand-green to-brand-green-600 py-3 text-sm font-bold text-white shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40"
+              className="mt-6 w-full rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30"
             >
               Done
             </button>
@@ -231,7 +231,7 @@ export function GuardCreator() {
         {/* Create Guard Form */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/15 text-brand-green shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600/15 text-emerald-600 shadow-sm">
               <Shield className="h-5 w-5" />
             </div>
             <div>
@@ -246,7 +246,7 @@ export function GuardCreator() {
             <label className="grid gap-2 text-sm">
               <span className="font-semibold text-white/70">Name</span>
               <input
-                className="h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-4"
+                className="h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-emerald-600/20 placeholder:text-white/30 focus:border-emerald-600/50 focus:bg-white/10 focus:ring-4"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
@@ -256,7 +256,7 @@ export function GuardCreator() {
             <label className="grid gap-2 text-sm">
               <span className="font-semibold text-white/70">Phone Number</span>
               <input
-                className="h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 placeholder:text-white/30 focus:border-brand-green/50 focus:bg-white/10 focus:ring-4"
+                className="h-12 rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-emerald-600/20 placeholder:text-white/30 focus:border-emerald-600/50 focus:bg-white/10 focus:ring-4"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="+234XXXXXXXXXX"
@@ -274,7 +274,7 @@ export function GuardCreator() {
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-green to-brand-green-600 px-6 text-sm font-bold text-white shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40 disabled:opacity-60"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-600 px-6 text-sm font-bold text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 disabled:opacity-60"
               >
                 <UserRoundPlus className="h-4 w-4" />
                 {loading ? "Creating..." : "Create Guard"}
@@ -336,8 +336,8 @@ export function GuardCreator() {
                     <tr key={guard.userId} className="border-b border-white/5">
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-green/10">
-                            <Shield className="h-4 w-4 text-brand-green" />
+                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10">
+                            <Shield className="h-4 w-4 text-emerald-600" />
                           </div>
                           <span className="font-semibold text-white">{guard.name}</span>
                         </div>
@@ -348,7 +348,7 @@ export function GuardCreator() {
                       <td className="py-3 pr-4">
                         {guard.verificationCode ? (
                           <div className="flex items-center gap-2">
-                            <code className="rounded bg-brand-green/10 px-2 py-1 font-mono text-sm font-bold text-brand-green">
+                            <code className="rounded bg-emerald-600/10 px-2 py-1 font-mono text-sm font-bold text-emerald-600">
                               {guard.verificationCode}
                             </code>
                             <button
@@ -357,7 +357,7 @@ export function GuardCreator() {
                               title="Copy code"
                             >
                               {copiedId === guard.userId ? (
-                                <Check className="h-4 w-4 text-brand-green" />
+                                <Check className="h-4 w-4 text-emerald-600" />
                               ) : (
                                 <ClipboardCopy className="h-4 w-4" />
                               )}

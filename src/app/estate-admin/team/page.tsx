@@ -85,7 +85,7 @@ export default function TeamPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="h-8 w-8 text-brand-green" />
+        <Spinner className="h-8 w-8 text-emerald-600" />
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function TeamPage() {
           </p>
           <Link
             href="/pricing"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-bold text-white hover:shadow-brand-green/40"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-violet-700 px-6 py-3 text-sm font-bold text-white hover:shadow-emerald-500/30"
           >
             Upgrade Plan
           </Link>
@@ -145,7 +145,7 @@ export default function TeamPage() {
         {canAddMore ? (
           <Link
             href="/estate-admin/team/create"
-            className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-bold text-white hover:shadow-brand-green/40"
+            className="inline-flex items-center gap-2 rounded-full bg-violet-700 px-5 py-2.5 text-sm font-bold text-white hover:shadow-emerald-500/30"
           >
             <UserPlus className="h-4 w-4" />
             Add Sub-Admin
@@ -157,7 +157,7 @@ export default function TeamPage() {
               Limit reached ({maxAdmins} admins)
             </span>
             <p className="mt-1 text-xs text-white/50">
-              <Link href="/pricing" className="underline hover:text-brand-green">
+              <Link href="/pricing" className="underline hover:text-emerald-600">
                 Upgrade
               </Link>{" "}
               for more
@@ -186,7 +186,7 @@ export default function TeamPage() {
           {canAddMore && (
             <Link
               href="/estate-admin/team/create"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-bold text-white hover:shadow-brand-green/40"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-violet-700 px-5 py-2.5 text-sm font-bold text-white hover:shadow-emerald-500/30"
             >
               <UserPlus className="h-4 w-4" />
               Add Your First Sub-Admin
@@ -202,7 +202,7 @@ export default function TeamPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-green/10 text-brand-green">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600/10 text-emerald-600">
                     <Shield className="h-6 w-6" />
                   </div>
                   <div>
@@ -233,7 +233,7 @@ export default function TeamPage() {
                 {admin.permissions?.map((perm) => (
                   <span
                     key={perm}
-                    className="inline-flex items-center rounded-full bg-brand-green/10 px-3 py-1 text-xs font-semibold text-brand-green-700"
+                    className="inline-flex items-center rounded-full bg-emerald-600/10 px-3 py-1 text-xs font-semibold text-emerald-700"
                   >
                     {PERMISSION_LABELS[perm]}
                   </span>

@@ -85,7 +85,7 @@ export function CountdownTimer({
     if (timeLeft.isExpired) return "#94a3b8"; // slate-400
     if (timeLeft.percentage <= 10) return "#ef4444"; // red-500
     if (timeLeft.percentage <= 25) return "#f59e0b"; // amber-500
-    return "#4ade80"; // brand-green
+    return "#4ade80"; // emerald
   };
 
   return (

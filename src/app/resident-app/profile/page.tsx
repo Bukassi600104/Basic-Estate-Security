@@ -80,12 +80,12 @@ export default function ResidentProfilePage() {
 
       {/* Avatar + Name */}
       <div className="mt-6 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-brand-green to-brand-green-600 text-white">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-600 text-white">
           <User className="h-8 w-8" />
         </div>
         <div>
           <h2 className="text-xl font-bold text-white">{profile.name}</h2>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-green/10 px-2.5 py-0.5 text-xs font-bold text-brand-green">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
             <Shield className="h-3 w-3" />
             {roleLabel(profile.role)}
           </span>

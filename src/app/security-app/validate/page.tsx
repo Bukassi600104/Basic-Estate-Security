@@ -224,8 +224,8 @@ export default function SecurityValidatePage() {
   return (
     <div className="min-h-[100dvh] bg-gradient-to-b from-slate-50 to-white overflow-x-hidden">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-brand-green/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-brand-navy/5 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-emerald-600/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-violet-700/5 blur-3xl" />
       </div>
 
       {/* Result Overlay */}
@@ -271,7 +271,7 @@ export default function SecurityValidatePage() {
         <header>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-green text-white shadow-lg">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg">
                 <ShieldCheck className="h-7 w-7" />
               </div>
               <div>
@@ -335,7 +335,7 @@ export default function SecurityValidatePage() {
               placeholder="00000000"
               inputMode="numeric"
               pattern="[0-9]*"
-              className="mt-2 h-24 w-full rounded-2xl border-2 border-white/10 bg-white/5 text-center text-5xl font-bold tracking-[0.3em] text-white outline-none transition-all placeholder:text-slate-200 focus:border-brand-green focus:ring-4 focus:ring-brand-green/20"
+              className="mt-2 h-24 w-full rounded-2xl border-2 border-white/10 bg-white/5 text-center text-5xl font-bold tracking-[0.3em] text-white outline-none transition-all placeholder:text-slate-200 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/20"
               maxLength={8}
               autoComplete="off"
             />
@@ -354,9 +354,9 @@ export default function SecurityValidatePage() {
 
           {/* Lookup Result Card */}
           {lookup && (
-            <div className="overflow-hidden rounded-2xl border-2 border-brand-green/30 bg-white/5 shadow-lg animate-in slide-in-from-bottom-4">
-              <div className="border-b border-white/5 bg-brand-green/5 px-4 py-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-brand-green">Code Preview</span>
+            <div className="overflow-hidden rounded-2xl border-2 border-emerald-600/30 bg-white/5 shadow-lg animate-in slide-in-from-bottom-4">
+              <div className="border-b border-white/5 bg-emerald-600/5 px-4 py-3 flex items-center justify-between">
+                <span className="text-sm font-bold text-emerald-600">Code Preview</span>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
                     lookup.code.eventType === "EXIT"
@@ -374,7 +374,7 @@ export default function SecurityValidatePage() {
               </div>
               <div className="p-4 space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600">
                     <User className="h-6 w-6" />
                   </div>
                   <div>
@@ -392,11 +392,11 @@ export default function SecurityValidatePage() {
                     </div>
                   </div>
                   {lookup.code.guestCount > 1 && (
-                    <div className="flex items-center gap-3 rounded-xl bg-brand-green/10 p-3">
-                      <Users className="h-5 w-5 text-brand-green" />
+                    <div className="flex items-center gap-3 rounded-xl bg-emerald-600/10 p-3">
+                      <Users className="h-5 w-5 text-emerald-600" />
                       <div>
                         <p className="text-xs text-white/50">Guests</p>
-                        <p className="font-bold text-brand-green">{lookup.code.guestCount}</p>
+                        <p className="font-bold text-emerald-600">{lookup.code.guestCount}</p>
                       </div>
                     </div>
                   )}
@@ -421,7 +421,7 @@ export default function SecurityValidatePage() {
                 <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
                   <div>
                     <span className="text-xs text-white/50">Type</span>
-                    <p className={`font-bold ${lookup.code.type === "GUEST" ? "text-brand-green" : "text-brand-green"}`}>
+                    <p className={`font-bold ${lookup.code.type === "GUEST" ? "text-emerald-600" : "text-emerald-600"}`}>
                       {lookup.code.type}
                     </p>
                   </div>
@@ -513,7 +513,7 @@ export default function SecurityValidatePage() {
               type="button"
               onClick={validate}
               disabled={!canLookup || validating || loading}
-              className="flex h-14 flex-[2] items-center justify-center gap-2 rounded-xl bg-brand-green text-base font-bold text-white shadow-lg transition-all hover:bg-brand-green/90 disabled:opacity-50"
+              className="flex h-14 flex-[2] items-center justify-center gap-2 rounded-xl bg-emerald-600 text-base font-bold text-white shadow-lg transition-all hover:bg-emerald-600/90 disabled:opacity-50"
             >
               {validating ? (
                 <>

@@ -112,7 +112,7 @@ export default function ResidentSettingsPage() {
         {/* Change Password Card */}
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-brand-green to-brand-green-600 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-600 text-white">
               <Lock className="h-6 w-6" />
             </div>
             <div>
@@ -148,7 +148,7 @@ export default function ResidentSettingsPage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
                 />
                 <button
                   type="button"
@@ -170,7 +170,7 @@ export default function ResidentSettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+                  className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
                 />
                 <button
                   type="button"
@@ -207,7 +207,7 @@ export default function ResidentSettingsPage() {
                   className={`h-12 w-full rounded-xl border bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none focus:ring-4 ${
                     confirmPassword.length > 0 && !passwordsMatch
                       ? "border-rose-300 ring-rose-100 focus:border-rose-500"
-                      : "border-white/10 ring-brand-green/20 focus:border-brand-green/50"
+                      : "border-white/10 ring-emerald-600/20 focus:border-emerald-600/50"
                   }`}
                 />
                 <button
@@ -226,7 +226,7 @@ export default function ResidentSettingsPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-brand-green/40 disabled:opacity-60"
+              className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 text-sm font-bold text-white shadow-sm transition-all hover:shadow-emerald-500/30 disabled:opacity-60"
             >
               {loading ? (
                 <>
@@ -317,7 +317,7 @@ export default function ResidentSettingsPage() {
         <div className="mt-6 text-center">
           <Link
             href="/resident-app/profile"
-            className="text-sm font-semibold text-brand-green hover:underline"
+            className="text-sm font-semibold text-emerald-600 hover:underline"
           >
             Back to Pass Codes
           </Link>

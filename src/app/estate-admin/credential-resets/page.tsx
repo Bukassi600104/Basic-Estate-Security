@@ -230,7 +230,7 @@ export default function CredentialResetsPage() {
                 <button
                   onClick={() => processRequest(req.residentId)}
                   disabled={processing === req.residentId}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-navy px-4 text-sm font-bold text-white hover:shadow-brand-green/40 disabled:opacity-60"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-violet-700 px-4 text-sm font-bold text-white hover:shadow-emerald-500/30 disabled:opacity-60"
                 >
                   {processing === req.residentId ? (
                     <>

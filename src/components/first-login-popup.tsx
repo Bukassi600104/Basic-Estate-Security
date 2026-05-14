@@ -108,7 +108,7 @@ export function FirstLoginPopup({ onClose, onSuccess }: Props) {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-10 text-base outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-10 text-base outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
                 />
                 <button
                   type="button"
@@ -130,7 +130,7 @@ export function FirstLoginPopup({ onClose, onSuccess }: Props) {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-10 text-base outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-10 text-base outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
                 />
                 <button
                   type="button"
@@ -165,7 +165,7 @@ export function FirstLoginPopup({ onClose, onSuccess }: Props) {
                   className={`h-11 w-full rounded-xl border bg-white/5 pl-10 pr-10 text-base outline-none focus:ring-2 ${
                     confirmPassword.length > 0 && !passwordsMatch
                       ? "border-rose-300 focus:border-rose-500 focus:ring-rose-100"
-                      : "border-white/10 focus:border-brand-green/50 focus:ring-brand-green/20"
+                      : "border-white/10 focus:border-emerald-600/50 focus:ring-emerald-600/20"
                   }`}
                 />
                 <button
@@ -193,7 +193,7 @@ export function FirstLoginPopup({ onClose, onSuccess }: Props) {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-brand-navy text-sm font-bold text-white hover:shadow-brand-green/40 disabled:opacity-60"
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-violet-700 text-sm font-bold text-white hover:shadow-emerald-500/30 disabled:opacity-60"
             >
               {loading ? (
                 <>

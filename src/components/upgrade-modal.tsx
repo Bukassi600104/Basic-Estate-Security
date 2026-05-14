@@ -89,7 +89,7 @@ export function UpgradeModal({
               }`}
             >
               Yearly
-              <span className="ml-2 rounded-full bg-brand-green/20 px-2 py-0.5 text-xs font-bold text-brand-green">
+              <span className="ml-2 rounded-full bg-emerald-600/20 px-2 py-0.5 text-xs font-bold text-emerald-600">
                 Save 5%
               </span>
             </button>
@@ -115,16 +115,16 @@ export function UpgradeModal({
                 key={tier}
                 className={`relative rounded-2xl border-2 p-6 transition-all ${
                   config.popular
-                    ? "border-brand-navy bg-brand-navy/5"
+                    ? "border-violet-700 bg-violet-700/5"
                     : isCurrentTier
-                      ? "border-brand-green bg-brand-green/5"
+                      ? "border-emerald-600 bg-emerald-600/5"
                       : "border-white/10 bg-white/5 hover:border-white/15"
                 }`}
               >
                 {/* Popular badge */}
                 {config.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-brand-navy px-3 py-1 text-xs font-bold text-white">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-700 px-3 py-1 text-xs font-bold text-white">
                       <Crown className="h-3 w-3" />
                       Most Popular
                     </span>
@@ -134,7 +134,7 @@ export function UpgradeModal({
                 {/* Current tier badge */}
                 {isCurrentTier && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-brand-green px-3 py-1 text-xs font-bold text-white">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">
                       <Check className="h-3 w-3" />
                       Current Plan
                     </span>
@@ -147,7 +147,7 @@ export function UpgradeModal({
                     tier === "BASIC"
                       ? "bg-white/10 text-white/60"
                       : tier === "STANDARD"
-                        ? "bg-brand-green/15 text-brand-green"
+                        ? "bg-emerald-600/15 text-emerald-600"
                         : "bg-purple-100 text-purple-600"
                   }`}
                 >
@@ -182,32 +182,32 @@ export function UpgradeModal({
                 {/* Features */}
                 <ul className="mt-6 space-y-3">
                   <li className="flex items-center gap-2 text-sm text-white/70">
-                    <Check className="h-4 w-4 text-brand-green" />
+                    <Check className="h-4 w-4 text-emerald-600" />
                     Up to {config.maxHouses} houses
                   </li>
                   <li className="flex items-center gap-2 text-sm text-white/70">
-                    <Check className="h-4 w-4 text-brand-green" />
+                    <Check className="h-4 w-4 text-emerald-600" />
                     {config.maxAdmins} admin{config.maxAdmins > 1 ? "s" : ""}
                   </li>
                   <li className="flex items-center gap-2 text-sm text-white/70">
-                    <Check className="h-4 w-4 text-brand-green" />
+                    <Check className="h-4 w-4 text-emerald-600" />
                     Unlimited guards & gates
                   </li>
                   {config.features.exportEnabled && (
                     <li className="flex items-center gap-2 text-sm text-white/70">
-                      <Check className="h-4 w-4 text-brand-green" />
+                      <Check className="h-4 w-4 text-emerald-600" />
                       Export to Excel
                     </li>
                   )}
                   {config.features.advancedAnalytics && (
                     <li className="flex items-center gap-2 text-sm text-white/70">
-                      <Check className="h-4 w-4 text-brand-green" />
+                      <Check className="h-4 w-4 text-emerald-600" />
                       Advanced analytics
                     </li>
                   )}
                   {config.features.subAdminEnabled && (
                     <li className="flex items-center gap-2 text-sm text-white/70">
-                      <Check className="h-4 w-4 text-brand-green" />
+                      <Check className="h-4 w-4 text-emerald-600" />
                       Sub-admin accounts
                     </li>
                   )}
@@ -234,7 +234,7 @@ export function UpgradeModal({
                       onClick={() => handleSelectTier(tier)}
                       className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white ${
                         config.popular
-                          ? "bg-brand-navy hover:shadow-brand-green/40"
+                          ? "bg-violet-700 hover:shadow-emerald-500/30"
                           : "bg-slate-900 hover:bg-slate-800"
                       }`}
                     >

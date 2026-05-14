@@ -96,7 +96,7 @@ export function TrialBannerCompact({ estate }: TrialBannerProps) {
   }
 
   const styles = {
-    normal: "bg-brand-green/10 border-brand-navy/20 text-brand-green",
+    normal: "bg-emerald-600/10 border-violet-700/20 text-emerald-600",
     warning: "bg-amber-500/10 border-amber-500/20 text-amber-300",
     critical: "bg-rose-500/10 border-rose-500/20 text-rose-300",
   }[urgency];

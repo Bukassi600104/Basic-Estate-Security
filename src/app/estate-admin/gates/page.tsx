@@ -84,7 +84,7 @@ export default function EstateGatesPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Gate name (e.g., Main Gate)"
-            className="h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-brand-green/20 focus:ring-4"
+            className="h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-emerald-600/20 focus:ring-4"
             required
             minLength={2}
           />

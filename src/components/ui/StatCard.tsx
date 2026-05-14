@@ -22,7 +22,7 @@ interface StatCardProps {
 
 const variantStyles = {
   default: {
-    icon: "bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100",
+    icon: "bg-violet-50 text-violet-700 group-hover:bg-violet-100",
     value: "text-slate-950",
   },
   success: {
@@ -55,7 +55,7 @@ export function StatCard({
 
   if (loading) {
     return (
-      <div className={`stat-card ${className}`}>
+      <div className={`relative overflow-hidden rounded-lg border border-violet-100 bg-white p-6 shadow-[0_18px_60px_rgba(76,29,149,0.08)] ${className}`}>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="h-4 w-24 animate-pulse rounded bg-slate-100" />
@@ -69,11 +69,12 @@ export function StatCard({
   }
 
   return (
-    <div className={`stat-card group ${className}`}>
+    <div className={`group relative overflow-hidden rounded-lg border border-violet-100 bg-white p-6 shadow-[0_18px_60px_rgba(76,29,149,0.08)] transition hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_24px_80px_rgba(76,29,149,0.12)] ${className}`}>
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-700 via-emerald-400 to-violet-700" />
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-slate-500">{title}</p>
-          <p className={`mt-2 text-3xl font-bold ${styles.value}`}>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700">{title}</p>
+          <p className={`mt-3 text-4xl font-black ${styles.value}`}>
             <AnimatedCounter
               end={value}
               prefix={prefix}
@@ -82,12 +83,12 @@ export function StatCard({
             />
           </p>
           {typeof trend === "string" ? (
-            <p className="mt-1 text-sm text-slate-500">{trend}</p>
+            <p className="mt-3 text-sm font-bold text-slate-500">{trend}</p>
           ) : trend ? (
             <div className="mt-2 flex items-center gap-1">
               <span
                 className={`text-sm font-semibold ${
-                  trend.isPositive ? "text-emerald-400" : "text-rose-400"
+                  trend.isPositive ? "text-emerald-600" : "text-rose-600"
                 }`}
               >
                 {trend.isPositive ? "+" : "-"}

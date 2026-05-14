@@ -84,7 +84,7 @@ export default function ResidentHistoryPage() {
   function statusColor(status: Code["status"]) {
     switch (status) {
       case "ACTIVE": return "bg-emerald-500/15 text-emerald-400";
-      case "USED": return "bg-brand-green/15 text-brand-green";
+      case "USED": return "bg-emerald-600/15 text-emerald-600";
       case "REVOKED": return "bg-white/10 text-white/60";
       case "EXPIRED": return "bg-rose-500/15 text-rose-400";
       default: return "bg-white/10 text-white/60";
@@ -151,7 +151,7 @@ export default function ResidentHistoryPage() {
                               <LogOut className="h-4 w-4 flex-shrink-0 text-amber-500" />
                             )
                           ) : (
-                            <ShieldCheck className="h-4 w-4 flex-shrink-0 text-brand-green" />
+                            <ShieldCheck className="h-4 w-4 flex-shrink-0 text-emerald-600" />
                           )}
                           <div className="min-w-0">
                             <code className="font-mono text-sm font-bold tracking-wider text-white">

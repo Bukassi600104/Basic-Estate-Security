@@ -4,10 +4,12 @@
 
 :root {
   color-scheme: light;
-  --brand-navy: #1e3a5f;
-  --brand-green: #4ade80;
-  --brand-navy-dark: #162a40;
-  --brand-green-dark: #10a648;
+  --violet-700: #1e3a5f;
+  --emerald: #4ade80;
+  --brand-purple: #6d28d9;
+  --brand-purple-dark: #4c1d95;
+  --violet-700-dark: #162a40;
+  --emerald-dark: #10a648;
   --bg-dark: #0f2318;
   --bg-card: rgba(255, 255, 255, 0.07);
   --border-dark: rgba(255, 255, 255, 0.12);
@@ -23,7 +25,7 @@ body {
 }
 
 ::selection {
-  @apply bg-brand-green/40 text-white;
+  @apply bg-violet-600/25 text-slate-950;
 }
 
 html {
@@ -76,7 +78,7 @@ html {
   @apply border-white/15 bg-white/5;
 }
 .input-premium:focus {
-  @apply ring-4 ring-brand-green/20 border-brand-green/50;
+  @apply ring-4 ring-emerald-600/20 border-emerald-600/50;
 }
 
 .card-hover {
@@ -129,7 +131,7 @@ html {
 
 .code-display {
   @apply font-mono text-2xl font-bold tracking-[0.2em] text-center;
-  @apply bg-gradient-to-r from-brand-green to-brand-green-600 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-emerald-600 to-emerald-600 bg-clip-text text-transparent;
 }
 
 .status-badge {
@@ -175,7 +177,7 @@ html {
 .typing-text {
   overflow: hidden;
   white-space: nowrap;
-  border-right: 3px solid var(--brand-green);
+  border-right: 3px solid var(--emerald);
   animation: typing 3.5s steps(40, end), blinkCaret 0.75s step-end infinite;
 }
 
@@ -186,7 +188,7 @@ html {
 
 @keyframes blinkCaret {
   from, to { border-color: transparent }
-  50% { border-color: var(--brand-green) }
+  50% { border-color: var(--emerald) }
 }
 
 .floating {
@@ -212,7 +214,7 @@ html {
 
 .gradient-text {
   @apply bg-clip-text text-transparent;
-  background-image: linear-gradient(135deg, var(--brand-green) 0%, #10a648 100%);
+  background-image: linear-gradient(135deg, var(--emerald) 0%, #10a648 100%);
 }
 
 .gradient-text-green {
@@ -259,13 +261,69 @@ html {
 }
 
 .stat-card:hover {
-  @apply -translate-y-1 shadow-premium-lg border-brand-green/30;
+  @apply -translate-y-1 shadow-premium-lg border-emerald-600/30;
 }
 
 .stat-card::before {
   content: '';
   @apply absolute top-0 left-0 w-1 h-full;
-  background: linear-gradient(180deg, var(--brand-green) 0%, var(--brand-navy) 100%);
+  background: linear-gradient(180deg, var(--emerald) 0%, var(--violet-700) 100%);
+}
+
+/* ========================================
+   GATEPILOT CAMPAIGN SYSTEM
+   ======================================== */
+
+.gp-page {
+  @apply min-h-screen bg-[#f8f7ff] text-slate-950;
+  background-image:
+    radial-gradient(circle at top left, rgba(109, 40, 217, 0.12), transparent 28rem),
+    radial-gradient(circle at bottom right, rgba(16, 166, 72, 0.10), transparent 30rem);
+}
+
+.gp-kicker {
+  @apply inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-violet-700 shadow-sm;
+}
+
+.gp-display {
+  @apply font-black uppercase leading-[0.86] tracking-normal text-slate-950;
+}
+
+.gp-display-mark {
+  @apply inline-block bg-violet-700 px-2 text-white;
+}
+
+.gp-card {
+  @apply rounded-lg border border-slate-200 bg-white shadow-[0_18px_60px_rgba(30,41,59,0.08)];
+}
+
+.gp-card-strong {
+  @apply rounded-lg border border-violet-200 bg-white shadow-[0_24px_80px_rgba(76,29,149,0.14)];
+}
+
+.gp-button-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-violet-700 px-6 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_16px_32px_rgba(109,40,217,0.24)] transition hover:-translate-y-0.5 hover:bg-violet-800;
+}
+
+.gp-button-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-slate-950 bg-white px-6 py-3 text-sm font-black uppercase tracking-wide text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-950 hover:text-white;
+}
+
+.gp-dashboard-bg {
+  @apply bg-[#f7f5ff];
+  background-image:
+    linear-gradient(90deg, rgba(109, 40, 217, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(109, 40, 217, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.gp-panel-title {
+  @apply text-xs font-black uppercase tracking-[0.22em] text-violet-700;
+}
+
+.gp-parallax-card {
+  transform: translate3d(0, var(--gp-shift, 0px), 0);
+  transition: transform 120ms linear;
 }
 
 /* Alert badges */
@@ -302,7 +360,7 @@ html {
 }
 
 .countdown-ring .progress {
-  stroke: var(--brand-green);
+  stroke: var(--emerald);
   stroke-linecap: round;
   transition: stroke-dashoffset 0.5s ease;
 }

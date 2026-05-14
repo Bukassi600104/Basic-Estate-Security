@@ -103,7 +103,7 @@ export function SuperAdminEstatesTable({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search name, id, status…"
-          className="h-11 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-brand-green/20 focus:ring-4 md:w-80"
+          className="h-11 w-full rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-emerald-600/20 focus:ring-4 md:w-80"
         />
       </div>
 

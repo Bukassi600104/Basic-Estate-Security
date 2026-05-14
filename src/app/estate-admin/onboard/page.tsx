@@ -211,7 +211,7 @@ export default function OnboardResidentPage() {
         {/* Card */}
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-brand-green to-brand-green-600 text-white shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-600 text-white shadow-sm">
               <UserPlus className="h-6 w-6" />
             </div>
             <div>
@@ -229,19 +229,19 @@ export default function OnboardResidentPage() {
           {/* Step Indicator */}
           <div className="mt-6 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-white/50">
             <div
-              className={`h-2 w-2 rounded-full ${step === 1 ? "bg-brand-navy" : step > 1 ? "bg-brand-green" : "bg-slate-300"}`}
+              className={`h-2 w-2 rounded-full ${step === 1 ? "bg-violet-700" : step > 1 ? "bg-emerald-600" : "bg-slate-300"}`}
             />
-            <span className={step === 1 ? "text-brand-green" : step > 1 ? "text-brand-green" : ""}>Details</span>
+            <span className={step === 1 ? "text-emerald-600" : step > 1 ? "text-emerald-600" : ""}>Details</span>
             <div className="mx-2 h-px w-6 bg-white/10" />
             <div
-              className={`h-2 w-2 rounded-full ${step === 2 ? "bg-brand-navy" : step > 2 ? "bg-brand-green" : "bg-slate-300"}`}
+              className={`h-2 w-2 rounded-full ${step === 2 ? "bg-violet-700" : step > 2 ? "bg-emerald-600" : "bg-slate-300"}`}
             />
-            <span className={step === 2 ? "text-brand-green" : step > 2 ? "text-brand-green" : ""}>Numbers</span>
+            <span className={step === 2 ? "text-emerald-600" : step > 2 ? "text-emerald-600" : ""}>Numbers</span>
             <div className="mx-2 h-px w-6 bg-white/10" />
             <div
-              className={`h-2 w-2 rounded-full ${step === 3 ? "bg-brand-navy" : "bg-slate-300"}`}
+              className={`h-2 w-2 rounded-full ${step === 3 ? "bg-violet-700" : "bg-slate-300"}`}
             />
-            <span className={step === 3 ? "text-brand-green" : ""}>Review</span>
+            <span className={step === 3 ? "text-emerald-600" : ""}>Review</span>
           </div>
 
           <form className="mt-6" onSubmit={onSubmit}>
@@ -251,7 +251,7 @@ export default function OnboardResidentPage() {
                   <label className="grid gap-2 text-sm">
                     <span className="font-semibold text-white/70">Resident name</span>
                     <input
-                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
                       value={residentName}
                       onChange={(e) => setResidentName(e.target.value)}
                       placeholder="John Doe"
@@ -261,7 +261,7 @@ export default function OnboardResidentPage() {
                   <label className="grid gap-2 text-sm">
                     <span className="font-semibold text-white/70">House number</span>
                     <input
-                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
                       value={houseNumber}
                       onChange={(e) => setHouseNumber(e.target.value)}
                       placeholder="A-101"
@@ -276,7 +276,7 @@ export default function OnboardResidentPage() {
                       className={`h-12 rounded-xl border bg-white/5 px-4 text-base font-medium text-white outline-none focus:ring-4 ${
                         residentPhoneValidation && !residentPhoneValidation.valid
                           ? "border-rose-300 ring-rose-100 focus:border-rose-500"
-                          : "border-white/10 ring-brand-green/20 focus:border-brand-green/50"
+                          : "border-white/10 ring-emerald-600/20 focus:border-emerald-600/50"
                       }`}
                       value={residentPhone}
                       onChange={(e) => setResidentPhone(e.target.value)}
@@ -293,7 +293,7 @@ export default function OnboardResidentPage() {
                   <label className="grid gap-2 text-sm">
                     <span className="font-semibold text-white/70">Email (optional)</span>
                     <input
-                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+                      className="h-12 rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
                       value={residentEmail}
                       onChange={(e) => setResidentEmail(e.target.value)}
                       type="email"
@@ -304,7 +304,7 @@ export default function OnboardResidentPage() {
 
                 <button
                   type="button"
-                  className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-navy px-5 text-sm font-bold text-white shadow-sm hover:shadow-brand-green/40 disabled:opacity-60"
+                  className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-violet-700 px-5 text-sm font-bold text-white shadow-sm hover:shadow-emerald-500/30 disabled:opacity-60"
                   onClick={() => canProceed() && setStep(2)}
                   disabled={!canProceed()}
                 >
@@ -319,7 +319,7 @@ export default function OnboardResidentPage() {
                   <div className="flex items-center gap-2 text-sm font-semibold text-white/70">
                     <Users className="h-4 w-4" />
                     Approved Numbers
-                    <span className="ml-auto rounded-full bg-brand-navy px-2 py-0.5 text-xs font-bold text-white">
+                    <span className="ml-auto rounded-full bg-violet-700 px-2 py-0.5 text-xs font-bold text-white">
                       Required
                     </span>
                   </div>
@@ -364,7 +364,7 @@ export default function OnboardResidentPage() {
                           <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                           <input
                             placeholder="08031234567"
-                            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-4 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+                            className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-4 text-base font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
                             value={newApprovalPhone}
                             onChange={(e) => {
                               setNewApprovalPhone(e.target.value);
@@ -399,7 +399,7 @@ export default function OnboardResidentPage() {
                       <div className="flex items-center gap-3 px-4 py-3">
                         {approvalState === "processing" && (
                           <>
-                            <Loader2 className="h-5 w-5 animate-spin text-brand-green" />
+                            <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
                             <div className="flex-1">
                               <div className="text-sm font-semibold text-white">
                                 <span className="inline-flex items-center gap-1">
@@ -412,7 +412,7 @@ export default function OnboardResidentPage() {
                                 </span>
                               </div>
                               <div className="h-1.5 mt-2 w-full rounded-full bg-white/10 overflow-hidden">
-                                <div className="h-full w-1/3 rounded-full bg-brand-navy animate-pulse" />
+                                <div className="h-full w-1/3 rounded-full bg-violet-700 animate-pulse" />
                               </div>
                             </div>
                           </>
@@ -492,7 +492,7 @@ export default function OnboardResidentPage() {
                     onClick={() => canOnboard() && setStep(3)}
                     className={`flex flex-1 h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold shadow-sm transition-all ${
                       canOnboard()
-                        ? "bg-gradient-to-r from-brand-green to-brand-green-600 text-white hover:shadow-brand-green/40"
+                        ? "bg-gradient-to-r from-emerald-600 to-emerald-600 text-white hover:shadow-emerald-500/30"
                         : "bg-white/10 text-white/40 cursor-not-allowed"
                     } disabled:opacity-60`}
                   >
@@ -563,7 +563,7 @@ export default function OnboardResidentPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex flex-1 h-12 items-center justify-center gap-2 rounded-xl bg-brand-green px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-green/90 disabled:opacity-60"
+                    className="flex flex-1 h-12 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-600/90 disabled:opacity-60"
                   >
                     {loading ? "Creating..." : "Confirm & Onboard Resident"}
                   </button>
@@ -583,18 +583,18 @@ export default function OnboardResidentPage() {
 
             <div className="mt-4 grid gap-3">
               {/* Estate Verification Code */}
-              <div className="rounded-2xl border-2 border-brand-green bg-brand-green/5 p-4">
-                <div className="text-sm font-bold text-brand-green">Estate Verification Code</div>
+              <div className="rounded-2xl border-2 border-emerald-600 bg-emerald-600/5 p-4">
+                <div className="text-sm font-bold text-emerald-600">Estate Verification Code</div>
                 <p className="mt-1 text-xs text-white/60">
                   All residents and delegates need this code to sign in.
                 </p>
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-brand-green/30 bg-white/5 px-4 py-3">
-                  <div className="text-2xl font-mono font-bold text-brand-green">
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-emerald-600/30 bg-white/5 px-4 py-3">
+                  <div className="text-2xl font-mono font-bold text-emerald-600">
                     {credentials.verificationCode}
                   </div>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-green px-4 py-2 text-sm font-bold text-white hover:bg-brand-green/90"
+                    className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-600/90"
                     onClick={() => copy(credentials.verificationCode)}
                   >
                     <ClipboardCopy className="h-4 w-4" />

@@ -31,13 +31,13 @@ function StepIndicator({ step }: { step: 1 | 2 }) {
         <div
           className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
             step === 1
-              ? "bg-brand-green text-white shadow-md shadow-brand-green/30"
-              : "bg-brand-green/20 text-brand-green"
+              ? "bg-violet-700 text-white shadow-md shadow-violet-700/30"
+              : "bg-violet-700/20 text-emerald-400"
           }`}
         >
           {step > 1 ? <CheckCircle className="h-4 w-4" /> : "1"}
         </div>
-        <span className={`text-xs font-semibold ${step === 1 ? "text-white" : "text-brand-green"}`}>
+        <span className={`text-xs font-semibold ${step === 1 ? "text-white" : "text-emerald-400"}`}>
           Estate Details
         </span>
       </div>
@@ -49,7 +49,7 @@ function StepIndicator({ step }: { step: 1 | 2 }) {
         <div
           className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
             step === 2
-              ? "bg-brand-green text-white shadow-md shadow-brand-green/30"
+              ? "bg-violet-700 text-white shadow-md shadow-violet-700/30"
               : "bg-white/[0.10] text-white/40"
           }`}
         >
@@ -132,7 +132,7 @@ function SignUpPageContent() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] bg-[#0f2318]">
+    <div className="flex min-h-[100dvh] bg-[#f8f7ff]">
       {/* Left side — Security Guard Image with Parallax */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <div
@@ -140,7 +140,7 @@ function SignUpPageContent() {
           style={{ transform: `translateY(${scrollY * 0.25}px)` }}
         >
           <Image
-            src="/images/security-guard.png"
+            src="/images/gatepilot-hero.png"
             alt="Security Guard"
             fill
             className="object-cover object-[95%_center]"
@@ -148,16 +148,16 @@ function SignUpPageContent() {
             priority
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f2318]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318]/70 via-transparent to-[#0f2318]/30" />
-        <div className="absolute left-0 top-[28%] h-56 w-[52%] bg-gradient-to-r from-[#0f2318] via-[#0f2318]/95 to-[#0f2318]/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-violet-700" />
+        <div className="absolute inset-0 bg-gradient-to-t from-violet-950/70 via-transparent to-violet-700/30" />
+        <div className="absolute left-0 top-[28%] h-56 w-[52%] bg-gradient-to-r from-violet-950 via-violet-950/95 to-violet-700/10" />
 
         {/* Floating info card */}
         <div className="absolute bottom-12 left-10 right-10">
-          <div className="rounded-2xl border border-white/15 bg-[#0f2318]/75 p-6 backdrop-blur-xl shadow-xl">
+          <div className="rounded-2xl border border-white/15 bg-violet-950/78 p-6 backdrop-blur-xl shadow-xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/20">
-                <Shield className="h-5 w-5 text-brand-green" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-700/20">
+                <Shield className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Start protecting your estate</p>
@@ -167,7 +167,7 @@ function SignUpPageContent() {
             <div className="grid grid-cols-2 gap-2">
               {["Guest & staff codes", "Real-time validation", "Multi-gate support", "Full audit trail"].map((f) => (
                 <div key={f} className="flex items-center gap-2 text-xs text-white/65">
-                  <CheckCircle className="h-3.5 w-3.5 text-brand-green flex-shrink-0" />
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
                   {f}
                 </div>
               ))}
@@ -177,23 +177,23 @@ function SignUpPageContent() {
       </div>
 
       {/* Right side — Onboarding Wizard */}
-      <div className="relative z-10 flex w-full flex-col lg:w-1/2">
+      <div className="relative z-10 flex w-full flex-col bg-violet-700 text-white lg:w-1/2">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-5 lg:px-10">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.07] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand-green/30 bg-brand-green/10">
-                <Shield className="h-5 w-5 text-brand-green" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-violet-200 bg-white">
+                <Shield className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400">Security</div>
               </div>
             </Link>
           </div>
@@ -208,7 +208,7 @@ function SignUpPageContent() {
           <div className="w-full max-w-md mx-auto lg:mx-0">
 
             {/* Heading */}
-            <div className="text-xs font-bold uppercase tracking-[0.25em] text-brand-green">
+            <div className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-400">
               Get Started
             </div>
             <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -233,7 +233,7 @@ function SignUpPageContent() {
                     <div className="relative">
                       <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                         value={estateName}
                         onChange={(e) => setEstateName(e.target.value)}
                         placeholder="e.g. Greenville Estate"
@@ -250,7 +250,7 @@ function SignUpPageContent() {
                     <div className="relative">
                       <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                         value={estateAddress}
                         onChange={(e) => setEstateAddress(e.target.value)}
                         placeholder="e.g. 12 Estate Road, Lagos"
@@ -261,7 +261,7 @@ function SignUpPageContent() {
 
                   <button
                     type="button"
-                    className="group mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5"
+                    className="group mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-700 to-violet-900 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-violet-700/25 transition-all hover:shadow-violet-700/40 hover:-translate-y-0.5"
                     onClick={goToStep2}
                   >
                     Continue
@@ -277,7 +277,7 @@ function SignUpPageContent() {
                     <div className="relative">
                       <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                         value={adminName}
                         onChange={(e) => setAdminName(e.target.value)}
                         placeholder="Your full name"
@@ -294,7 +294,7 @@ function SignUpPageContent() {
                     <div className="relative">
                       <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         type="email"
@@ -312,7 +312,7 @@ function SignUpPageContent() {
                     <div className="relative">
                       <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                       <input
-                        className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-12 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                        className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-12 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         type={showPassword ? "text" : "password"}
@@ -343,7 +343,7 @@ function SignUpPageContent() {
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/[0.07] px-5 text-sm font-bold text-white/75 transition-all hover:bg-white/[0.12]"
+                      className="flex h-12 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/10 px-5 text-sm font-bold text-white/75 transition-all hover:bg-white/[0.12]"
                       onClick={() => setStep(1)}
                     >
                       <ArrowLeft className="h-4 w-4" />
@@ -353,7 +353,7 @@ function SignUpPageContent() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="group flex flex-1 h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
+                      className="group flex flex-1 h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-700 to-violet-900 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-violet-700/25 transition-all hover:shadow-violet-700/40 hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
                     >
                       {loading ? (
                         <>
@@ -375,22 +375,22 @@ function SignUpPageContent() {
             {/* Trust badges */}
             <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-white/45">
               <div className="flex items-center gap-1.5">
-                <CheckCircle className="h-3.5 w-3.5 text-brand-green" />
+                <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
                 No credit card required
               </div>
               <div className="flex items-center gap-1.5">
-                <CheckCircle className="h-3.5 w-3.5 text-brand-green" />
+                <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
                 Free 30-day trial
               </div>
               <div className="flex items-center gap-1.5">
-                <CheckCircle className="h-3.5 w-3.5 text-brand-green" />
+                <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
                 Cancel anytime
               </div>
             </div>
 
             <div className="mt-6 text-sm text-white/55">
               Already have an account?{" "}
-              <Link className="font-bold text-brand-green hover:text-brand-green-300" href="/auth/sign-in">
+              <Link className="font-bold text-emerald-400 hover:text-emerald-200" href="/auth/sign-in">
                 Sign in
               </Link>
             </div>
@@ -412,7 +412,7 @@ function SignUpPageContent() {
       {/* Mobile background texture */}
       <div className="fixed inset-0 -z-10 lg:hidden">
         <Image
-          src="/images/security-guard.png"
+          src="/images/gatepilot-hero.png"
           alt=""
           fill
           className="object-cover object-[95%_center]"
@@ -425,8 +425,8 @@ function SignUpPageContent() {
 
 function SignUpPageLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0f2318]">
-      <Spinner className="h-8 w-8 text-brand-green" />
+    <div className="flex min-h-screen items-center justify-center bg-[#f8f7ff]">
+      <Spinner className="h-8 w-8 text-emerald-400" />
     </div>
   );
 }

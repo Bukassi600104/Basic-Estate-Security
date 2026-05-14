@@ -140,14 +140,14 @@ export default function EstateLogsPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
               hasActiveFilters
-                ? "border-brand-navy bg-brand-navy/5 text-brand-green"
+                ? "border-violet-700 bg-violet-700/5 text-emerald-600"
                 : "border-white/10 bg-white/5 text-white/70 hover:bg-white/5"
             }`}
           >
             <Filter className="h-4 w-4" />
             Filters
             {hasActiveFilters && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-navy text-[10px] font-bold text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-700 text-[10px] font-bold text-white">
                 {Object.values(filters).filter((v) => v !== "").length}
               </span>
             )}
@@ -161,7 +161,7 @@ export default function EstateLogsPage() {
           </a>
           <a
             href={`/api/estate-admin/logs/export-excel${exportBase ? `?${exportBase}` : ""}`}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-green px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-green/90"
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-600/90"
           >
             <FileSpreadsheet className="h-4 w-4" />
             Excel
@@ -191,7 +191,7 @@ export default function EstateLogsPage() {
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))}
-                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
               />
             </label>
             <label className="grid gap-1.5 text-sm">
@@ -200,7 +200,7 @@ export default function EstateLogsPage() {
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))}
-                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
               />
             </label>
             <label className="grid gap-1.5 text-sm">
@@ -208,7 +208,7 @@ export default function EstateLogsPage() {
               <select
                 value={filters.outcome}
                 onChange={(e) => setFilters((f) => ({ ...f, outcome: e.target.value }))}
-                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
               >
                 <option value="">All</option>
                 <option value="SUCCESS">Success</option>
@@ -220,7 +220,7 @@ export default function EstateLogsPage() {
               <select
                 value={filters.eventType}
                 onChange={(e) => setFilters((f) => ({ ...f, eventType: e.target.value }))}
-                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
               >
                 <option value="">All</option>
                 <option value="ENTRY">Entry</option>
@@ -232,7 +232,7 @@ export default function EstateLogsPage() {
               <select
                 value={filters.shiftType}
                 onChange={(e) => setFilters((f) => ({ ...f, shiftType: e.target.value }))}
-                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
               >
                 <option value="">All</option>
                 <option value="DAY">Day</option>
@@ -244,7 +244,7 @@ export default function EstateLogsPage() {
               <select
                 value={filters.passType}
                 onChange={(e) => setFilters((f) => ({ ...f, passType: e.target.value }))}
-                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                className="h-10 rounded-lg border border-white/10 px-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
               >
                 <option value="">All</option>
                 <option value="GUEST">Guest</option>
@@ -260,7 +260,7 @@ export default function EstateLogsPage() {
                   placeholder="e.g. A-101"
                   value={filters.houseNumber}
                   onChange={(e) => setFilters((f) => ({ ...f, houseNumber: e.target.value }))}
-                  className="h-10 w-full rounded-lg border border-white/10 pl-9 pr-3 text-sm outline-none focus:border-brand-green/50 focus:ring-2 focus:ring-brand-green/20"
+                  className="h-10 w-full rounded-lg border border-white/10 pl-9 pr-3 text-sm outline-none focus:border-emerald-600/50 focus:ring-2 focus:ring-emerald-600/20"
                 />
               </div>
             </label>
@@ -337,7 +337,7 @@ export default function EstateLogsPage() {
                         <span
                           className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${
                             v.passType === "GUEST"
-                              ? "bg-brand-green/15 text-brand-green"
+                              ? "bg-emerald-600/15 text-emerald-600"
                               : "bg-purple-500/15 text-purple-700"
                           }`}
                         >

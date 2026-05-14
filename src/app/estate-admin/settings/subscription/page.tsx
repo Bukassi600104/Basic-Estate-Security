@@ -54,7 +54,7 @@ export default function SubscriptionPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="h-8 w-8 text-brand-green" />
+        <Spinner className="h-8 w-8 text-emerald-600" />
       </div>
     );
   }
@@ -79,8 +79,8 @@ export default function SubscriptionPage() {
 
   const urgencyStyles = {
     normal: {
-      badge: "bg-brand-green/10 text-brand-green-700",
-      border: "border-brand-green/30",
+      badge: "bg-emerald-600/10 text-emerald-700",
+      border: "border-emerald-600/30",
     },
     warning: {
       badge: "bg-amber-500/15 text-amber-400",
@@ -111,7 +111,7 @@ export default function SubscriptionPage() {
       <div className={`mt-8 rounded-2xl border bg-white/5 p-6 ${urgencyStyles.border}`}>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600">
               <Shield className="h-7 w-7" />
             </div>
             <div>
@@ -162,7 +162,7 @@ export default function SubscriptionPage() {
               </span>
               <span className="text-white/50">/month</span>
               {estate.billingCycle === "YEARLY" && (
-                <span className="ml-2 rounded-full bg-brand-green/10 px-2 py-0.5 text-xs font-semibold text-brand-green-700">
+                <span className="ml-2 rounded-full bg-emerald-600/10 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                   Yearly (save 5%)
                 </span>
               )}
@@ -176,7 +176,7 @@ export default function SubscriptionPage() {
         <div className="mt-6">
           <button
             onClick={() => setShowUpgradeModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-navy px-6 py-3 text-sm font-bold text-white hover:shadow-brand-green/40"
+            className="inline-flex items-center gap-2 rounded-full bg-violet-700 px-6 py-3 text-sm font-bold text-white hover:shadow-emerald-500/30"
           >
             {estate.subscriptionTier === "PREMIUM" ? "View Plans" : "Upgrade Plan"}
             <ArrowRight className="h-4 w-4" />
@@ -207,7 +207,7 @@ export default function SubscriptionPage() {
             <div className="mt-4">
               <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-brand-navy transition-all"
+                  className="h-full rounded-full bg-violet-700 transition-all"
                   style={{
                     width: `${Math.min(100, (stats.houses / estate.maxHouses) * 100)}%`,
                   }}
@@ -241,7 +241,7 @@ export default function SubscriptionPage() {
             <div className="mt-4">
               <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className="h-full rounded-full bg-brand-navy transition-all"
+                  className="h-full rounded-full bg-violet-700 transition-all"
                   style={{
                     width: `${Math.min(100, (stats.admins / estate.maxAdmins) * 100)}%`,
                   }}
@@ -260,24 +260,24 @@ export default function SubscriptionPage() {
         <h3 className="text-lg font-semibold text-white">Plan Features</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="flex items-center gap-3">
-            <Check className="h-5 w-5 text-brand-green" />
+            <Check className="h-5 w-5 text-emerald-600" />
             <span className="text-sm text-white/70">Unlimited guards</span>
           </div>
           <div className="flex items-center gap-3">
-            <Check className="h-5 w-5 text-brand-green" />
+            <Check className="h-5 w-5 text-emerald-600" />
             <span className="text-sm text-white/70">Unlimited gates</span>
           </div>
           <div className="flex items-center gap-3">
-            <Check className="h-5 w-5 text-brand-green" />
+            <Check className="h-5 w-5 text-emerald-600" />
             <span className="text-sm text-white/70">Unlimited access codes</span>
           </div>
           <div className="flex items-center gap-3">
-            <Check className="h-5 w-5 text-brand-green" />
+            <Check className="h-5 w-5 text-emerald-600" />
             <span className="text-sm text-white/70">Validation logs</span>
           </div>
           <div className="flex items-center gap-3">
             {estate.features?.exportEnabled ? (
-              <Check className="h-5 w-5 text-brand-green" />
+              <Check className="h-5 w-5 text-emerald-600" />
             ) : (
               <span className="h-5 w-5 text-center text-white/20">-</span>
             )}
@@ -287,7 +287,7 @@ export default function SubscriptionPage() {
           </div>
           <div className="flex items-center gap-3">
             {estate.features?.advancedAnalytics ? (
-              <Check className="h-5 w-5 text-brand-green" />
+              <Check className="h-5 w-5 text-emerald-600" />
             ) : (
               <span className="h-5 w-5 text-center text-white/20">-</span>
             )}
@@ -297,7 +297,7 @@ export default function SubscriptionPage() {
           </div>
           <div className="flex items-center gap-3">
             {estate.features?.subAdminEnabled ? (
-              <Check className="h-5 w-5 text-brand-green" />
+              <Check className="h-5 w-5 text-emerald-600" />
             ) : (
               <span className="h-5 w-5 text-center text-white/20">-</span>
             )}
@@ -314,7 +314,7 @@ export default function SubscriptionPage() {
           Need help with your subscription?{" "}
           <a
             href="mailto:support@gatepilot.ng"
-            className="font-semibold text-brand-green hover:underline"
+            className="font-semibold text-emerald-600 hover:underline"
           >
             Contact support
           </a>

@@ -89,7 +89,7 @@ function SignInForm() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] bg-[#0f2318]">
+    <div className="flex min-h-[100dvh] bg-[#f8f7ff]">
       {/* Left side — Security Guard Image with Parallax */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
         <div
@@ -97,7 +97,7 @@ function SignInForm() {
           style={{ transform: `translateY(${scrollY * 0.25}px)` }}
         >
           <Image
-            src="/images/security-guard.png"
+            src="/images/gatepilot-hero.png"
             alt="Security Guard"
             fill
             className="object-cover object-[95%_center]"
@@ -106,16 +106,16 @@ function SignInForm() {
           />
         </div>
         {/* Light gradient on right edge only — blends into form */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f2318]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f2318]/70 via-transparent to-[#0f2318]/30" />
-        <div className="absolute left-0 top-[28%] h-56 w-[52%] bg-gradient-to-r from-[#0f2318] via-[#0f2318]/95 to-[#0f2318]/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-violet-700" />
+        <div className="absolute inset-0 bg-gradient-to-t from-violet-950/70 via-transparent to-violet-700/30" />
+        <div className="absolute left-0 top-[28%] h-56 w-[52%] bg-gradient-to-r from-violet-950 via-violet-950/95 to-violet-700/10" />
 
         {/* Floating badge */}
         <div className="absolute bottom-12 left-10 right-10">
-          <div className="rounded-2xl border border-white/15 bg-[#0f2318]/75 p-6 backdrop-blur-xl shadow-xl">
+          <div className="rounded-2xl border border-white/15 bg-violet-950/78 p-6 backdrop-blur-xl shadow-xl">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-green/20">
-                <Shield className="h-5 w-5 text-brand-green" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-700/20">
+                <Shield className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Trusted Security Platform</p>
@@ -127,23 +127,23 @@ function SignInForm() {
       </div>
 
       {/* Right side — Form */}
-      <div className="relative z-10 flex w-full flex-col lg:w-1/2">
+      <div className="relative z-10 flex w-full flex-col bg-violet-700 text-white lg:w-1/2">
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-5 lg:px-10">
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/[0.07] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand-green/30 bg-brand-green/10">
-                <Shield className="h-5 w-5 text-brand-green" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-violet-200 bg-white">
+                <Shield className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
                 <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-green">Security</div>
+                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400">Security</div>
               </div>
             </Link>
           </div>
@@ -156,13 +156,13 @@ function SignInForm() {
         {/* Form area */}
         <div className="flex flex-1 items-center px-6 pb-10 lg:px-12">
           <div className="w-full max-w-md mx-auto lg:mx-0">
-            <div className="text-xs font-bold uppercase tracking-[0.25em] text-brand-green">
+            <div className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-400">
               Welcome Back
             </div>
 
             <h1 className="mt-3 text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl">
-              SECURITY YOU<br />
-              CAN <span className="text-brand-green">TRUST</span>
+              SECURITY<br />
+              YOU CAN <span className="text-emerald-400">TRUST</span>
             </h1>
 
             <p className="mt-4 text-sm leading-relaxed text-white/65">
@@ -179,7 +179,7 @@ function SignInForm() {
                 <div className="relative">
                   <User className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                   <input
-                    className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                    className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     type="email"
@@ -200,7 +200,7 @@ function SignInForm() {
                   <div className="relative">
                     <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                     <input
-                      className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                      className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-4 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                       value={mfaCode}
                       onChange={(e) => setMfaCode(e.target.value)}
                       inputMode="numeric"
@@ -216,14 +216,14 @@ function SignInForm() {
                     <label className="text-xs font-semibold uppercase tracking-wider text-white/75">
                       Password
                     </label>
-                    <span className="text-xs font-semibold text-brand-green cursor-pointer hover:text-brand-green-300">
+                    <span className="text-xs font-semibold text-emerald-400 cursor-pointer hover:text-emerald-200">
                       Forgot password?
                     </span>
                   </div>
                   <div className="relative">
                     <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
                     <input
-                      className="h-12 w-full rounded-lg border border-white/15 bg-white/[0.07] pl-11 pr-12 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-brand-green/50 focus:bg-white/[0.11] focus:ring-2 focus:ring-brand-green/20"
+                      className="h-12 w-full rounded-lg border border-white/15 bg-white/10 pl-11 pr-12 text-sm font-medium text-white outline-none transition-all placeholder:text-white/35 focus:border-violet-400 focus:bg-white/15 focus:ring-2 focus:ring-violet-200"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
@@ -247,7 +247,7 @@ function SignInForm() {
               <label className="inline-flex items-center gap-2.5 text-sm text-white/70">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-white/30 bg-white/[0.07] text-brand-green focus:ring-brand-green/30"
+                  className="h-4 w-4 rounded border-white/30 bg-white/10 text-emerald-400 focus:ring-violet-300"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                 />
@@ -271,7 +271,7 @@ function SignInForm() {
               <button
                 type="submit"
                 disabled={loading}
-                className="group relative mt-1 flex h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-brand-green to-brand-green-600 px-6 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-brand-green/25 transition-all hover:shadow-brand-green/40 hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
+                className="group relative mt-1 flex h-12 w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-violet-700 to-violet-900 px-6 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-violet-700/25 transition-all hover:shadow-violet-700/40 hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
               >
                 {loading ? (
                   <>
@@ -297,15 +297,15 @@ function SignInForm() {
             <div className="mt-8 flex flex-col gap-3 text-sm text-white/55">
               <div>
                 New estate?{" "}
-                <Link href="/auth/sign-up" className="font-bold text-brand-green hover:text-brand-green-300">
+                <Link href="/auth/sign-up" className="font-bold text-emerald-400 hover:text-emerald-200">
                   Create an account
                 </Link>
               </div>
               <div className="flex gap-4 text-xs">
-                <Link href="/auth/guard-verify" className="font-semibold text-white/45 hover:text-brand-green transition-colors">
+                <Link href="/auth/guard-verify" className="font-semibold text-white/45 hover:text-emerald-400 transition-colors">
                   Security Guard Login
                 </Link>
-                <Link href="/auth/resident-verify" className="font-semibold text-white/45 hover:text-brand-green transition-colors">
+                <Link href="/auth/resident-verify" className="font-semibold text-white/45 hover:text-emerald-400 transition-colors">
                   Resident Login
                 </Link>
               </div>
@@ -328,7 +328,7 @@ function SignInForm() {
       {/* Mobile background image (faint texture) */}
       <div className="fixed inset-0 -z-10 lg:hidden">
         <Image
-          src="/images/security-guard.png"
+          src="/images/gatepilot-hero.png"
           alt=""
           fill
           className="object-cover object-[95%_center]"
@@ -341,7 +341,7 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0f2318]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#f8f7ff]" />}>
       <SignInForm />
     </Suspense>
   );

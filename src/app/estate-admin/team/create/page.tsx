@@ -93,9 +93,9 @@ export default function CreateSubAdminPage() {
   if (success) {
     return (
       <div className="mx-auto max-w-lg px-4 py-8">
-        <div className="rounded-2xl border border-brand-green/30 bg-brand-green/5 p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-green/20">
-            <Check className="h-8 w-8 text-brand-green" />
+        <div className="rounded-2xl border border-emerald-600/30 bg-emerald-600/5 p-8 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600/20">
+            <Check className="h-8 w-8 text-emerald-600" />
           </div>
           <h1 className="mt-6 text-2xl font-bold text-white">
             Sub-Admin Created!
@@ -139,7 +139,7 @@ export default function CreateSubAdminPage() {
                 setEmail("");
                 setPermissions([]);
               }}
-              className="flex-1 rounded-full bg-brand-navy px-5 py-2.5 text-sm font-bold text-white hover:shadow-brand-green/40"
+              className="flex-1 rounded-full bg-violet-700 px-5 py-2.5 text-sm font-bold text-white hover:shadow-emerald-500/30"
             >
               Add Another
             </button>
@@ -178,7 +178,7 @@ export default function CreateSubAdminPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+              className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
               placeholder="Enter sub-admin name"
               required
             />
@@ -196,7 +196,7 @@ export default function CreateSubAdminPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4"
+              className="h-12 w-full rounded-2xl border border-white/10 bg-white/5 pl-11 pr-4 text-sm font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4"
               placeholder="Enter email address"
               required
             />
@@ -216,7 +216,7 @@ export default function CreateSubAdminPage() {
               <button
                 type="button"
                 onClick={selectAll}
-                className="text-xs font-semibold text-brand-green hover:underline"
+                className="text-xs font-semibold text-emerald-600 hover:underline"
               >
                 Select All
               </button>
@@ -237,7 +237,7 @@ export default function CreateSubAdminPage() {
                 key={perm.key}
                 className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-all ${
                   permissions.includes(perm.key)
-                    ? "border-brand-navy bg-brand-navy/5"
+                    ? "border-violet-700 bg-violet-700/5"
                     : "border-white/10 bg-white/5 hover:border-white/15"
                 }`}
               >
@@ -245,7 +245,7 @@ export default function CreateSubAdminPage() {
                   <div
                     className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all ${
                       permissions.includes(perm.key)
-                        ? "border-brand-navy bg-brand-navy"
+                        ? "border-violet-700 bg-violet-700"
                         : "border-white/15"
                     }`}
                   >
@@ -285,7 +285,7 @@ export default function CreateSubAdminPage() {
           <button
             type="submit"
             disabled={loading || !name || !email}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white hover:shadow-brand-green/40 disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-violet-700 px-5 py-3 text-sm font-bold text-white hover:shadow-emerald-500/30 disabled:opacity-60"
           >
             {loading ? (
               <>

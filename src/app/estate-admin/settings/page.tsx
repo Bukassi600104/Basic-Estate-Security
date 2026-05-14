@@ -154,7 +154,7 @@ export default function EstateSettingsPage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Estate address"
-                  className="h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-brand-green/20 focus:ring-4"
+                  className="h-11 flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm outline-none ring-emerald-600/20 focus:ring-4"
                 />
                 <button
                   type="button"
@@ -255,7 +255,7 @@ export default function EstateSettingsPage() {
             <span className="font-semibold text-white/70">Current Password</span>
             <div className="relative">
               <Key className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4" />
+              <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4" />
               <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                 {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -266,7 +266,7 @@ export default function EstateSettingsPage() {
             <span className="font-semibold text-white/70">New Password</span>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-brand-green/20 focus:border-brand-green/50 focus:ring-4" />
+              <input type={showNew ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" className="h-12 w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none ring-emerald-600/20 focus:border-emerald-600/50 focus:ring-4" />
               <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                 {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -287,7 +287,7 @@ export default function EstateSettingsPage() {
             <span className="font-semibold text-white/70">Confirm New Password</span>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={`h-12 w-full rounded-xl border bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none focus:ring-4 ${confirmPassword.length > 0 && !pwMatch ? "border-rose-300 ring-rose-100 focus:border-rose-500" : "border-white/10 ring-brand-green/20 focus:border-brand-green/50"}`} />
+              <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm new password" className={`h-12 w-full rounded-xl border bg-white/5 pl-11 pr-11 text-base font-medium text-white outline-none focus:ring-4 ${confirmPassword.length > 0 && !pwMatch ? "border-rose-300 ring-rose-100 focus:border-rose-500" : "border-white/10 ring-emerald-600/20 focus:border-emerald-600/50"}`} />
               <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60">
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>

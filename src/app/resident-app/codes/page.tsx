@@ -206,13 +206,13 @@ export default function ResidentAppCodesPage() {
               <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
                 Active Guests
               </p>
-              <p className="mt-1 text-3xl font-extrabold text-brand-green">{activePairCount}</p>
+              <p className="mt-1 text-3xl font-extrabold text-emerald-600">{activePairCount}</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
                 Staff Codes
               </p>
-              <p className="mt-1 text-3xl font-extrabold text-brand-green">
+              <p className="mt-1 text-3xl font-extrabold text-emerald-600">
                 {staffCodes.filter((c) => c.status === "ACTIVE" && !isExpired(c.expiresAt)).length}
               </p>
             </div>
@@ -241,14 +241,14 @@ export default function ResidentAppCodesPage() {
                       <div
                         key={pair.visitId}
                         className={`rounded-2xl border bg-white/5 transition-all ${
-                          active ? "border-brand-green/40 shadow-glow-green/10" : "border-white/10"
+                          active ? "border-emerald-600/40 shadow-glow-green/10" : "border-white/10"
                         }`}
                       >
                         {/* Header bar */}
                         <div className="flex items-center justify-between border-b border-white/5 px-5 py-3">
                           <div className="flex items-center gap-2">
                             {pair.entryCode.guestCount > 1 && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-brand-green/10 px-2.5 py-0.5 text-xs font-bold text-brand-green">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/10 px-2.5 py-0.5 text-xs font-bold text-emerald-600">
                                 <Users className="h-3 w-3" />
                                 {pair.entryCode.guestCount} guests
                               </span>
@@ -321,7 +321,7 @@ export default function ResidentAppCodesPage() {
                       <div
                         key={c.id}
                         className={`rounded-2xl border bg-white/5 p-4 shadow-sm ${
-                          active ? "border-brand-green/30" : "border-white/10"
+                          active ? "border-emerald-600/30" : "border-white/10"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -384,7 +384,7 @@ export default function ResidentAppCodesPage() {
       {/* FAB */}
       <button
         onClick={() => setShowSheet(true)}
-        className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-brand-green to-brand-green-600 text-white shadow-premium-lg transition-transform active:scale-95"
+        className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-emerald-600 to-emerald-600 text-white shadow-premium-lg transition-transform active:scale-95"
       >
         <Plus className="h-7 w-7" />
       </button>
@@ -416,11 +416,11 @@ export default function ResidentAppCodesPage() {
                 onClick={() => setSheetType("GUEST")}
                 className={`rounded-2xl border-2 p-4 text-left transition-all ${
                   sheetType === "GUEST"
-                    ? "border-brand-navy bg-brand-navy/5"
+                    ? "border-violet-700 bg-violet-700/5"
                     : "border-white/10 hover:border-white/15"
                 }`}
               >
-                <Users className={`h-6 w-6 ${sheetType === "GUEST" ? "text-brand-green" : "text-white/40"}`} />
+                <Users className={`h-6 w-6 ${sheetType === "GUEST" ? "text-emerald-600" : "text-white/40"}`} />
                 <p className="mt-2 font-bold text-white">Guest</p>
                 <p className="text-xs text-white/50">Entry + exit pair, 4h</p>
               </button>
@@ -428,11 +428,11 @@ export default function ResidentAppCodesPage() {
                 onClick={() => setSheetType("STAFF")}
                 className={`rounded-2xl border-2 p-4 text-left transition-all ${
                   sheetType === "STAFF"
-                    ? "border-brand-green bg-brand-green/5"
+                    ? "border-emerald-600 bg-emerald-600/5"
                     : "border-white/10 hover:border-white/15"
                 }`}
               >
-                <ShieldCheck className={`h-6 w-6 ${sheetType === "STAFF" ? "text-brand-green" : "text-white/40"}`} />
+                <ShieldCheck className={`h-6 w-6 ${sheetType === "STAFF" ? "text-emerald-600" : "text-white/40"}`} />
                 <p className="mt-2 font-bold text-white">Staff</p>
                 <p className="text-xs text-white/50">Renewable, 6 months</p>
               </button>
@@ -480,7 +480,7 @@ export default function ResidentAppCodesPage() {
                     onChange={(e) => setGuestNames(e.target.value)}
                     placeholder="e.g. John, Sarah"
                     maxLength={500}
-                    className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none ring-brand-green/20 placeholder:text-white/40 focus:border-brand-green/50 focus:ring-4"
+                    className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none ring-emerald-600/20 placeholder:text-white/40 focus:border-emerald-600/50 focus:ring-4"
                   />
                 </div>
               </div>
@@ -491,8 +491,8 @@ export default function ResidentAppCodesPage() {
               disabled={creating}
               className={`mt-6 flex h-[3.25rem] w-full items-center justify-center gap-2 rounded-2xl text-sm font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-60 ${
                 sheetType === "GUEST"
-                  ? "bg-brand-navy hover:shadow-brand-green/40"
-                  : "bg-brand-green hover:bg-brand-green/90"
+                  ? "bg-violet-700 hover:shadow-emerald-500/30"
+                  : "bg-emerald-600 hover:bg-emerald-600/90"
               }`}
             >
               {creating ? (

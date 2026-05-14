@@ -75,18 +75,18 @@ export async function AppShell({
   const allNavItems = [...(nav || []), ...(bottomNav || [])];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 text-slate-950 md:pb-0">
+    <div className="gp-dashboard-bg min-h-screen pb-20 text-slate-950 md:pb-0">
       <div className="mx-auto flex min-h-screen max-w-[1500px]">
         {/* Fixed sidebar - desktop only */}
         <aside className="hidden w-72 flex-shrink-0 md:block">
-          <div className="fixed top-0 flex h-screen w-72 flex-col border-r border-slate-200 bg-white px-5 py-6 shadow-sm">
+          <div className="fixed top-0 flex h-screen w-72 flex-col border-r border-violet-100 bg-white px-5 py-6 shadow-[16px_0_50px_rgba(76,29,149,0.06)]">
             <Link href="/dashboard" className="flex items-center gap-3 px-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm">
-                <ShieldCheck className="h-5 w-5 text-emerald-700" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-violet-700 text-white shadow-[0_14px_30px_rgba(109,40,217,0.25)]">
+                <ShieldCheck className="h-6 w-6" />
               </div>
               <div className="leading-tight">
-                <div className="text-sm font-extrabold tracking-tight text-slate-950">GatePilot</div>
-                <div className="text-xs font-semibold tracking-wide text-slate-500">
+                <div className="text-base font-black uppercase tracking-normal text-slate-950">GatePilot</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-600">
                   {session?.role ? formatRoleLabel(session.role) : "Portal"}
                 </div>
               </div>
@@ -100,17 +100,17 @@ export async function AppShell({
 
             <div className="mt-auto pt-6">
               {session ? (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="rounded-lg border border-violet-100 bg-[#f8f7ff] p-4 shadow-inner">
                   {estate ? (
-                    <div className="mb-4 rounded-md border border-emerald-100 bg-white p-3">
-                      <div className="text-xs font-bold uppercase tracking-wide text-slate-400">Active estate</div>
-                      <div className="mt-1 truncate text-sm font-bold text-slate-950">{estate.name}</div>
+                    <div className="mb-4 rounded-lg border border-violet-100 bg-white p-3 shadow-sm">
+                      <div className="gp-panel-title">Active estate</div>
+                      <div className="mt-2 truncate text-base font-black uppercase text-slate-950">{estate.name}</div>
                       <div className="truncate text-xs text-slate-500">{estate.address || estate.estateId}</div>
                       <EstateSwitcher estates={estateOptions} activeEstateId={estate.estateId} />
                     </div>
                   ) : null}
-                  <div className="text-sm font-semibold text-slate-950">{displayName}</div>
-                  <div className="mt-1 text-xs font-semibold tracking-wide text-slate-500">
+                  <div className="text-sm font-black text-slate-950">{displayName}</div>
+                  <div className="mt-1 text-xs font-black uppercase tracking-wide text-slate-500">
                     {formatRoleLabel(session.role)}
                   </div>
 
@@ -131,22 +131,22 @@ export async function AppShell({
 
         <div className="min-w-0 flex-1">
           {/* Mobile header */}
-          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+          <header className="sticky top-0 z-20 border-b border-violet-100 bg-white/90 backdrop-blur-xl">
             <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4">
               <div className="flex items-center gap-3 md:hidden">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 shadow-sm">
-                  <ShieldCheck className="h-4 w-4 text-emerald-700" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-700 text-white shadow-sm">
+                  <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div className="leading-tight">
-                  <div className="text-xs font-bold text-slate-950">GatePilot</div>
+                  <div className="text-xs font-black uppercase text-slate-950">GatePilot</div>
                   {title && (
-                    <div className="text-xs font-semibold text-slate-500">{title}</div>
+                    <div className="text-xs font-bold text-slate-500">{title}</div>
                   )}
                 </div>
               </div>
               <div className="hidden min-w-0 md:block">
                 {title ? (
-                  <h1 className="truncate text-lg font-extrabold tracking-tight text-slate-950">
+                  <h1 className="truncate text-xl font-black uppercase tracking-normal text-slate-950">
                     {title}
                   </h1>
                 ) : null}

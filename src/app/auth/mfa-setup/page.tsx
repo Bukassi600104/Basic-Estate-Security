@@ -124,7 +124,7 @@ function MfaSetupContent() {
             </p>
 
             <input
-              className="mt-4 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 outline-none ring-brand-navy/20 focus:border-brand-navy focus:ring-4"
+              className="mt-4 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 outline-none ring-violet-700/20 focus:border-violet-700 focus:ring-4"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               inputMode="numeric"
@@ -143,7 +143,7 @@ function MfaSetupContent() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-brand-navy px-5 text-sm font-extrabold text-white shadow-sm hover:bg-brand-navy/90 disabled:opacity-60"
+            className="inline-flex h-12 items-center justify-center rounded-2xl bg-violet-700 px-5 text-sm font-extrabold text-white shadow-sm hover:bg-violet-700/90 disabled:opacity-60"
           >
             {loading ? "Verifying…" : "Finish setup"}
           </button>

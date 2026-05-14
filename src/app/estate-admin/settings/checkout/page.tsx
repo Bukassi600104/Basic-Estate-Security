@@ -47,7 +47,7 @@ function CheckoutPageContent() {
   if (!tier) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Spinner className="h-8 w-8 text-brand-green" />
+        <Spinner className="h-8 w-8 text-emerald-600" />
       </div>
     );
   }
@@ -97,7 +97,7 @@ function CheckoutPageContent() {
 
           {/* Selected plan */}
           <div className="mt-6 flex items-start gap-4 rounded-xl bg-white/5 p-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-green/10 text-brand-green">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-600">
               <Shield className="h-6 w-6" />
             </div>
             <div className="flex-1">
@@ -109,32 +109,32 @@ function CheckoutPageContent() {
           {/* Plan features */}
           <div className="mt-6 space-y-3">
             <div className="flex items-center gap-2 text-sm text-white/70">
-              <Check className="h-4 w-4 text-brand-green" />
+              <Check className="h-4 w-4 text-emerald-600" />
               Up to {tierConfig.maxHouses} houses
             </div>
             <div className="flex items-center gap-2 text-sm text-white/70">
-              <Check className="h-4 w-4 text-brand-green" />
+              <Check className="h-4 w-4 text-emerald-600" />
               {tierConfig.maxAdmins} admin account{tierConfig.maxAdmins > 1 ? "s" : ""}
             </div>
             <div className="flex items-center gap-2 text-sm text-white/70">
-              <Check className="h-4 w-4 text-brand-green" />
+              <Check className="h-4 w-4 text-emerald-600" />
               Unlimited guards & gates
             </div>
             {tierConfig.features.exportEnabled && (
               <div className="flex items-center gap-2 text-sm text-white/70">
-                <Check className="h-4 w-4 text-brand-green" />
+                <Check className="h-4 w-4 text-emerald-600" />
                 Export to Excel
               </div>
             )}
             {tierConfig.features.advancedAnalytics && (
               <div className="flex items-center gap-2 text-sm text-white/70">
-                <Check className="h-4 w-4 text-brand-green" />
+                <Check className="h-4 w-4 text-emerald-600" />
                 Advanced analytics
               </div>
             )}
             {tierConfig.features.subAdminEnabled && (
               <div className="flex items-center gap-2 text-sm text-white/70">
-                <Check className="h-4 w-4 text-brand-green" />
+                <Check className="h-4 w-4 text-emerald-600" />
                 Sub-admin accounts
               </div>
             )}
@@ -151,7 +151,7 @@ function CheckoutPageContent() {
             {billingCycle === "YEARLY" && (
               <div className="mt-2 flex items-center justify-between text-sm">
                 <span className="text-white/60">Yearly discount</span>
-                <span className="font-semibold text-brand-green">-5%</span>
+                <span className="font-semibold text-emerald-600">-5%</span>
               </div>
             )}
             <div className="mt-4 flex items-center justify-between">
@@ -189,9 +189,9 @@ function CheckoutPageContent() {
           </div>
 
           {/* Contact info */}
-          <div className="mt-6 rounded-xl bg-brand-navy/5 p-4">
+          <div className="mt-6 rounded-xl bg-violet-700/5 p-4">
             <div className="flex items-start gap-3">
-              <Building2 className="mt-0.5 h-5 w-5 text-brand-green" />
+              <Building2 className="mt-0.5 h-5 w-5 text-emerald-600" />
               <div>
                 <p className="text-sm font-semibold text-white">
                   Need to pay now?
@@ -200,7 +200,7 @@ function CheckoutPageContent() {
                   Contact us at{" "}
                   <a
                     href="mailto:billing@gatepilot.ng"
-                    className="font-semibold text-brand-green hover:underline"
+                    className="font-semibold text-emerald-600 hover:underline"
                   >
                     billing@gatepilot.ng
                   </a>{" "}
@@ -216,15 +216,15 @@ function CheckoutPageContent() {
               type="checkbox"
               checked={agreedToTerms}
               onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-white/15 text-brand-green focus:ring-brand-navy"
+              className="mt-1 h-4 w-4 rounded border-white/15 text-emerald-600 focus:ring-violet-700"
             />
             <span className="text-sm text-white/60">
               I agree to the{" "}
-              <a href="#" className="font-semibold text-brand-green hover:underline">
+              <a href="#" className="font-semibold text-emerald-600 hover:underline">
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="#" className="font-semibold text-brand-green hover:underline">
+              <a href="#" className="font-semibold text-emerald-600 hover:underline">
                 Privacy Policy
               </a>
             </span>
@@ -234,7 +234,7 @@ function CheckoutPageContent() {
           <button
             onClick={handleCheckout}
             disabled={loading || !agreedToTerms}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-navy py-4 text-sm font-bold text-white hover:shadow-brand-green/40 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-700 py-4 text-sm font-bold text-white hover:shadow-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -263,7 +263,7 @@ function CheckoutPageContent() {
 function CheckoutLoading() {
   return (
     <div className="flex min-h-[400px] items-center justify-center">
-      <Spinner className="h-8 w-8 text-brand-green" />
+      <Spinner className="h-8 w-8 text-emerald-600" />
     </div>
   );
 }
