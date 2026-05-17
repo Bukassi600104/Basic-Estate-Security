@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   description: "Estate security passes for residents, guests, and guards.",
   applicationName: "GatePilot",
   metadataBase: new URL(process.env.APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({

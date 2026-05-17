@@ -188,12 +188,16 @@ function SignUpPageContent() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-violet-200 bg-white">
-                <Shield className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div>
-                <div className="text-sm font-extrabold uppercase tracking-wider text-white">GatePilot</div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400">Security</div>
+              <Image
+                src="/images/gatepilot-mark.png"
+                alt="GatePilot logo"
+                width={40}
+                height={40}
+                className="rounded-lg bg-white"
+                priority
+              />
+              <div className="text-sm font-extrabold tracking-tight text-white">
+                Gate<span className="text-emerald-400">Pilot</span>
               </div>
             </Link>
           </div>

@@ -1,10 +1,10 @@
 /**
  * Verification code utilities for resident and guard authentication.
- * Code format: BS-{ESTATE_INITIALS}-{UNIQUE_ID}
- * Example: BS-GW-3453yHGT (for "Gowon" estate)
+ * Code format: GP-{ESTATE_INITIALS}-{UNIQUE_ID}
+ * Example: GP-GW-3453yHGT (for "Gowon" estate)
  *
  * Format breakdown:
- * - BS: Constant prefix (GatePilot)
+ * - GP: Constant prefix (GatePilot)
  * - XX: 2-letter estate initials derived from estate name
  * - 8-char unique ID: 4 digits + 4 uppercase letters (e.g., 3453YHGT)
  */
@@ -24,16 +24,16 @@ function generateUniqueId(): string {
 /**
  * Generate verification code from estate initials.
  * @param estateInitials - 2-letter estate initials (e.g., "GW")
- * @returns Verification code (e.g., "BS-GW-3453YHGT")
+ * @returns Verification code (e.g., "GP-GW-3453YHGT")
  */
 export function generateVerificationCode(estateInitials: string): string {
   const uniqueId = generateUniqueId();
-  return `BS-${estateInitials.toUpperCase()}-${uniqueId}`;
+  return `GP-${estateInitials.toUpperCase()}-${uniqueId}`;
 }
 
 /**
  * Parse and validate a verification code format.
- * @param code - Code to parse (e.g., "BS-GW-3453YHGT")
+ * @param code - Code to parse (e.g., "GP-GW-3453YHGT")
  * @returns Parsed components or invalid result
  */
 export function parseVerificationCode(code: string): {
@@ -42,8 +42,8 @@ export function parseVerificationCode(code: string): {
   uniqueId?: string;
 } {
   const normalized = code.toUpperCase().trim();
-  // Match: BS-XX-4digits4letters
-  const match = normalized.match(/^BS-([A-Z]{2})-(\d{4}[A-Z]{4})$/);
+  // Match: GP-XX-4digits4letters
+  const match = normalized.match(/^GP-([A-Z]{2})-(\d{4}[A-Z]{4})$/);
   if (!match) return { valid: false };
   return {
     valid: true,
@@ -54,7 +54,7 @@ export function parseVerificationCode(code: string): {
 
 /**
  * Validate verification code against estate initials.
- * The code must start with BS-{initials}- and have a valid unique ID format.
+ * The code must start with GP-{initials}- and have a valid unique ID format.
  * @param providedCode - Code provided by user
  * @param estateInitials - Expected estate initials
  * @returns true if code is valid for the estate

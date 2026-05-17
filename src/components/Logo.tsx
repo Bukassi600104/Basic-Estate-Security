@@ -23,11 +23,11 @@ export function Logo({ size = "md", showText = true, className = "" }: LogoProps
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <Image
-        src="/images/logo.jpg"
-        alt="GatePilot Logo"
+        src="/images/gatepilot-mark.png"
+        alt="GatePilot logo"
         width={width}
         height={height}
-        className="rounded-xl"
+        className="rounded-xl bg-white"
         priority
       />
       {showText && (

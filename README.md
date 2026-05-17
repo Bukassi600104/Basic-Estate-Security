@@ -1,4 +1,4 @@
-# Estate Security
+# GatePilot
 
 A role-based security pass system for gated estates. Residents generate guest and staff access codes, guards validate codes at gates, estate admins manage residents/guards/logs, and super admins oversee estates.
 

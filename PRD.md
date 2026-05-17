@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Basic Security - Estate Access Management System
+## GatePilot - Estate Access Management System
 
 A role-based security pass system for gated residential estates. Enables residents to generate guest/staff access codes, guards to validate codes at gates, and estate administrators to manage their estates independently.
 

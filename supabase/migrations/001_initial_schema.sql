@@ -1,4 +1,4 @@
--- Estate Security - Full Schema Migration
+-- GatePilot - Full Schema Migration
 -- Migrated from DynamoDB to Supabase Postgres
 
 -- ============================================

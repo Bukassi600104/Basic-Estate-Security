@@ -14,14 +14,14 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["security", "utilities", "productivity"],
     icons: [
       {
-        src: "/images/logo.jpg",
+        src: "/images/gatepilot-mark.png",
         sizes: "192x192",
-        type: "image/jpeg",
+        type: "image/png",
       },
       {
-        src: "/images/logo.jpg",
+        src: "/images/gatepilot-mark.png",
         sizes: "512x512",
-        type: "image/jpeg",
+        type: "image/png",
       },
     ],
   };
