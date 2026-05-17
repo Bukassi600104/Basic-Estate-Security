@@ -23,6 +23,9 @@ export type ValidationLogRecord = {
   guestCount?: number;
   residentName?: string;
   houseNumber?: string;
+  generatedByUserId?: string;
+  generatedByName?: string;
+  generatedByRole?: "RESIDENT" | "RESIDENT_DELEGATE";
   codeValue: string;
   guardUserId: string;
   guardName?: string;
@@ -47,6 +50,9 @@ function rowToLog(row: Record<string, unknown>): ValidationLogRecord {
     guestCount: (row.guest_count as number) ?? undefined,
     residentName: (row.resident_name as string) ?? undefined,
     houseNumber: (row.house_number as string) ?? undefined,
+    generatedByUserId: (row.generated_by_user_id as string) ?? undefined,
+    generatedByName: (row.generated_by_name as string) ?? undefined,
+    generatedByRole: (row.generated_by_role as "RESIDENT" | "RESIDENT_DELEGATE") ?? undefined,
     codeValue: row.code_value as string,
     guardUserId: row.guard_user_id as string,
     guardName: (row.guard_name as string) ?? undefined,
@@ -77,6 +83,9 @@ export async function putValidationLog(log: ValidationLogRecord) {
     guest_count: log.guestCount ?? null,
     resident_name: log.residentName ?? null,
     house_number: log.houseNumber ?? null,
+    generated_by_user_id: log.generatedByUserId ?? null,
+    generated_by_name: log.generatedByName ?? null,
+    generated_by_role: log.generatedByRole ?? null,
     code_value: log.codeValue,
     guard_user_id: log.guardUserId,
     guard_name: log.guardName ?? null,

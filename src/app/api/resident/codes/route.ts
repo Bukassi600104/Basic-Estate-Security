@@ -28,6 +28,10 @@ const STAFF_TTL_MS = 183 * 24 * 60 * 60 * 1000;
 const MAX_ACTIVE_GUEST_CODES = 10; // 5 pairs = 10 codes
 const MAX_ACTIVE_STAFF_CODES = 3;
 
+function residentCodeGeneratorRole(role: string): "RESIDENT" | "RESIDENT_DELEGATE" {
+  return role === "RESIDENT_DELEGATE" ? "RESIDENT_DELEGATE" : "RESIDENT";
+}
+
 function toIso(d: Date) {
   return d.toISOString();
 }
@@ -102,6 +106,11 @@ export async function POST(req: Request) {
   }
 
   const type = parsed.data.type;
+  const generatedBy = {
+    generatedByUserId: userRes.value.id,
+    generatedByName: userRes.value.name,
+    generatedByRole: residentCodeGeneratorRole(userRes.value.role),
+  };
 
   // Tighter rate limits per code type
   const rateLimit = type === "GUEST" ? 10 : 2;
@@ -151,6 +160,7 @@ export async function POST(req: Request) {
       expiresAtIso,
       guestCount: parsed.data.guestCount,
       guestNames: parsed.data.guestNames,
+      ...generatedBy,
     });
 
     return NextResponse.json({
@@ -183,6 +193,7 @@ export async function POST(req: Request) {
     expiresAtIso,
     guestCount: parsed.data.guestCount,
     guestNames: parsed.data.guestNames,
+    ...generatedBy,
   });
 
   return NextResponse.json({ ok: true });

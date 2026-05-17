@@ -65,6 +65,9 @@ async function writeFailureLog(params: {
   guestCount?: number;
   residentName?: string;
   houseNumber?: string;
+  generatedByUserId?: string;
+  generatedByName?: string;
+  generatedByRole?: "RESIDENT" | "RESIDENT_DELEGATE";
 }) {
   await putValidationLog({
     logId: newValidationLogId(),
@@ -83,6 +86,9 @@ async function writeFailureLog(params: {
     guestCount: params.guestCount,
     residentName: params.residentName,
     houseNumber: params.houseNumber,
+    generatedByUserId: params.generatedByUserId,
+    generatedByName: params.generatedByName,
+    generatedByRole: params.generatedByRole,
     codeValue: params.codeValue,
     guardUserId: params.guardUserId,
     guardName: params.guardName,
@@ -175,7 +181,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: mapFailureToUserMessage("INVALID_CODE") }, { status: 403 });
   }
 
-  const codeLogBase = { ...logBase, passType: code.passType, eventType: code.eventType, visitId: code.visitId, guestCount: code.guestCount, residentName: resident.name, houseNumber: resident.houseNumber };
+  const generatedByName = code.generatedByName ?? resident.name;
+  const generatedByRole = code.generatedByRole ?? "RESIDENT";
+  const codeLogBase = {
+    ...logBase,
+    passType: code.passType,
+    eventType: code.eventType,
+    visitId: code.visitId,
+    guestCount: code.guestCount,
+    residentName: resident.name,
+    houseNumber: resident.houseNumber,
+    generatedByUserId: code.generatedByUserId,
+    generatedByName,
+    generatedByRole,
+  };
 
   if (resident.status === "SUSPENDED") {
     await writeFailureLog({ ...codeLogBase, failureReason: "RESIDENT_SUSPENDED" });
@@ -223,6 +242,9 @@ export async function POST(req: Request) {
       guestCount: code.guestCount ?? 1,
       residentName: resident.name,
       houseNumber: resident.houseNumber,
+      generatedByUserId: code.generatedByUserId,
+      generatedByName,
+      generatedByRole,
       codeValue,
       guardUserId: guard.id,
       guardName: guard.name,
@@ -235,6 +257,8 @@ export async function POST(req: Request) {
       guestCount: code.guestCount ?? 1,
       residentName: resident.name,
       houseNumber: resident.houseNumber,
+      generatedByName,
+      generatedByRole,
     });
   }
 
@@ -255,6 +279,9 @@ export async function POST(req: Request) {
     guestCount: code.guestCount ?? 1,
     residentName: resident.name,
     houseNumber: resident.houseNumber,
+    generatedByUserId: code.generatedByUserId,
+    generatedByName,
+    generatedByRole,
     codeValue,
     guardUserId: guard.id,
     guardName: guard.name,
@@ -267,5 +294,7 @@ export async function POST(req: Request) {
     guestCount: code.guestCount ?? 1,
     residentName: resident.name,
     houseNumber: resident.houseNumber,
+    generatedByName,
+    generatedByRole,
   });
 }

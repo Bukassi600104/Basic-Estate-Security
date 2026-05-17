@@ -76,6 +76,8 @@ export async function POST(req: Request) {
   }
 
   const expired = isExpired({ status: code.status, expiresAtIso: code.expiresAt, nowIso });
+  const generatedByName = code.generatedByName ?? resident.name;
+  const generatedByRole = code.generatedByRole ?? "RESIDENT";
 
   return NextResponse.json({
     ok: true,
@@ -84,8 +86,15 @@ export async function POST(req: Request) {
       code: code.codeValue,
       type: code.passType,
       status: code.status,
+      eventType: code.eventType ?? "ENTRY",
+      guestCount: code.guestCount ?? 1,
+      guestNames: code.guestNames,
       expiresAt: code.expiresAt,
       expired,
+      generatedBy: {
+        name: generatedByName,
+        role: generatedByRole,
+      },
       resident: {
         name: resident.name,
         houseNumber: resident.houseNumber,

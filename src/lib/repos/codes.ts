@@ -11,6 +11,9 @@ export type CodeRecord = {
   estateId: string;
   codeValue: string;
   residentId: string;
+  generatedByUserId?: string;
+  generatedByName?: string;
+  generatedByRole?: "RESIDENT" | "RESIDENT_DELEGATE";
   passType: PassType;
   status: CodeStatus;
   eventType?: EventType;
@@ -30,6 +33,9 @@ function rowToCode(row: Record<string, unknown>): CodeRecord {
     estateId: row.estate_id as string,
     codeValue: row.code_value as string,
     residentId: row.resident_id as string,
+    generatedByUserId: (row.generated_by_user_id as string) ?? undefined,
+    generatedByName: (row.generated_by_name as string) ?? undefined,
+    generatedByRole: (row.generated_by_role as "RESIDENT" | "RESIDENT_DELEGATE") ?? undefined,
     passType: row.pass_type as PassType,
     status: row.status as CodeStatus,
     eventType: (row.event_type as EventType) ?? undefined,
@@ -131,6 +137,9 @@ export async function createCode(params: {
   linkedCodeId?: string;
   guestCount?: number;
   guestNames?: string;
+  generatedByUserId?: string;
+  generatedByName?: string;
+  generatedByRole?: "RESIDENT" | "RESIDENT_DELEGATE";
 }): Promise<CodeRecord> {
   const sb = getSupabaseAdmin();
 
@@ -144,6 +153,9 @@ export async function createCode(params: {
         estate_id: params.estateId,
         code_value: codeValue,
         resident_id: params.residentId,
+        generated_by_user_id: params.generatedByUserId ?? null,
+        generated_by_name: params.generatedByName ?? null,
+        generated_by_role: params.generatedByRole ?? null,
         pass_type: params.passType,
         status: "ACTIVE",
         event_type: params.eventType ?? null,
@@ -169,6 +181,9 @@ export async function createCodePair(params: {
   expiresAtIso: string;
   guestCount?: number;
   guestNames?: string;
+  generatedByUserId?: string;
+  generatedByName?: string;
+  generatedByRole?: "RESIDENT" | "RESIDENT_DELEGATE";
 }) {
   const visitId = `visit_${nanoid(12)}`;
 
